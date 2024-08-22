@@ -1,32 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
 
     <data noupdate="0">
-
-        <report
-            id="action_electronic_invoice"
-            print_report_name="object.name"
-            model="account.move"
-            string="Factura electronica"
-            report_type="qweb-pdf"
-            file="l10n_ar_electronic_invoice_report.report_electronic_invoice"
-            name="l10n_ar_electronic_invoice_report.report_electronic_invoice"
-        />
 
         <record id="electronic_invoice_paper_format" model="report.paperformat">
             <field name="name">Papel factura electronica</field>
@@ -39,7 +15,15 @@
         </record>
 
         <record id="action_electronic_invoice" model="ir.actions.report">
-            <field name="paperformat_id" ref="electronic_invoice_paper_format" />
+            <field name="name">Factura electrónica</field>
+            <field name="model">account.move</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">l10n_ar_electronic_invoice_report.report_electronic_invoice</field>
+            <field name="report_file">l10n_ar_electronic_invoice_report.report_electronic_invoice</field>
+            <field name="print_report_name">object.full_voucher_name</field>
+            <field name="binding_model_id" ref="model_account_move"/>
+            <field name="paperformat_id" ref="electronic_invoice_paper_format"/>
+            <field name="binding_type">report</field>
         </record>
 
     </data>

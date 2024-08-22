@@ -1,22 +1,6 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
-from odoo import models, api
+from odoo import models, api, fields
 from odoo.exceptions import ValidationError
 from l10n_ar_api.presentations import presentation
 
@@ -25,6 +9,8 @@ class InvoiceAfipPresentation(models.AbstractModel):
 
     _name = 'invoice.afip.presentation'
     _description = 'Presentacion de facturas para afip'
+
+    invoice_ids = fields.Many2many('account.move', string='Documentos')
 
     def get_period(self):
         """
@@ -37,7 +23,7 @@ class InvoiceAfipPresentation(models.AbstractModel):
     def get_domain_invoices(self):
         """ Obtengo el dominio con las condiciones para buscar las facturas"""
         return [
-            ('state', '=', 'posted'),
+            ('state', 'not in', ('cancel', 'draft')),
             ('voucher_type_id', '!=', False),
             ('date', '>=', self.date_from),
             ('date', '<=', self.date_to),
@@ -53,17 +39,17 @@ class InvoiceAfipPresentation(models.AbstractModel):
         """
 
         foreign_fiscal_positions = [
-            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_cliente_ext'),
-            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_prov_ext'),
+            self.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
+            self.env.ref('l10n_ar.ar_fiscal_position_prov_ext'),
         ]
 
         errors = []
 
-        for invoice in self.invoices:
+        for invoice in self.invoice_ids:
             if not invoice.fiscal_position_id:
                 errors.append("La factura {} no posee posicion fiscal.".format(invoice.name))
 
-            is_foreign = invoice.fiscal_position_id in foreign_fiscal_positions
+            is_foreign = invoice.fiscal_position_id.ar_fiscal_position_id in foreign_fiscal_positions
 
             if not invoice.partner_id.vat and not is_foreign:
                 errors.append("El partner {} no posee numero de documento.".format(invoice.partner_id.name))

@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "",
+    'name': "l10n_ar_no_documents_journal",
     'summary': """""",
     'description': """""",
-    'author': "Moogah",
-    'website': "http://www.Moogah.com",
+    'author': 'BLUEORANGE GROUP S.R.L. (www.blueorange.com.ar) / Moogah ',
+    'website': "https://www.Moogah.com",
     'category': 'Uncategorized',
-    'version': '13.0.1.0.0',
+    'version': '17.0.0.0.0',
+    'license': 'OPL-1',
     'depends': [
         'account',
         'l10n_ar_invoice_presentation',
     ],
     'data': [
-        'views/view.xml',
-        'security/ir.model.access.csv',
+        'views/account_journal.xml',
     ],
     'demo': [],
     'application': True,

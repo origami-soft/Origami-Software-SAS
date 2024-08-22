@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <menuitem
+            id="document_books_main_menu"
+            name="Talonarios"
+            parent="account.menu_finance_configuration"
+        />
+
+        <menuitem
+            id="pos_ar_menu"
+            name="Puntos de venta"
+            action="action_pos_ar_view"
+            parent="document_books_main_menu"
+        />
+            
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

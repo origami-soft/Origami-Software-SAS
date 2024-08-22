@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
     <data>
@@ -20,34 +6,35 @@
         <record model="ir.ui.view" id="retentions_payment_form">
             <field name="name">Retentions payment form</field>
             <field name="model">account.payment</field>
-            <field name="priority">50</field>
+            <field name="priority">30</field>
             <field name="inherit_id" ref="l10n_payment_line.view_account_payment_form"/>
             <field name="arch" type="xml">
                 <notebook position="inside">
                     <page name="retentions" string="Retenciones">
-                        <field name="retention_ids" nolabel="1" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                        <field name="retention_ids" nolabel="1" readonly="state != 'draft'">
                             <tree editable="bottom" string="Retenciones">
-                                <field name="company_id" invisible="1"/>
-                                <field name="type" invisible="1"/>
-                                <field name="payment_id" invisible="1"/>
-                                <field name="payment_currency_id" invisible="1"/>
-                                <field name="same_currency_as_payment" invisible="1"/>
-                                <field name="currency_id" invisible="1"/>
+                                <field name="company_id" column_invisible="1"/>
+                                <field name="type" column_invisible="1"/>
+                                <field name="payment_id" column_invisible="1"/>
+                                <field name="payment_currency_id" column_invisible="1"/>
+                                <field name="same_currency_as_payment" column_invisible="1"/>
+                                <field name="currency_id" column_invisible="1"/>
                                 <field name="journal_id"/>
                                 <field name="retention_id"
-                                       domain="[('company_id', '=', company_id), '|', ('type_tax_use', '=', parent.payment_type == 'outbound' and 'purchase'), ('type_tax_use', '=', parent.payment_type == 'inbound' and 'sale')]"/>
+                                       domain="['|', ('company_id', '=', company_id), ('company_id', '=', False), '|', ('type_tax_use', '=', parent.payment_type == 'outbound' and 'purchase'), ('type_tax_use', '=', parent.payment_type == 'inbound' and 'sale')]"/>
                                 <field name="certificate_no"/>
-                                <field name="date" attrs="{'required': [('parent.partner_type', '!=', 'supplier')]}"/>
+                                <field name="date" required="parent.partner_type != 'supplier'"/>
                                 <field name="activity_id"
-                                       attrs="{'required': [('parent.payment_type', '=', 'outbound'),('type','=','profit')],
-                                              'invisible': [('type', 'not in', ('profit', 'vat'))]}"/>
+                                       required="parent.payment_type == 'outbound' and type == 'profit'"
+                                       invisible="type not in ['profit', 'vat']"
+                                />
                                 <field name="rate"/>
                                 <field name="aliquot"/>
                                 <field name="base" sum="Total"/>
                                 <field name="amount" sum="Total"/>
                                 <field name="payment_currency_amount" sum="Total"/>
-                                <field name="name" invisible="1"/>
-                                <field name="jurisdiction" invisible="1"/>
+                                <field name="name" column_invisible="1"/>
+                                <field name="jurisdiction" column_invisible="1"/>
                             </tree>
                         </field>
                     </page>

@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <odoo>
     <data>
         <record model="ir.ui.view" id="reject_checks_wizard_form">
@@ -5,11 +7,12 @@
             <field name="model">reject.checks.wizard</field>
             <field name="arch" type="xml">
                 <form>
-                    <div class="alert alert-warning" role="alert" colspan="2" attrs="{'invisible': [('check_state', '!=', 'sold')]}">
+                    <div class="alert alert-warning" role="alert" colspan="2" invisible="check_state != 'sold'">
                         El cheque está en estado 'Vendido', deberá generar el asiento de rechazo manualmente.
                     </div>
                     <group>
-                        <field name="create_moves" attrs="{'invisible': [('check_state', '=', 'sold')]}"/>
+                        <field name="reject_date"/>
+                        <field name="create_moves" invisible="check_state == 'sold'"/>
                         <field name="check_state" invisible="1"/>
                     </group>
                     <footer>
@@ -30,3 +33,5 @@
         </record>
     </data>
 </odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

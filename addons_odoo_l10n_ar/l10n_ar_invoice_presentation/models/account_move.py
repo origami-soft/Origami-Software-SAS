@@ -1,22 +1,6 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
-from odoo import models, fields, api
+from odoo import models
 
 
 class AccountMove(models.Model):
@@ -31,7 +15,7 @@ class AccountMove(models.Model):
         """
         # Traemos todas las lineas del asiento que tengan esa cuenta
         move_lines = self.line_ids.filtered(
-            lambda x: x.account_id.user_type_id.type in ('receivable', 'payable') and (
+            lambda x: x.account_id.account_type in ('asset_receivable', 'liability_payable') and (
                         x.amount_currency or x.balance)) or self.line_ids.filtered(
             lambda x: x.amount_currency) or self.line_ids.filtered(lambda l: l.balance)
         move_line = move_lines[0]

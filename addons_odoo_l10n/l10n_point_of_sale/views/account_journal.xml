@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_journal_pos_ar_form">
+            <field name="name">Account journal pos ar form</field>
+            <field name="model">account.journal</field>
+            <field name="inherit_id" ref="account.view_account_journal_form"/>
+            <field name="arch" type="xml">
+                <field name="type" position="after">
+                    <field
+                        name="pos_ar_id"
+                        invisible="type not in ['purchase', 'sale', 'bank', 'cash']"
+                    />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

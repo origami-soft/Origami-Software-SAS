@@ -1,34 +1,28 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 from datetime import datetime
 from odoo.exceptions import ValidationError
-import zeep
-import ast
+import zeep, ast
 import requests
-import urllib3
-requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'AES128-SHA'
+from ..models.document_book import SERVICE_FUNCTION
+
+RESULT_KEYS = {
+    'wsfe': 'ResultGet',
+    'wsfex': 'FEXResultGet',
+    'wsbfe': 'BFEResultGet',
+}
+
+CAE_KEYS = {
+    'wsfe': 'CodAutorizacion',
+    'wsfex': 'Cae',
+    'wsbfe': 'Cae',
+}
 
 
 class AfipMissedDocumentWizard(models.TransientModel):
-
     _name = 'afip.missed.document.wizard'
+    _description = 'Wizard de recupero de comprobantes'
 
     company_id = fields.Many2one(
         'res.company',
@@ -68,7 +62,7 @@ class AfipMissedDocumentWizard(models.TransientModel):
     @api.depends('pos_ar_id')
     def _compute_available_voucher_type_ids(self):
         self.available_voucher_type_ids = self.pos_ar_id.document_book_ids.filtered(
-            lambda x: x.book_type_id.type == 'electronic'
+            lambda x: x.book_type_id.is_electronic()
         ).mapped('voucher_type_id')
 
     @api.onchange('pos_ar_id')
@@ -84,10 +78,26 @@ class AfipMissedDocumentWizard(models.TransientModel):
         self.response = None
 
     def get_documents_data(self):
-        wsfe = self.env['wsfe.configuration'].get_wsfe(self.company_id)
-        cae_request = wsfe.retrieve_cae(self.voucher_type_id.code, self.document_number, self.pos_ar_id.name)[0]
+        document_book = self.pos_ar_id.document_book_ids.filtered(lambda l: l.voucher_type_id == self.voucher_type_id)
+        if not document_book:
+            raise ValidationError("El punto de venta {} no posee un talonario para {}".format(
+                self.pos_ar_id.name, self.voucher_type_id.name
+            ))
+        service_str = SERVICE_FUNCTION.get(document_book.book_type_id.type)
+        service = getattr(self.env['wsaa.configuration'], f'get_{service_str}')(self.company_id)
+
+        default_cipher = requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS
+        requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'AES128-SHA'
+
+        try:
+            cae_request = service.retrieve_cae(self.voucher_type_id.code, self.document_number, self.pos_ar_id.name)[0]
+        finally:
+            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = default_cipher
+
         self.response = None
-        if cae_request.get('ResultGet') and cae_request['ResultGet'].get('CodAutorizacion'):
+        result_key = RESULT_KEYS[service_str]
+        cae_key = CAE_KEYS[service_str]
+        if cae_request.get(result_key) and cae_request[result_key].get(cae_key):
             self.response = zeep.helpers.serialize_object(cae_request, dict)
             """
             self.write({
@@ -111,20 +121,9 @@ class AfipMissedDocumentWizard(models.TransientModel):
     def fill_data(self):  # TODO: Unificar con funcion _write_wsfe_details_on_invoice
         try:
             response = ast.literal_eval(self.response)
-            invoice_date = datetime.strptime(
-                    response['ResultGet']['FchProceso'][:8],
-                    '%Y%m%d'
-                ) if response['ResultGet'].get('FchProceso') else None
-            self.move_id.sudo().write({
-                'cae': response['ResultGet']['CodAutorizacion'],
-                'cae_due_date': datetime.strptime(response['ResultGet']['FchVto'], '%Y%m%d')
-                if response['ResultGet'].get('FchVto') else None,
-                'voucher_name': '{}-{}'.format(
-                    str(response['ResultGet']['PtoVta']).zfill(self.pos_ar_id.prefix_quantity or 0),
-                    str(response['ResultGet']['CbteHasta']).zfill(8)
-                ),
-                'invoice_date': invoice_date
-            })
+            document_book = self.pos_ar_id.document_book_ids.filtered(lambda l: l.voucher_type_id == self.voucher_type_id)
+            service_str = SERVICE_FUNCTION.get(document_book.book_type_id.type)
+            getattr(self, '_fill_{}_data'.format(service_str))(response)
             self.move_id.set_voucher_name()
         except Exception:
             raise ValidationError("No se pudieron completar los datos en el documento")
@@ -136,5 +135,56 @@ class AfipMissedDocumentWizard(models.TransientModel):
             'views': [[False, "form"]],
             'res_id': self.move_id.id
         }
+    
+    def _fill_wsfe_data(self, response):  # TODO: unificar los tres métodos
+        invoice_date = datetime.strptime(
+                response['ResultGet']['CbteFch'],
+                '%Y%m%d'
+            ) if response['ResultGet'].get('CbteFch') else None
+        self.move_id.sudo().write({
+            'cae': response['ResultGet']['CodAutorizacion'],
+            'cae_due_date': datetime.strptime(response['ResultGet']['FchVto'], '%Y%m%d')
+            if response['ResultGet'].get('FchVto') else None,
+            'voucher_name': '{}-{}'.format(
+                str(response['ResultGet']['PtoVta']).zfill(self.pos_ar_id.prefix_quantity or 0),
+                str(response['ResultGet']['CbteHasta']).zfill(8)
+            ),
+            'invoice_date': invoice_date,
+            'date': invoice_date
+        })
+    
+    def _fill_wsfex_data(self, response):
+        invoice_date = datetime.strptime(
+                response['FEXResultGet']['Fecha_cbte'],
+                '%Y%m%d'
+            ) if response['FEXResultGet'].get('Fecha_cbte') else None
+        self.move_id.sudo().write({
+            'cae': response['FEXResultGet']['Cae'],
+            'cae_due_date': datetime.strptime(response['FEXResultGet']['Fch_venc_Cae'], '%Y%m%d')
+            if response['FEXResultGet'].get('Fch_venc_Cae') else None,
+            'voucher_name': '{}-{}'.format(
+                str(response['FEXResultGet']['Punto_vta']).zfill(self.pos_ar_id.prefix_quantity or 0),
+                str(response['FEXResultGet']['Cbte_nro']).zfill(8)
+            ),
+            'invoice_date': invoice_date,
+            'date': invoice_date
+        })
+    
+    def _fill_wsbfe_data(self, response):
+        invoice_date = datetime.strptime(
+                response['BFEResultGet']['Fecha_cbte'],
+                '%Y%m%d'
+            ) if response['BFEResultGet'].get('Fecha_cbte') else None
+        self.move_id.sudo().write({
+            'cae': response['BFEResultGet']['Cae'],
+            'cae_due_date': datetime.strptime(response['BFEResultGet']['Fch_venc_Cae'], '%Y%m%d')
+            if response['BFEResultGet'].get('Fch_venc_Cae') else None,
+            'voucher_name': '{}-{}'.format(
+                str(response['BFEResultGet']['Punto_vta']).zfill(self.pos_ar_id.prefix_quantity or 0),
+                str(response['BFEResultGet']['Cbte_nro']).zfill(8)
+            ),
+            'invoice_date': invoice_date,
+            'date': invoice_date
+        })
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 
@@ -41,26 +25,26 @@ class PaymentImputationWizard(models.TransientModel):
             'currency_rate': 0,
         })
 
-    @api.depends('currency_id', 'company_id.currency_id', 'payment_date')
+    @api.depends('currency_id', 'company_id.currency_id', 'date')
     def compute_current_currency_rate(self):
         if self.currency_id:
             self.current_currency_rate = self.env['res.currency']._get_conversion_rate(
                 self.currency_id,
                 self.company_id.currency_id or self.env.company.currency_id,
                 self.company_id or self.env.company,
-                self.payment_date or fields.Date.today()
+                self.date or fields.Date.today()
             )
 
     def _get_payment_vals(self):
         vals = super(PaymentImputationWizard, self)._get_payment_vals()
         vals['currency_rate'] = self.currency_rate
-        vals['communication'] = ','.join(self._get_imputations_ref())
+        vals['ref'] = ', '.join(self._get_imputations_ref())
         return vals
-    
+
     def _get_imputations_ref(self):
         imputations_ref = []
         for imputation in self.debit_imputation_line_ids.filtered(lambda x: x.amount and x.move_line_id.move_id):
-            imputations_ref.append(imputation.move_line_id.move_id.name)
+            imputations_ref.append(imputation.move_line_id.full_voucher_name)
         return imputations_ref
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

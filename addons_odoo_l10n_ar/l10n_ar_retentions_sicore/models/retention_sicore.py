@@ -1,119 +1,59 @@
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see http://www.gnu.org/licenses/.
-#
-##############################################################################
 
 from odoo import models, fields, api
-from l10n_ar_api.presentations import presentation
 from odoo.exceptions import ValidationError
+from l10n_ar_api.presentations import presentation
 
 
-class RetentionSicore(models.Model):  # Validacion de campos
+class RetentionSicore(models.Model):
     _name = "retention.sicore"
-    _description = 'Retención sicore'
-
-    name = fields.Char(
-        string='Nombre',
-        required=True
-    )
-    date_from = fields.Date(
-        string='Desde',
-        required=True
-    )
-    date_to = fields.Date(
-        string='Hasta',
-        required=True
-    )
-    file = fields.Binary(
-        string='Archivo',
-        filename='filename'
-    )
-    filename = fields.Char(
-        string='Nombre Archivo'
-    )
-    company_id = fields.Many2one(
-        'res.company',
-        string='Empresa',
-        required=True,
-        readonly=True,
-        change_default=True,
-        default=lambda self: self.env.company
-    )
-
-    @api.constrains('date_from', 'date_to')
-    def check_date(self):
-        if self.date_from > self.date_to:
-            raise ValidationError("La fecha de inicio no puede ser mayor a la fecha fin.")
+    _inherit = 'txt.report'
+    _description = 'Retención SICORE'
 
     def validate_fields(self, retention):
-        """ Validaciones de campos necesarios para la generacion del archivo"""
         errors = []
-        if not retention.payment_id.voucher_name:
-            errors.append("La orden de pago {} no posee un número válido para su presentación en SICORE".format(
-                retention.payment_id.name)
-            )
-        if not retention.payment_id.partner_id.vat:
-            errors.append('Falta el numero de documento para el partner "{}" de la retencion: {}'.format(
-                retention.payment_id.partner_id.name, retention.certificate_no)
-            )
+        payment = retention.payment_id
+        partner = payment.partner_id
+        if not payment.voucher_name:
+            errors.append(f'El pago {payment.name} no posee un número válido para su presentación en SICORE')
+        if not partner.vat:
+            errors.append(f'El partner {partner.name} no posee número de documento')
         else:
-            document_afip_code = self.env['codes.models.relation'].get_code(
-                'partner.document.type',
-                retention.payment_id.partner_id.partner_document_type_id.id
-            )
-            if not document_afip_code:
-                errors.append('Falta tipo de documento o el codigo afip del tipo de documento {} de '
-                              'la retencion: {}'.format(
-                    retention.payment_id.partner_id.partner_document_type_id.name, retention.certificate_no
-                ))
-            if len(retention.payment_id.partner_id.vat) < 11:
-                errors.append('Numero de cuit erroneo para el partner "{}" de la retencion: {}'.format(
-                    retention.payment_id.partner_id.name, retention.certificate_no
-                ))
+            if len(partner.vat) < 11:
+                errors.append(f'El partner {partner.name} posee un número de CUIT erróneo')
+            try:
+                document_afip_code = self.env['codes.models.relation'].get_code(
+                    'partner.document.type',
+                    partner.partner_document_type_id.id,
+                    'Afip'
+                )
+            except ValidationError:
+                errors.append(f'El partner {partner.name} no posee tipo de documento válido')
 
         if retention.activity_id and not retention.activity_id.code:
-            errors.append('Falta el codigo de regimen de la actividad "{}" para la retencion: {}'.format(
-                retention.activity_id.name, retention.certificate_no
-            ))
+            errors.append(f'La actividad {retention.activity_id.name} no posee código de regimen')
         return errors
+    
+    def get_model(self):
+        return self.env['account.payment.retention']
 
-
-class RetentionSicoreSearch(models.Model):  # Busqueda de retenciones para archivo
-    _inherit = 'retention.sicore'
-
-    def search_retentions(self):
-        """ Busco las retenciones de los pagos validados de proveedor en un rango de fechas"""
-        retentions = self.env['account.payment.retention'].search([
+    def get_domain(self):
+        return [
             ('payment_id.voucher_type_id', '!=', False),
-            ('payment_id.journal_id.multiple_payment_journal', '=', True),
+            ('payment_id.journal_id.payment_usage', '=', 'document_book'),
             ('date', '>=', self.date_from),
             ('date', '<=', self.date_to),
             ('type', 'in', ('profit', 'vat')),
             ('payment_id.state', 'in', ['posted', 'reconciled']),
             ('payment_id.payment_type', '=', 'outbound'),
             ('payment_id.company_id', '=', self.company_id.id)
-        ]).sorted(key=lambda r: (r.payment_id.payment_date, r.certificate_no))
-        return retentions
+        ]
 
-
-class RetentionSicoreData(models.Model):  # Obtencion de datos para generacion de archivo
-    _inherit = 'retention.sicore'
+    def sort_records(self, retentions):
+        return retentions.sorted(key=lambda r: (r.payment_id.date, r.certificate_no))
 
     def get_code(self, document):
-        # CODIGO DE COMPROBANTE
+        # CÓDIGO DE COMPROBANTE
         # 01 Factura
         # 02 Recibo
         # 03 Nota de Crédito
@@ -125,13 +65,10 @@ class RetentionSicoreData(models.Model):  # Obtencion de datos para generacion d
         # 09 Escritura Pública
         # 10 C.1116
         # 11 Factura (16 Dígitos)
-        code = ''
-        if document._name == 'account.payment':
-            code = '06'
-        return code
+        return '06' if document._name == 'account.payment' else ''
 
     def get_tax_code(self, retention):
-        # CODIGO DE IMPUESTO
+        # CÓDIGO DE IMPUESTO
         # 064 Fondo Nacional de Incentivo Docente
         # 172 Impuesto a la Transferencia de Inmuebles
         # 210 Ganancias Régimen Especial de Ingreso R.G. 830
@@ -142,7 +79,7 @@ class RetentionSicoreData(models.Model):  # Obtencion de datos para generacion d
         return '767' if retention.type == 'vat' else '217'
 
     def get_condition_code(self):
-        # CODIGO DE CONDICION
+        # CÓDIGO DE CONDICIÓN
         # 00 Ninguna
         # 01 Inscripto
         # 02 No inscripto.
@@ -160,20 +97,12 @@ class RetentionSicoreData(models.Model):  # Obtencion de datos para generacion d
         return '01'
 
     def get_document_afip_code(self, document_id):
-        document_afip_code = self.env['codes.models.relation'].get_code(
-            'partner.document.type',
-            document_id
-        )
-        return document_afip_code
-
-
-class RetentionSicoreCreateLine(models.Model):  # Creacion de linea de archivo
-    _inherit = 'retention.sicore'
+        return self.env['codes.models.relation'].get_code('partner.document.type', document_id, 'Afip')
 
     def create_line(self, lines, r):
         line = lines.create_line()
         line.codigoComprobante = self.get_code(r.payment_id)
-        line.fechaDocumento = r.payment_id.payment_date.strftime('%d/%m/%Y')
+        line.fechaDocumento = r.payment_id.date.strftime('%d/%m/%Y')
         line.referenciaDocumento = r.payment_id.voucher_name.replace('-', '').rjust(16)
         line.importeDocumento = '{0:.2f}'.format(r.payment_id.amount).zfill(16).replace('.', ',')
         line.codigoImpuesto = self.get_tax_code(r)
@@ -189,32 +118,11 @@ class RetentionSicoreCreateLine(models.Model):  # Creacion de linea de archivo
         line.codigoDocumento = self.get_document_afip_code(r.payment_id.partner_id.partner_document_type_id.id)
         line.cuit = r.payment_id.partner_id.vat.rjust(20)
         line.numeroCertificado = r.certificate_no.replace('-', '').rjust(14)
+    
+    def get_presentation(self):
+        return presentation.Presentation("sicore", "retenciones")
 
-
-class RetentionSicoreFile(models.Model):  # Generacion de archivo
-    _inherit = 'retention.sicore'
-
-    def generate_file(self):
-        lines = presentation.Presentation("sicore", "retenciones")
-        retentions = self.search_retentions()
-        errors = []
-        for r in retentions:
-            errors += self.validate_fields(r)
-            if errors:
-                continue
-            try:
-                self.create_line(lines, r)
-            except ValidationError as e:
-                raise e
-            except Exception as e:
-                raise ValidationError(e)
-        if errors:
-            raise ValidationError("\n".join(errors))
-        else:
-            self.file = lines.get_encoded_string()
-            self.filename = 'ret_gan_{}_{}.txt'.format(
-                str(self.date_from).replace('-', ''),
-                str(self.date_to).replace('-', '')
-            )
+    def get_filename(self):
+        return f"ret_gan_{str(self.date_from).replace('-', '')}_{str(self.date_to).replace('-', '')}.txt"
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

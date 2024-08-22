@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <odoo>
 
     <template id="report_header">
@@ -25,7 +26,7 @@
                                  t-if="o.company_id.logo" t-att-src="image_data_uri(o.company_id.logo)"/>
                             <div style="width: 100%;">
                                 <div style="padding: 0px 15px 15px; font-size:12px; border-right: 1px solid black">
-                                    <table cellspacing="0" cellpadding="0" align="center" width="100%">
+                                    <table class="table-borderless" cellspacing="0" cellpadding="0" align="center" width="100%">
                                         <tr><td><b>RAZÓN SOCIAL: </b><span t-field="o.company_id.name"/></td></tr>
                                         <tr><td><b>DIRECCIÓN: </b><span t-esc="company_address.street"/> - <span t-esc="company_address.city"/></td></tr>
                                         <tr><td><b>TELÉFONO: </b><span t-esc="o.company_id.phone"/></td></tr>
@@ -45,7 +46,7 @@
                                 <div style="width: 100%; text-align: center; margin:0 auto;font-size: 17px;margin-top:2px;"><b><span t-field="o.name"/></b></div>
                             </div>
                             <div style="margin-left: -2px; padding: 15px; font-size:12px; border-left: 1px solid black">
-                                <table cellspacing="0" cellpadding="0" width="100%">
+                                <table class="table-borderless" cellspacing="0" cellpadding="0" width="100%">
                                     <tr><td><b>LUGAR Y FECHA: </b><span t-field="company_address.city"/>, <span t-field="o.date_done" t-options='{"format": "dd/MM/yyyy"}'/></td></tr>
                                     <tr><td><b><span t-field="o.company_id.partner_id.partner_document_type_id"/>: </b><span t-field="o.company_id.partner_id.vat"/></td></tr>
                                     <tr><td><b>INGRESOS BRUTOS: </b><span t-field="o.company_id.iibb_number"/></td></tr>
@@ -62,8 +63,8 @@
             <div t-if="o.partner_id" style="font-size:12px;padding:5px 0px 0px 0px">
                 <div style="border:1px solid black;border-radius: 0px 0px 3px 3px !important;padding: 5px 0px 5px 20px">
                     <t t-set="parent_id" t-value="o.partner_id.parent_id or o.partner_id"/>
-                    <t t-set="partner_name" t-value="o.partner_id.name_get()[0][1]"/>
-                    <table width="100%">
+                    <t t-set="partner_name" t-value="o.partner_id.display_name"/>
+                    <table class="table-borderless" width="100%">
                         <tr>
                             <td width="60%">
                                 <b>CLIENTE: </b>
@@ -88,7 +89,7 @@
                             <t>
                                 <td style="padding: 5px 0px 0px 0px">
                                     <b>CONDICIÓN FRENTE AL IVA: </b>
-                                    <span t-esc="parent_id.with_context(force_company=o.company_id.id).property_account_position_id.name"/>
+                                    <span t-esc="parent_id.with_company(o.company_id).property_account_position_id.name"/>
                                 </td>
                             </t>
                         </tr>
@@ -113,7 +114,7 @@
                 <div style="border:0 solid black;border-top:0 none;border-right:0 none;clear: both;width: 100%;height:0.5cm;">
                     <div style="border:1px solid black;border-top:0 none;border-left:0 none;border-right:0 none;width: 100%;height:100%;">
                         <div style="padding: 0px 0px 0px 80px">
-                            <table style="width: 100%;margin-top: 8px" cellspacing="0" cellpadding="0">
+                            <table class="table-borderless" style="width: 100%;margin-top: 8px" cellspacing="0" cellpadding="0">
                                 <tr style="font-size:10px">
                                     <td style="width: 30%"><b>SEGÚN PRESUPUESTO: </b><span t-field="o.sale_id"/></td>
                                     <td t-if="o.sale_id.client_order_ref" style="width: 50%"><b>REFERENCIA CLIENTE: </b><span t-field="o.sale_id.client_order_ref"/></td>
@@ -128,11 +129,11 @@
                 <div style="border:1px solid black;border-top:0 none;border-left:0 none;border-right:0 none;width: 100%;height:100%;">
                     <div style="padding: 5px 0px 0px 10px"><b>Recibí conforme</b></div>
                     <div style="padding: 0px 0px 0px 80px">
-                        <table style="width: 100%;margin-top: 15px" cellspacing="0" cellpadding="0">
+                        <table class="table-borderless" style="width: 100%;margin-top: 15px" cellspacing="0" cellpadding="0">
                             <tr style="font-size:10px">
-                                <td style="width: 30%;text-align: center">............./............./...........<br/>Fecha</td>
-                                <td style="width: 35%;text-align: center">...................................................<br/>Firma</td>
-                                <td style="width: 35%;text-align: center">...................................................<br/>Aclaración</td>
+                                <td id="footer_date_space" style="width: 30%;text-align: center">............./............./...........<br/>Fecha</td>
+                                <td id="footer_signature_space" style="width: 35%;text-align: center">...................................................<br/>Firma</td>
+                                <td id="footer_explanation_space" style="width: 35%;text-align: center">...................................................<br/>Aclaración</td>
                             </tr>
                         </table>
                     </div>
@@ -142,7 +143,7 @@
                 <t t-if="o.cai">
                     <div style="width: 100%;height:100%;">
                         <div style="padding: 5px 0px 5px 20px;width:60%;float:left">
-                            <img t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.get_bar_code(), 500, 60)" style="width:500px;height:60px"/>
+                            <img t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.get_bar_code(), 500, 60)" style="width:500px;height:60px"/>
                             <div style="font-size:10px;text-align:center" ><span t-esc="o.get_bar_code()"/></div>
                         </div>
                         <div style="width:40%;overflow:hidden;line-height: 1cm">
@@ -167,7 +168,7 @@
 
     <template id="report_selfprint_body">
         <div class="page">
-            <table cellpadding="0" cellspacing="0" style="border-spacing:0;border-collapse:0;font-size:12px;width: 100%;">
+            <table class="table-borderless" cellpadding="0" cellspacing="0" style="border-spacing:0;border-collapse:0;font-size:12px;width: 100%;">
                 <thead>
                     <tr style="font-weight:bold;font-size:14px">
                         <th style="vertical-align: middle;width:9%;border-bottom:1.5px solid;border-color: #99aa99;padding:6px;text-align:center" align="center">Cantidad</th>
@@ -175,11 +176,11 @@
                         <th style="vertical-align: middle;width:73%;border-bottom:1.5px solid;border-color: #99aa99;padding:6px;text-align: center" align="center">Descripción</th>
                     </tr>
                 </thead>
-                <tbody style="border-bottom: none;">
+                <tbody style="border-bottom: none;" class="border-top">
                     <t t-foreach="o.move_ids_without_package.sorted(key=lambda lm: lm.product_id.default_code or '')" t-as="m">
                         <t t-foreach="m.move_line_ids.sorted(key=lambda ll: ll.location_id.id)" t-as="l">
                             <tr style="height: 25px">
-                                <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px; text-align: center"><span t-field="l.qty_done"/></td>
+                                <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px; text-align: center"><span t-field="l.quantity"/></td>
                                 <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px; text-align: center"><span t-field="l.product_id.default_code"/></td>
                                 <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px">
                                     <span t-field="l.display_name"/>
@@ -217,3 +218,6 @@
     </template>
 
 </odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

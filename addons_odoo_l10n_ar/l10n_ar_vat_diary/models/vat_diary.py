@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 import io, base64, xlwt
 from odoo import models, fields, api
@@ -23,8 +7,7 @@ from datetime import datetime
 
 
 class VatDiary(models.Model):
-    # se deja wizard en el nombre aunque ya no lo sea por temas de compatibilidad con customs
-    _name = 'wizard.vat.diary'
+    _name = 'vat.diary'
     _description = 'Subdiario de IVA'
 
     type = fields.Selection([
@@ -37,9 +20,8 @@ class VatDiary(models.Model):
     date_to = fields.Date('Hasta', required=True)
     report = fields.Binary('Reporte XLS', readonly=True)
     report_filename = fields.Char(string='Nombre archivo')
-    company_id = fields.Many2one('res.company', string="Compañía", default=lambda l: l.env.company)
 
-    @api.depends('type', 'date_from', 'date_to', 'company_id')
+    @api.depends('type', 'date_from', 'date_to')
     def _compute_display_name(self):
         for r in self:
             name = ["Subdiario IVA"]
@@ -47,8 +29,6 @@ class VatDiary(models.Model):
                 name.append(f" {dict(r._fields['type'].selection).get(r.type)}")
             if r.date_from and r.date_to:
                 name.append(f": {r.date_from.strftime('%d/%m/%Y')} - {r.date_to.strftime('%d/%m/%Y')}")
-            if r.company_id:
-                name.append(f" - {r.company_id.name}")
             r.display_name = ''.join(name)
 
     @api.onchange('type')
@@ -64,9 +44,9 @@ class VatDiary(models.Model):
         return [
             ('date', '>=', self.date_from),
             ('date', '<=', self.date_to),
-            ('payment_id.state', 'not in', ('draft', 'cancelled')),
+            ('payment_id.state', 'not in', ('draft', 'cancel')),
             ('payment_id.payment_type', '=', 'inbound'),
-            ('company_id', '=', self.company_id.id)
+            ('company_id', '=', self.env.company.id)
         ]
 
     def _get_retentions(self):
@@ -76,11 +56,11 @@ class VatDiary(models.Model):
         return [
             ('date', '>=', self.date_from),
             ('date', '<=', self.date_to),
-            ('state', '=', 'posted'),
-            ('company_id', '=', self.company_id.id),
+            ('state', 'not in', ('draft', 'cancel')),
+            ('company_id', '=', self.env.company.id),
             ('voucher_type_id', '!=', False),
             ('fiscal_position_id.show_vat_diary', '=', True),
-            ('type', 'in', ('out_invoice', 'out_refund') if self.type == 'sales' else ('in_invoice', 'in_refund'))
+            ('move_type', 'in', ('out_invoice', 'out_refund') if self.type == 'sales' else ('in_invoice', 'in_refund'))
         ]
 
     def _get_invoices(self):
@@ -105,7 +85,7 @@ class VatDiary(models.Model):
         ).mapped('tax_line_id')
 
         if retentions:
-            taxes |= retentions.mapped('retention_id').mapped('tax_id')
+            taxes |= retentions.mapped('retention_id').get_taxes(self.env.company)
 
         # Ordenamos los impuestos para tener el IVA primero y removemos duplicados
         sorted_taxes = taxes.sorted(key=lambda x: (not x.is_vat, x.vat_diary_sequence, x.name))
@@ -146,7 +126,7 @@ class VatDiary(models.Model):
                 last_position += 2 if self.separate_not_taxable_from_exempt else 1
                 last_position += len(taxes_position)
         else:
-            last_position = 0
+            last_position = 2 if self.separate_not_taxable_from_exempt else 1
         return last_position
 
     def _get_header(self):
@@ -368,6 +348,7 @@ class VatDiary(models.Model):
         for key, dic in not_iva_perception.items():
             if dictionary.get(key):
                 dictionary[key]['amount'] += dic.get('amount', 0.0)
+                dictionary[key]['base'] += dic.get('base', 0.0)
             else:
                 dictionary[key] = dic.copy()
         return dictionary
@@ -402,24 +383,36 @@ class VatDiary(models.Model):
         # Filtro las lineas del reporte, por las lineas correspondientes al debito fiscal que son
         # las facturas de proveedor y las facturas rectificativas (NC) de cliente
         debit = {}
-        for line in filter(lambda l: l.get('type') in  ['in_refund', 'out_invoice'],moves):
-            # Agrego los totales por impuesto al diccionario y los voy actualizando segun corresponda,en cada iteracion
+        for line in filter(lambda l: l.get('type') in ['in_refund', 'out_invoice'], moves):
+            # Agrego los totales por impuesto al diccionario y los voy actualizadondo segun corresponda,en cada iteracion
             debit = self.get_iva_totals(line.get('iva', {}), debit)
 
-            # Agrego los totales por impuesto interno al diccionario y los voy actualizando segun corresponda,en cada iteracion
+            # Agrego los totales por impuesto interno al diccionario y los voy actualizadondo segun corresponda,en cada iteracion
             debit = self.get_not_iva_perception_totals(line.get('not_iva_perception', {}), debit)
+
+            # Agrego el monto no gravado y lo voy actualizadondo segun corresponda,en cada iteracion
+            debit = self.get_no_taxable_total(line.get('not_taxable', 0.0), debit)
+
+            # Agrego el monto exento y lo voy actualizadondo segun corresponda,en cada iteracion
+            debit = self.get_exempt_total(line.get('exempt', 0.0), debit)
         return debit
 
     def get_fiscal_credit_total(self, moves):
         # Filtro las lineas del reporte, por las lineas correspondientes al credito fiscal que son
         # las facturas de clientes y las facturas rectificativas (NC) de proveedores
         credit = {}
-        for line in filter(lambda l: l.get('type') in ['out_refund', 'in_invoice'],moves):
+        for line in filter(lambda l: l.get('type') in ['out_refund', 'in_invoice'], moves):
             # Agrego los totales por impuesto al diccionario
             credit = self.get_iva_totals(line.get('iva', {}), credit)
 
             # Agrego los totales po impuesto interno al diccionario
             credit = self.get_not_iva_perception_totals(line.get('not_iva_perception', {}), credit)
+
+            # Agrego el monto no gravado y lo voy actualizadondo segun corresponda,en cada iteracion
+            credit = self.get_no_taxable_total(line.get('not_taxable', 0.0), credit)
+
+            # Agrego el monto exento y lo voy actualizadondo segun corresponda,en cada iteracion
+            credit = self.get_exempt_total(line.get('exempt', 0.0), credit)
         return credit
 
     def get_special_regimes_total(self, moves):

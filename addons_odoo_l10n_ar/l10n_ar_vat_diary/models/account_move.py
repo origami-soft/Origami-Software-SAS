@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from collections import defaultdict
 from odoo import models
@@ -26,7 +10,7 @@ class AccountMove(models.Model):
 
     def get_vat_diary_invoice_sign(self):
         # TODO: Mover responsabilidad a wizard.vat.diary
-        return self.type in ['in_refund', 'out_refund'] and -1 or 1
+        return self.move_type in ['in_refund', 'out_refund'] and -1 or 1
 
     def _get_invoice_currency_rate(self):
         """ Calculo el rate de la factura """
@@ -52,7 +36,7 @@ class AccountMove(models.Model):
         :type size_header: int
         """
         separate_not_taxable_from_exempt = self.env.context.get('separate_not_taxable_from_exempt')
-        vat_tax_count = self.env['wizard.vat.diary'].get_vat_tax_count(taxes_position)
+        vat_tax_count = self.env['vat.diary'].get_vat_tax_count(taxes_position)
         iva_amounts = self.get_iva_amounts()
 
         for tax, value in iva_amounts.items():
@@ -69,24 +53,24 @@ class AccountMove(models.Model):
                 vals[taxes_position[tax_obj] + size_header + vat_tax_count + (2 if separate_not_taxable_from_exempt else 1)] = round(value.get('amount'), 2)
             except KeyError:
                 if not tax_obj:
-                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.name))
-                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.name))
+                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.full_voucher_name))
+                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.full_voucher_name))
         for tax, value in self.get_perception_amounts().items():
             tax_obj = self.env['account.tax'].browse(tax)
             try:
                 vals[taxes_position[tax_obj] + size_header] = round(value.get('amount'), 2)
             except KeyError:
                 if not tax_obj:
-                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.name))
-                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.name))
+                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.full_voucher_name))
+                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.full_voucher_name))
         for tax, value in self.get_not_iva_perception_amounts().items():
             tax_obj = self.env['account.tax'].browse(tax)
             try:
                 vals[taxes_position[tax_obj] + size_header] = round(value.get('amount'), 2)
             except KeyError:
                 if not tax_obj:
-                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.name))
-                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.name))
+                    raise ValidationError("No se encontró impuesto para la percepción '{}' en la factura {}.".format(value.get('name', ''), self.full_voucher_name))
+                raise ValidationError("Hay un problema con {} en la factura {}.".format(tax_obj.name, self.full_voucher_name))
 
     def get_vat_diary_total(self):
         self.ensure_one()
@@ -108,12 +92,16 @@ class AccountMove(models.Model):
         iva = defaultdict(dict)
         for item in iva_line:
             base = sum(self.invoice_line_ids.filtered(lambda l: item.tax_line_id in l.tax_ids).mapped('price_subtotal'))
-            amount = item.price_total if item.tax_line_id.price_include else item.price_subtotal
-            iva[item.tax_line_id.id] = {
-                'name': item.tax_line_id.name,
-                'base': base * sign * rate,
-                'amount': amount * sign * rate
-            }
+            amount = abs(item.amount_currency)
+            if iva[item.tax_line_id.id]:
+                iva[item.tax_line_id.id]['base'] += base * sign * rate
+                iva[item.tax_line_id.id]['amount'] += amount * sign * rate
+            else: 
+                iva[item.tax_line_id.id] = {
+                    'name': item.tax_line_id.name,
+                    'base': base * sign * rate,
+                    'amount': amount * sign * rate
+                }
         return iva
 
     def get_not_iva_perception_amounts(self):
@@ -126,12 +114,15 @@ class AccountMove(models.Model):
         sign = self.get_vat_diary_invoice_sign()
         rate = self._get_invoice_currency_rate()
         # Se obtienen las lineas de apuntes contables de las facturas que corresponden a impuestos internos
-        no_iva_line = self.line_ids.filtered(lambda l: l.tax_line_id and l.tax_line_id.tax_group_id == self.env.ref('l10n_ar.tax_group_internal'))
+        no_iva_line = self.line_ids.filtered(lambda l: l.tax_line_id and l.tax_line_id.tax_group_id \
+            in self.env['account.tax'].get_internal_tax_group(self.company_id))
         # Para los impuestos internos se genera un diccionario de diccionarios con el formato {'name': no iva ,'amount': 21}
         no_iva = defaultdict(dict)
         for item in no_iva_line:
+            base = sum(self.invoice_line_ids.filtered(lambda l: item.tax_line_id in l.tax_ids).mapped('price_subtotal'))
             no_iva[item.tax_line_id.id] = {
                 'name': item.tax_line_id.name,
+                'base': base * sign * rate,
                 'amount': item.price_subtotal * sign * rate
             }
         return no_iva
@@ -180,7 +171,7 @@ class AccountMove(models.Model):
         perceptions = defaultdict(dict)
         for per in self.perception_ids:
             # Se toma el impuesto desde la percepcion
-            perceptions[per.perception_id.tax_id.id] = {
+            perceptions[per.perception_id.get_taxes(self.company_id).id] = {
                 'name': per.perception_id.name,
                 'amount': per.amount * sign * rate
             }
@@ -198,7 +189,7 @@ class AccountMove(models.Model):
         return {
             'id': self.id,
             'model': self._name,
-            'type': self.type,
+            'type': self.move_type,
             'date': self.invoice_date.strftime('%d/%m/%Y') or self.date.strftime('%d/%m/%Y'),
             'partner': self.partner_id.name or '',
             'vat': self.partner_id.vat or '',
@@ -218,8 +209,13 @@ class AccountMove(models.Model):
     def validate_voucher_name(self):
         errors = []
         for r in self.filtered(lambda l: not l.voucher_name):
+            if not r.invoice_date:
+                errors.append("La {} realizada a {} no posee fecha.".format(
+                    dict(r._fields['move_type']._description_selection(r.env)).get(r.move_type), r.partner_id.name)
+                )
+                continue
             errors.append("La {} realizada a {} el día {} no posee numeración correcta.".format(
-               dict(r._fields['type']._description_selection(r.env)).get(r.type), r.partner_id.name, r.invoice_date.strftime("%d/%m/%Y")
+               dict(r._fields['move_type']._description_selection(r.env)).get(r.move_type), r.partner_id.name, r.invoice_date.strftime("%d/%m/%Y")
             ))
         if errors:
             raise ValidationError('\n'.join(errors))

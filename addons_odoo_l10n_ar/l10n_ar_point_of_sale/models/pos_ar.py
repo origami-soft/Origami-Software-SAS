@@ -1,57 +1,27 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
 
 class PosAr(models.Model):
-    _name = 'pos.ar'
+    _inherit = 'pos.ar'
     _description = 'Punto de venta'
 
-    name = fields.Char(
-        'Nombre',
-        required=True
-    )
-    description = fields.Char('Descripcion')
-    document_book_ids = fields.One2many(
-        'document.book',
-        'pos_ar_id',
-        'Talonarios'
-    )
-    active = fields.Boolean(
-        'Activo',
-        default=True
-    )
-    company_id = fields.Many2one(
-        'res.company',
-        string='Compania',
-        required=True,
-        default=lambda self: self.env.company,
-    )
     prefix_quantity = fields.Integer(
-        'Cantidad de digitos prefijo',
+        'Cantidad de dígitos prefijo',
         default=4
     )
 
+    def compare_name(self, other_pos):
+        """ Piso el método original para contemplar los dígitos de prefijo (así, por ejemplo, no se permite crear un
+        punto de venta "1" y otro "0001")
+        """
+        return self.name.zfill(self.prefix_quantity) == other_pos.name.zfill(other_pos.prefix_quantity)
+
     @api.constrains('name')
     def check_name(self):
-        for pos_ar in self:
+        for pos_ar in self.filtered(lambda x: x.company_id.country_id == self.env.ref('base.ar')):
             try:
                 int(pos_ar.name)
             except Exception:
@@ -64,14 +34,6 @@ class PosAr(models.Model):
         if any(pos.prefix_quantity <= 0 for pos in self):
             raise ValidationError("La cantidad de dígitos del prefijo debe ser mayor que 0")
 
-    def name_get(self):
-        name_get = []
-        name_list = super(PosAr, self).name_get()
-        for name in name_list:
-            pos = self.env['pos.ar'].browse(name[0])
-            name_get.append((name[0], name[1].zfill(pos.prefix_quantity)))
-        return name_get
-
     def next_number(self, voucher_type):
         self.ensure_one()
         document_book = self.document_book_ids.filtered(lambda x: x.voucher_type_id == voucher_type)
@@ -82,9 +44,5 @@ class PosAr(models.Model):
                 )
             )
         return document_book.next_number()
-
-    _sql_constraints = [
-        ('type_unique', 'unique(name, company_id)', 'Ya existe un punto de venta con ese nombre para esta empresa')
-    ]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

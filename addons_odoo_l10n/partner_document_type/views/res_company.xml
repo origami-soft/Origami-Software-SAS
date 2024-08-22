@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <data>
+
+        <record model="ir.ui.view" id="view_company_form">
+            <field name="name">view.company.form</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="arch" type="xml">
+                <field name="vat" position="after">
+                    <field name="partner_document_type_id"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 
@@ -22,11 +6,23 @@ from odoo import models, fields, api
 class AccountJournal(models.Model):
     _inherit = 'account.journal'
 
-    multiple_payment_journal = fields.Boolean(string="Diario de pago múltiple")
+    payment_usage = fields.Selection(selection=[('document_book', "Transitorio")], string="Uso en pagos")
+    multiple_payment_account_id = fields.Many2one('account.account', "Cuenta para pagos múltiples")
+    selectable_in_payments = fields.Boolean("Seleccionable en cabecera de pagos", default=True)
 
     @api.onchange('type')
-    def onchange_type_set_multiple_payment_journal(self):
+    def onchange_type_set_payment_usage(self):
         if self.type not in ('bank', 'cash'):
-            self.multiple_payment_journal = False
+            self.payment_usage = False
+
+    @api.onchange('payment_usage')
+    def onchange_payment_usage(self):
+        self.multiple_payment_account_id = False
+
+    @api.onchange('multiple_payment_account_id')
+    def onchange_multiple_payment_account(self):
+        self.default_account_id = self.multiple_payment_account_id
+        self.inbound_payment_method_line_ids.update({'payment_account_id': self.multiple_payment_account_id.id})
+        self.outbound_payment_method_line_ids.update({'payment_account_id': self.multiple_payment_account_id.id})
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

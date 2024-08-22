@@ -1,30 +1,13 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
-import ast
-import pytz
+import ast, pytz, zeep
 from datetime import datetime, date
-import zeep
 from dateutil.relativedelta import relativedelta
 from l10n_ar_api import documents
 from l10n_ar_api.afip_webservices import wsfe, wsfex, wsbfe
 from odoo import models, fields, registry, api
 from odoo.exceptions import ValidationError
+import requests
 
 
 class AccountMove(models.Model):
@@ -55,6 +38,14 @@ class AccountMove(models.Model):
         copy=False
     )
 
+    def _get_integrity_hash_fields(self):
+        if self._context.get('is_written_from_afip'):
+            return ['journal_id', 'company_id']
+        return super()._get_integrity_hash_fields()
+
+    def _check_electronic_invoice_sent(self):
+        return any(move.cae for move in self)
+    
     @api.onchange('cbu_partner_bank_id')
     def onchange_partner_bank_id(self):
         self.cbu_transmitter = self.cbu_partner_bank_id.cbu
@@ -64,23 +55,31 @@ class AccountMove(models.Model):
             raise ValidationError("No se puede usar esta acción con un documento enviado a AFIP!")
         return super(AccountMove, self).action_switch_invoice_into_refund_credit_note()
     
-    def _update_document_book_and_commit(self, document_book):
+    def _update_document_book_and_commit(self):
         dbook_cr = registry(self.env.cr.dbname).cursor()
-        # Subo un número al talonario directamente con una query
-        dbook_cr.execute("update document_book set name = cast(cast(name as integer) + 1 as varchar) where id = {}".format(
-            document_book.id
+        # Por alguna razón, si llamo al método next_number del talonario, no se guardan los cambios. Así que lo hago
+        # directamente con el cursor
+        dbook_cr.execute("update document_book set last_number = cast(cast(last_number as integer) + 1 as varchar) where id = {}".format(
+            self.document_book_id.id
         ))
         dbook_cr.commit()
         dbook_cr.close()
+    
+    def _auto_compute_invoice_reference(self):
+        """ Heredo este método para no utilizar el completado base de payment_reference cuando se validen facturas
+        electrónicas y completarlo a mano cuando se vuelquen los detalles recibidos por AFIP
+        """
+        return not self.document_book_id.book_type_id.is_electronic() and super()._auto_compute_invoice_reference()
 
-    def action_electronic(self, document_book):
+    def action_electronic(self):
         """
         Realiza el envio a AFIP de la factura y escribe en la misma el CAE y su fecha de vencimiento.
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
+        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
-        pos = document_book.pos_ar_id
+        pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)
         sent_invoices = invoices.filtered(lambda x: any(request.result == 'A' for request in x.wsfe_request_detail_ids))
         invoices -= sent_invoices
@@ -93,14 +92,14 @@ class AccountMove(models.Model):
                 ))
 
         if invoices:
-            afip_wsfe = invoices[0]._get_wsfe()
+            afip_wsfe = self._get_wsfe()
 
         for invoice in invoices:
             # Validamos los campos
             invoice._validate_required_electronic_fields()
-            afip_wsfe.check_webservice_status()
+
             # Obtenemos el codigo de comprobante
-            document_afip_code = invoice.get_document_afip_code(document_book)
+            document_afip_code = invoice.get_document_afip_code(self.document_book_id)
             new_cr = registry(self.env.cr.dbname).cursor()
             # Validamos que la factura se encuentre en la base de datos
             try:
@@ -109,7 +108,7 @@ class AccountMove(models.Model):
                 new_cr.close()
                 raise ValidationError(e.args)
             # Validamos la numeracion
-            document_book.with_env(self.env(cr=new_cr)).action_wsfe_number(afip_wsfe, document_afip_code)
+            self.document_book_id.with_env(self.env(cr=new_cr)).action_wsfe_number(afip_wsfe, document_afip_code)
             new_cr.close()
             # Armamos la factura
             electronic_invoices.append(invoice._set_electronic_invoice_details(document_afip_code))
@@ -117,14 +116,18 @@ class AccountMove(models.Model):
         if electronic_invoices:
             response = None
 
+            default_cipher = requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS
+            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'AES128-SHA'
             # Chequeamos la conexion y enviamos las facturas a AFIP, guardando el JSON enviado, el response y mostrando
             # los errores (en caso de que los haya)
             try:
+                afip_wsfe.check_webservice_status()
                 response, invoice_detail = afip_wsfe.get_cae(electronic_invoices, pos.name)
                 afip_wsfe.show_error(response)
             except Exception as e:
                 raise ValidationError(e.args)
             finally:
+                requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = default_cipher
                 # Commiteamos para que no haya inconsistencia con la AFIP.
                 if response and response.FeDetResp:
                     response_cr = registry(self.env.cr.dbname).cursor()
@@ -134,7 +137,7 @@ class AccountMove(models.Model):
 
             if response and response.FeCabResp and response.FeCabResp.Resultado != 'R':
                 for invoice in invoices:
-                    invoice._update_document_book_and_commit(document_book)
+                    invoice._update_document_book_and_commit()
                     invoice._write_wsfe_details_on_invoice(zeep.helpers.serialize_object(response))
 
             if response and response.FeCabResp and response.FeCabResp.Resultado == 'R':
@@ -185,11 +188,12 @@ class AccountMove(models.Model):
             )
             inv_date = datetime.strptime(det['CbteFch'], '%Y%m%d') if det.get('CbteFch') else None
             name_prefix = self.voucher_type_id.prefix + ' ' if self.voucher_type_id.prefix else ''
+            inv_name = f"{name_prefix}{voucher_name or ''}"
             self.write({
                 'cae': det.get('CAE'),
                 'cae_due_date': datetime.strptime(det['CAEFchVto'], '%Y%m%d') if det.get('CAEFchVto') else None,
                 'voucher_name': voucher_name,
-                'name': f"{name_prefix}{voucher_name or ''}",
+                'payment_reference': inv_name,
                 'invoice_date': inv_date,
                 'date': inv_date,
             })
@@ -205,11 +209,12 @@ class AccountMove(models.Model):
             )
             inv_date = datetime.strptime(auth['Fch_cbte'], '%Y%m%d') if auth.get('Fch_cbte') else None
             name_prefix = self.voucher_type_id.prefix + ' ' if self.voucher_type_id.prefix else ''
+            inv_name = f"{name_prefix}{voucher_name or ''}"
             self.write({
                 'cae': auth.get('Cae'),
                 'cae_due_date': datetime.strptime(auth['Fch_venc_Cae'], '%Y%m%d') if auth.get('Fch_venc_Cae') else None,
                 'voucher_name': voucher_name,
-                'name': f"{name_prefix}{voucher_name or ''}",
+                'payment_reference': inv_name,
                 'invoice_date': inv_date,
                 'date': inv_date,
             })
@@ -225,35 +230,15 @@ class AccountMove(models.Model):
             )
             inv_date = datetime.strptime(auth['Fch_cbte'], '%Y%m%d') if auth.get('Fch_cbte') else None
             name_prefix = self.voucher_type_id.prefix + ' ' if self.voucher_type_id.prefix else ''
+            inv_name = f"{name_prefix}{voucher_name or ''}"
             self.write({
                 'cae': auth.get('Cae'),
                 'cae_due_date': datetime.strptime(auth['Fch_venc_Cae'], '%Y%m%d') if auth.get('Fch_venc_Cae') else None,
                 'voucher_name': voucher_name,
-                'name': f"{name_prefix}{voucher_name or ''}",
+                'payment_reference': inv_name,
                 'invoice_date': inv_date,
                 'date': inv_date,
             })
-
-    @staticmethod
-    def convert_currency(from_currency, to_currency, amount=1.0, d=None):
-        """
-        Convierte `amount` de `from_currency` a `to_currency` segun la cotizacion de la fecha `d`.
-        :param from_currency: La moneda que queremos convertir.
-        :param to_currency: La moneda a la que queremos convertir.
-        :param amount: La cantidad que queremos convertir (1 para sacar el rate de la moneda).
-        :param d: La fecha que se usara para tomar la cotizacion de ambas monedas.
-        :return: El valor en la moneda convertida segun el rate de conversion.
-        """
-        if from_currency.id == to_currency.id:
-            return amount
-        if not d:
-            d = str(date.today())
-        from_currency_with_context = from_currency.with_context(date=d)
-        to_currency_with_context = to_currency.with_context(date=d)
-        converted_amount = from_currency_with_context.compute(
-            amount, to_currency_with_context, round=False
-        )
-        return converted_amount
 
     def _set_electronic_invoice_details(self, document_afip_code):
         """ Mapea los valores de ODOO al objeto ElectronicInvoice"""
@@ -269,28 +254,26 @@ class AccountMove(models.Model):
         electronic_invoice.untaxed_amount = self.amount_not_taxable if self.voucher_type_id.denomination_id != denomination_c else 0
         electronic_invoice.exempt_amount = self.amount_exempt if self.voucher_type_id.denomination_id != denomination_c else 0
         electronic_invoice.document_date = self.invoice_date or fields.Date.context_today(self)
-        if codes_models_proxy.get_code('afip.concept', self.afip_concept_id.id) in ['2', '3']:
+        if codes_models_proxy.get_code('afip.concept', self.afip_concept_id.id, 'Afip') in ['2', '3']:
             electronic_invoice.service_from = self.date_service_from or fields.Date.context_today(self)
             electronic_invoice.service_to = self.date_service_to or fields.Date.context_today(self)
         electronic_invoice.payment_due_date = self.invoice_date_due or fields.Date.context_today(self)
         electronic_invoice.customer_document_number = self.partner_id.vat
         electronic_invoice.customer_document_type = codes_models_proxy.get_code(
             'partner.document.type',
-            self.partner_id.partner_document_type_id.id
+            self.partner_id.partner_document_type_id.id,
+            'Afip'
         )
         electronic_invoice.mon_id = self.env['codes.models.relation'].get_code(
             'res.currency',
-            self.currency_id.id
+            self.currency_id.id,
+            'Afip'
         )
-        electronic_invoice.mon_cotiz = self.currency_rate or self.convert_currency(
-            from_currency=self.currency_id,
-            to_currency=self.company_id.currency_id,
-            d=self.invoice_date or fields.Date.context_today(self)
-        ) if self.need_rate else 1
-
+        electronic_invoice.mon_cotiz = self.currency_rate or self.current_currency_rate
         electronic_invoice.concept = int(codes_models_proxy.get_code(
             'afip.concept',
-            self.afip_concept_id.id
+            self.afip_concept_id.id,
+            'Afip'
         ))
         # Agregamos impuestos y percepciones
         self._add_vat_to_electronic_invoice(electronic_invoice)
@@ -303,7 +286,7 @@ class AccountMove(models.Model):
 
     def _add_associated_documents_to_electronic_invoice_refund(self, electronic_invoice):
         """ Agrega los documentos asociados para facturas cuando se envíen notas de débito o crédito """
-        if self.is_debit_note or self.type == 'out_refund':
+        if self.is_debit_note or self.move_type == 'out_refund':
             if not self.fce_associated_document_ids:
                 electronic_invoice.period_from = self.invoice_date or fields.Date.context_today(self)
                 electronic_invoice.period_to = self.invoice_date or fields.Date.context_today(self)
@@ -313,7 +296,7 @@ class AccountMove(models.Model):
     def _add_optionals_to_credit_invoice(self, electronic_invoice):
         """ Agrega los opcionales para facturas de credito """
         if self.is_credit_invoice:
-            if self.is_debit_note or self.type == 'out_refund':
+            if self.is_debit_note or self.move_type == 'out_refund':
                 canceled = 'S' if any(self.fce_associated_document_ids.mapped('canceled')) else 'N'
                 # Hay que informar el opcional de si el comprobante fue o no anulado por el comprador (ID 22)
                 electronic_invoice.array_optionals = [wsfe.wsfe.WsfeOptional(22, canceled)]
@@ -331,10 +314,13 @@ class AccountMove(models.Model):
                                                       wsfe.wsfe.WsfeOptional(27, self.transfer_option)]
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
+        """ En caso de que esté revirtiendo una factura electrónica y nada más, traigo la original como documento
+        asociado. Si quiero revertir más de una FCE, lanzo error.
+        """
         values = super(AccountMove, self)._reverse_moves(default_values_list, cancel)
-        if len(self) > 1:
-            raise ValidationError("No se puede realizar la acción de reversión masiva.")
-        if self.type in ('out_invoice', 'out_refund') and self.voucher_type_id and self.voucher_name:
+        electronic_invoices_to_reverse = self.filtered(lambda l: l.move_type in ('out_invoice', 'out_refund') \
+            and l.voucher_type_id and l.voucher_name and l.document_book_id.book_type_id.is_electronic())
+        if electronic_invoices_to_reverse and electronic_invoices_to_reverse == self and len(self) == 1:
             name = self.voucher_name.split('-')
             name = name[1] if len(name) > 1 else name[0]
             values['fce_associated_document_ids'] = [(0, 0, {
@@ -345,6 +331,8 @@ class AccountMove(models.Model):
                 'cuit_transmitter': self.company_id.vat,
                 'date': self.invoice_date,
             })]
+        elif electronic_invoices_to_reverse:
+            raise ValidationError("No se puede realizar la acción de reversión masiva.")
         return values
 
     def _add_vat_to_electronic_invoice(self, electronic_invoice):
@@ -356,17 +344,16 @@ class AccountMove(models.Model):
                     lambda x: line.tax_line_id in x.tax_ids
                 ).mapped('price_subtotal')
             )
-            code = int(codes_models_proxy.get_code('account.tax', line.tax_line_id.id))
+            code = int(codes_models_proxy.get_code('account.tax', line.tax_line_id.id, 'Afip'))
             # En casos de multi currency no podemos tomar la base imponible desde la linea
             # que tiene el valor de impuesto, tenemos que buscarla
             # desde la linea de factura
-            electronic_invoice.add_iva(documents.tax.Iva(code, line.price_subtotal, base))
+            electronic_invoice.add_iva(documents.tax.Iva(code, abs(line.amount_currency), base))
 
     def _add_other_tributes_to_electronic_invoice(self, electronic_invoice):
         """ Agrega los impuestos que son percepciones """
 
-        perception_perception_proxy = self.env['perception.perception']
-        tax_group_internal = self.env.ref('l10n_ar.tax_group_internal')
+        tax_group_internal = self.env['account.tax'].get_internal_tax_group(self.company_id)
         tax_group_perception_iibb = self.env['perception.perception'].get_perception_gross_income_groups(self.company_id)
         tax_group_perception_iva = self.env['perception.perception'].get_perception_vat_groups(self.company_id)
 
@@ -379,7 +366,7 @@ class AccountMove(models.Model):
             tribute_aliquot = round(balance / base if base else 0, 2)
 
             if ml.tax_line_id.tax_group_id in (tax_group_perception_iibb | tax_group_perception_iva):
-                perception = perception_perception_proxy.search([('tax_id', '=', ml.tax_line_id.id)], limit=1)
+                perception = ml.tax_line_id.perception_id
                 if not perception:
                     raise ValidationError("Percepción no encontrada para el impuesto {}".format(ml.tax_line_id.name))
                 code = perception.get_afip_code()
@@ -391,11 +378,7 @@ class AccountMove(models.Model):
                 raise ValidationError("No se puede informar el impuesto {} a AFIP".format(ml.tax_line_id.name))
 
     def _get_wsfe(self):
-        """
-        Busca el objeto de wsfe para utilizar sus servicios
-        :return: instancia de Wsfe
-        """
-        return self.env['wsfe.configuration'].get_wsfe(self.company_id)
+        return self.env['wsaa.configuration'].get_wsfe(self.company_id)
 
     def _set_empty_invoice_details(self):
         """ Completa los campos de la invoice no establecidos a un default """
@@ -405,7 +388,7 @@ class AccountMove(models.Model):
         if not self.afip_concept_id:
             vals['afip_concept_id'] = self._get_afip_concept_based_on_products().id
         if self.env['codes.models.relation'].get_code(
-                'afip.concept', self.afip_concept_id.id or vals.get('afip_concept_id')
+                'afip.concept', self.afip_concept_id.id or vals.get('afip_concept_id'), 'Afip'
         ) in ['2', '3']:
             if not self.date_service_from:
                 vals['date_service_from'] = self.invoice_date or fields.Date.context_today(self)
@@ -431,9 +414,8 @@ class AccountMove(models.Model):
             raise ValidationError("El tipo de documento del cliente debe ser\
                                   CUIT en comprobantes tipo A.")
 
-        exempt_iva = self.env.ref('l10n_ar_afip_tables.codes_models_afip_account_tax_2_sale')
         for line in self.invoice_line_ids:
-            if any(tax == exempt_iva for tax in line.tax_ids) and not self.amount_exempt:
+            if any(tax.is_exempt for tax in line.tax_ids) and not self.amount_exempt:
                 raise ValidationError("El importe de operaciones exentas debe ser\
                                         mayor a 0 donde exista algun ítem de factura con Iva exento")
 
@@ -459,40 +441,11 @@ class AccountMove(models.Model):
                 # Producto
                 code = '1'
 
-        return self.env['codes.models.relation'].get_record_from_code('afip.concept', code)
+        return self.env['codes.models.relation'].get_record_from_code('afip.concept', code, 'Afip')
 
     # EXPORTACION
     def _get_wsfex(self):
-        """
-        Busca el objeto de wsfex para utilizar sus servicios
-        :return: instancia de Wsfex
-        """
-        wsfex_config = self.env['wsfe.configuration'].search([
-            ('wsaa_token_id.name', '=', 'wsfex'),
-            ('company_id', '=', self.company_id.id),
-        ])
-
-        foreign_fiscal_positions = [
-            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_cliente_ext'),
-            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_prov_ext'),
-        ]
-
-        is_foreign = self.partner_id.property_account_position_id in foreign_fiscal_positions
-        country_ar = self.env.ref('base.ar')
-        if not wsfex_config:
-            raise ValidationError('No se encontro una configuracion de factura electronica exportacion')
-
-        if not self.partner_id.vat and not is_foreign:
-            raise ValidationError("El partner {} no posee numero de documento.".format(self.partner_id.name))
-
-        if not self.partner_id.country_id.vat and is_foreign and self.partner_id.country_id != country_ar:
-            raise ValidationError("El partner {} no posee pais con documento.".format(self.partner_id.name))
-
-        access_token = wsfex_config.wsaa_token_id.get_access_token()
-        homologation = False if wsfex_config.type == 'production' else True
-        afip_wsfex = wsfex.wsfex.Wsfex(access_token, self.company_id.vat, homologation)
-
-        return afip_wsfex
+        return self.env['wsaa.configuration'].get_wsfex(self.company_id, self.partner_id)
 
     @api.returns('self')
     def refund(self, date_invoice=None, date=None, description=None, journal_id=None):
@@ -502,14 +455,15 @@ class AccountMove(models.Model):
         self.env.cr.commit()
         return res
 
-    def action_electronic_exportation(self, document_book):
+    def action_electronic_exportation(self):
         """
         Realiza el envio a AFIP de la factura de exportacion y escribe en la misma el CAE y su fecha de vencimiento.
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
+        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
-        pos = document_book.pos_ar_id
+        pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)
         sent_invoices = invoices.filtered(lambda x: any(request.result == 'A' for request in x.wsfe_request_detail_ids))
         invoices -= sent_invoices
@@ -521,19 +475,22 @@ class AccountMove(models.Model):
             )
 
         if invoices:
-            afip_wsfex = invoices[0]._get_wsfex()
+            afip_wsfex = self._get_wsfex()
         for invoice in invoices:
             # Validamos los campos
             invoice._validate_required_electronic_exportation_fields()
             # Obtenemos el codigo de comprobante
-            document_afip_code = invoice.get_document_afip_code(document_book)
+            document_afip_code = invoice.get_document_afip_code(self.document_book_id)
             # Validamos la numeracion
-            document_book.action_wsfe_number(afip_wsfex, document_afip_code)
+            self.document_book_id.action_wsfe_number(afip_wsfex, document_afip_code)
             # Armamos la factura
             electronic_invoices.append(invoice._set_electronic_exportation_invoice_details(document_afip_code))
 
         if electronic_invoices:
             responses = None
+
+            default_cipher = requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS
+            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'AES128-SHA'
             # Chequeamos la conexion y enviamos las facturas a AFIP, guardando el JSON enviado, el response y mostrando
             # los errores (en caso de que los haya)
             try:
@@ -546,6 +503,7 @@ class AccountMove(models.Model):
             except Exception as e:
                 raise ValidationError(e.args)
             finally:
+                requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = default_cipher
                 # Commiteamos para que no haya inconsistencia con la AFIP. Como ya tenemos el CAE escrito en la factura,
                 # al validarla nuevamente no se vuelve a enviar y se va a mantener la numeracion correctamente
                 if responses:
@@ -560,7 +518,7 @@ class AccountMove(models.Model):
                 for idx, response in enumerate(responses):
                     if response and response.FEXResultAuth and response.FEXResultAuth.Resultado != 'R':
                         for invoice in invoices:
-                            invoice._update_document_book_and_commit(document_book)
+                            invoice._update_document_book_and_commit()
                             invoice._write_wsfex_details_on_invoice(zeep.helpers.serialize_object(response))
 
                     if response and response.FEXResultAuth and response.FEXResultAuth.Resultado == 'R':
@@ -582,7 +540,8 @@ class AccountMove(models.Model):
         electronic_invoice.payment_due_date = self.invoice_date_due or fields.Date.context_today(self)
         electronic_invoice.destiny_country = int(codes_models_proxy.get_code(
             'res.country',
-            self.partner_id.country_id.id
+            self.partner_id.country_id.id,
+            'Afip'
         ))
         electronic_invoice.customer_name = self.partner_id.name
         electronic_invoice.customer_street = self.partner_id.street
@@ -591,20 +550,19 @@ class AccountMove(models.Model):
             self.partner_id.country_id != self.env.ref('base.ar') else self.partner_id.vat
         electronic_invoice.customer_document_type = codes_models_proxy.get_code(
             'partner.document.type',
-            self.partner_id.partner_document_type_id.id
+            self.partner_id.partner_document_type_id.id,
+            'Afip'
         )
         electronic_invoice.mon_id = self.env['codes.models.relation'].get_code(
             'res.currency',
-            self.currency_id.id
+            self.currency_id.id,
+            'Afip'
         )
-        electronic_invoice.mon_cotiz = self.currency_rate or self.convert_currency(
-            from_currency=self.currency_id,
-            to_currency=self.company_id.currency_id,
-            d=self.invoice_date or fields.Date.context_today(self)
-        ) if self.need_rate else 1
+        electronic_invoice.mon_cotiz = self.currency_rate or self.current_currency_rate
         electronic_invoice.concept = int(codes_models_proxy.get_code(
             'afip.concept',
-            self.afip_concept_id.id
+            self.afip_concept_id.id,
+            'Afip'
         ))
         electronic_invoice.total_amount = self.amount_total
         # 1 = Exportación definitiva de bienes, 2 = Servicios, 4 = Otros
@@ -629,18 +587,19 @@ class AccountMove(models.Model):
     def add_item_exportation(self):
         """ Mapea los valores de ODOO al objeto ExportationElectronicInvoiceItem """
         array_items = []
-        for line in self.invoice_line_ids.filtered(lambda l: not l.display_type):
+        for line in self.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note')):
             item = wsfex.invoice.ExportationElectronicInvoiceItem(line.product_id.name)
             item.quantity = line.quantity
             try:
                 item.measurement_unit = self.env['codes.models.relation'].get_code(
                     'product.uom',
-                    line.product_uom_id.id
+                    line.product_uom_id.id,
+                    'Afip'
                 )
             except:
                 item.measurement_unit = 98
             item.unit_price = line.price_unit
-            item.bonification = round(((line.price_unit * line.quantity) * (line.discount / 100)), 6) if line.discount else 0.0
+            item.bonification = ((line.price_unit * line.quantity) - abs(line.amount_currency)) if line.discount else 0.0
             array_items.append(item)
         return array_items
 
@@ -661,14 +620,15 @@ class AccountMove(models.Model):
         })
 
     # BONO FISCAL
-    def action_fiscal_electronic_bond(self, document_book):
+    def action_fiscal_electronic_bond(self):
         """
         Realiza el envio a AFIP del bono y escribe en el mismo el CAE y su fecha de vencimiento.
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
+        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
-        pos = document_book.pos_ar_id
+        pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)
         sent_invoices = invoices.filtered(lambda x: any(request.result == 'A' for request in x.wsfe_request_detail_ids))
         invoices -= sent_invoices
@@ -687,16 +647,17 @@ class AccountMove(models.Model):
             # Validamos los campos
             invoice._validate_required_fiscal_electronic_bond_fields()
             # Obtenemos el codigo de comprobante
-            document_afip_code = invoice.get_document_afip_code(document_book)
+            document_afip_code = invoice.get_document_afip_code(self.document_book_id)
             # Validamos la numeracion
-            document_book.action_wsfe_number(afip_wsbfe, document_afip_code)
+            self.document_book_id.action_wsfe_number(afip_wsbfe, document_afip_code)
             # Armamos la factura
             electronic_invoices.append(invoice._set_electronic_bond_details(document_afip_code))
 
         if electronic_invoices:
             responses = None
-            new_cr = None
 
+            default_cipher = requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS
+            requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = 'AES128-SHA'
             # Chequeamos la conexion y enviamos las facturas a AFIP, guardando el JSON enviado, el response y mostrando
             # los errores (en caso de que los haya)
             try:
@@ -709,6 +670,7 @@ class AccountMove(models.Model):
             except Exception as e:
                 raise ValidationError(e.args)
             finally:
+                requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS = default_cipher
                 # Commiteamos para que no haya inconsistencia con la AFIP. Como ya tenemos el CAE escrito en el bono,
                 # al validarla nuevamente no se vuelve a enviar y se va a mantener la numeracion correctamente
                 if responses:
@@ -727,7 +689,7 @@ class AccountMove(models.Model):
                             #          que intenta autorizar, el comprobante asociado debe estar rechazado por el comprador.
                             if response.BFEResultAuth.Resultado != 'R' and not response.BFEErr.ErrMsg != 'OK':
                                 for invoice in invoices:
-                                    invoice._update_document_book_and_commit(document_book)
+                                    invoice._update_document_book_and_commit()
                                     invoice._write_wsbfe_details_on_invoice(
                                         zeep.helpers.serialize_object(invoice_details[idx]),
                                         zeep.helpers.serialize_object(response),
@@ -755,17 +717,15 @@ class AccountMove(models.Model):
         electronic_bond.customer_document_number = self.partner_id.vat
         electronic_bond.customer_document_type = codes_models_proxy.get_code(
             'partner.document.type',
-            self.partner_id.partner_document_type_id.id
+            self.partner_id.partner_document_type_id.id,
+            'Afip'
         )
         electronic_bond.mon_id = self.env['codes.models.relation'].get_code(
             'res.currency',
-            self.currency_id.id
+            self.currency_id.id,
+            'Afip'
         )
-        electronic_bond.mon_cotiz = self.currency_rate or self.convert_currency(
-            from_currency=self.currency_id,
-            to_currency=self.company_id.currency_id,
-            d=self.invoice_date
-        )
+        electronic_bond.mon_cotiz = self.currency_rate or self.current_currency_rate
         electronic_bond.zone_id = 0 #Por el momento se utiliza 0
 
         # Agrego items
@@ -792,18 +752,19 @@ class AccountMove(models.Model):
     def add_item_bond(self):
         """ Mapea los valores de ODOO al objeto FiscalElectronicBondItem """
         array_items = []
-        for line in self.invoice_line_ids:
+        for line in self.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note')):
 
             try:
                 measurement_unit = self.env['codes.models.relation'].get_code(
                     'product.uom',
-                    line.uom_id.id
+                    line.uom_id.id,
+                    'Afip'
                 )
             except:
                 measurement_unit = 98
             unit_price = line.price_unit
-            bonification = round(((line.price_unit * line.quantity) * (line.discount / 100)), 6) if line.discount else 0.0
-            iva_id = self.env['codes.models.relation'].get_code('account.tax', line.tax_ids[0].id) if line.tax_ids else 0
+            bonification = ((line.price_unit * line.quantity) - line.price_subtotal) if line.discount else 0.0
+            iva_id = self.env['codes.models.relation'].get_code('account.tax', line.tax_ids[0].id, 'Afip') if line.tax_ids else 0
             product_ncm_code = self.check_product(line)
             ncm_code = product_ncm_code
             item = wsbfe.invoice.FiscalElectronicBondItem(ncm_code, line.product_id.name, line.quantity, measurement_unit, unit_price, bonification, iva_id)
@@ -820,23 +781,7 @@ class AccountMove(models.Model):
         return invoice_line.product_id.ncm_id.code
 
     def _get_wsbfe(self):
-        """
-        Busca el objeto de wsbfe para utilizar sus servicios
-        :return: instancia de Wsbfe
-        """
-        wsbfe_config = self.env['wsfe.configuration'].search([
-            ('wsaa_token_id.name', '=', 'wsbfe'),
-            ('company_id', '=', self.company_id.id),
-        ])
-
-        if not wsbfe_config:
-            raise ValidationError('No se encontro una configuracion de bono fiscal electronico')
-
-        access_token = wsbfe_config.wsaa_token_id.get_access_token()
-        homologation = False if wsbfe_config.type == 'production' else True
-        afip_wsbfe = wsbfe.wsbfe.Wsbfe(access_token, self.company_id.vat, homologation)
-
-        return afip_wsbfe
+        return self.env['wsaa.configuration'].get_wsbfe(self.company_id)
 
     def get_perceptions_amount(self):
         total_amount = 0

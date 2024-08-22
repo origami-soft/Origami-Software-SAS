@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="retention_sicore_tax_document_tree">
+            <field name="name">Retention sicore tax document tree</field>
+            <field name="model">retention.sicore</field>
+            <field name="inherit_id" ref="l10n_ar_retentions_sicore.retention_sicore_tree"/>
+            <field name="arch" type="xml">
+                <button position="after">
+                    <button name="generate_pdf" type="object" string="PDF" icon="fa-cloud" colspan="1"/>
+                </button>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

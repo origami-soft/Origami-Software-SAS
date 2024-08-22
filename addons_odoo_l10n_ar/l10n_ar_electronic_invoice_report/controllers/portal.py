@@ -1,20 +1,4 @@
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import http
 from odoo.addons.account.controllers.portal import PortalAccount
@@ -32,8 +16,8 @@ class ElectronicInvoicePortalAccount(PortalAccount):
             return request.redirect('/my')
 
         if report_type in ('html', 'pdf', 'text'):
-            report = 'account.account_invoices' if invoice_sudo.document_book_type == 'preprint' else \
-                'l10n_ar_electronic_invoice_report.action_electronic_invoice'
+            report = 'l10n_ar_electronic_invoice_report.action_electronic_invoice' \
+                if invoice_sudo.document_book_id.book_type_id.is_electronic() else 'account.account_invoices'
             # Si estoy imprimiendo una FE sin CAE (no validada) o una vista previa en HTML, activo la previsualización
             # (ya que si quiero imprimir una FE normalmente no me deja por la validación de CAE, y las vistas previas
             # en HTML salen mal si el talonario está configurado para imprimir duplicados)

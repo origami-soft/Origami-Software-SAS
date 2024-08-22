@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+
+        <!-- VISTAS -->
+        <record model="ir.ui.view" id="partner_document_type_form">
+            <field name="name">Partner document type form</field>
+            <field name="model">partner.document.type</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <field name="active" invisible="1"/>
+                        <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                        <group>
+                            <field name="name"/>
+                            <field name="verification_required"/>
+                            <field name="address_required"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="partner_document_type_tree">
+            <field name="name">Partner document type tree</field>
+            <field name="model">partner.document.type</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="verification_required"/>
+                    <field name="address_required"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- ACCION -->
+        <record id="action_partner_document_type_view" model="ir.actions.act_window">
+            <field name="name">Tipos de documento</field>
+            <field name="res_model">partner.document.type</field>
+            <field name="binding_view_types">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- MENU -->
+        <menuitem
+            action="action_partner_document_type_view"
+            id="menu_partner_document_type"
+            sequence="10"
+            name="Tipos de documento"
+            parent="account.account_account_menu"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

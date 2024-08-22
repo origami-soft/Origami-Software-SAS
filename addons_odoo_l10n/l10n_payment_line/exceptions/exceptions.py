@@ -1,41 +1,21 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo.exceptions import ValidationError
 
 
-class NotEqualAmountsError(ValidationError):
-    def __init__(self, msg):
-        super(ValidationError, self).__init__(msg)
+def invalid_amount(line_description):
+    raise ValidationError("El monto de la línea de {} debe ser positivo.".format(line_description))
 
+def invalid_rate(line_description):
+    raise ValidationError("La cotización de la línea de {} debe ser positiva.".format(line_description))
 
-class NoAccountError(ValidationError):
-    def __init__(self, msg):
-        super(ValidationError, self).__init__(msg)
+def no_account(journal):
+    raise ValidationError("El diario {} no posee cuenta predeterminada.".format(journal))
 
+def not_equal_amounts():
+    raise ValidationError("El total de las grillas de pago debe coincidir con el total del pago.")
 
-class InvalidAmountError(ValidationError):
-    def __init__(self, msg):
-        super(ValidationError, self).__init__(msg)
-
-
-class InvalidRateError(ValidationError):
-    def __init__(self, msg):
-        super(ValidationError, self).__init__(msg)
+def journal_and_payment_on_different_currency(journal, payment_currency):
+    raise ValidationError("La moneda del diario {} es diferente de la del pago {}.".format(journal.name, payment_currency.name))
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
