@@ -1,0 +1,834 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+
+<odoo>
+    <data>
+
+        <!--TIPOS DE DOCUMENTO DE AFIP Y SUS RELACIONES CON DENOMINACIONES Y TIPOS DE DOCUMENTO-->
+
+        <record id='afip_voucher_type_001' model='voucher.type'>
+            <field name="code">001</field>
+            <field name='name'>FACTURAS A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">FC A</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_002' model='voucher.type'>
+            <field name="code">002</field>
+            <field name='name'>NOTAS DE DEBITO A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">ND A</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_003' model='voucher.type'>
+            <field name="code">003</field>
+            <field name='name'>NOTAS DE CREDITO A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">NC A</field>
+            <field name='category'>refund</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_004' model='voucher.type'>
+            <field name="code">004</field>
+            <field name='name'>RECIBOS A</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_005' model='voucher.type'>
+            <field name="code">005</field>
+            <field name='name'>NOTAS DE VENTA AL CONTADO A</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_006' model='voucher.type'>
+            <field name="code">006</field>
+            <field name='name'>FACTURAS B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name='category'>invoice</field>
+            <field name="prefix">FC B</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_007' model='voucher.type'>
+            <field name="code">007</field>
+            <field name='name'>NOTAS DE DEBITO B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name='category'>invoice</field>
+            <field name="prefix">ND B</field>
+            <field name="is_debit_note">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_008' model='voucher.type'>
+            <field name="code">008</field>
+            <field name='name'>NOTAS DE CREDITO B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name='category'>refund</field>
+            <field name="prefix">NC B</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_009' model='voucher.type'>
+            <field name="code">009</field>
+            <field name='name'>RECIBOS B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_010' model='voucher.type'>
+            <field name="code">010</field>
+            <field name='name'>NOTAS DE VENTA AL CONTADO B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_011' model='voucher.type'>
+            <field name="code">011</field>
+            <field name='name'>FACTURAS C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">FC C</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_012' model='voucher.type'>
+            <field name="code">012</field>
+            <field name='name'>NOTAS DE DEBITO C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">ND C</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_013' model='voucher.type'>
+            <field name="code">013</field>
+            <field name='name'>NOTAS DE CREDITO C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">NC C</field>
+            <field name='category'>refund</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_014' model='voucher.type'>
+            <field name="code">014</field>
+            <field name='name'>DOCUMENTO ADUANERO</field>
+            <field name='denomination_id' ref='account_denomination_d'/>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_015' model='voucher.type'>
+            <field name="code">015</field>
+            <field name='name'>RECIBOS C</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_016' model='voucher.type'>
+            <field name="code">016</field>
+            <field name='name'>NOTAS DE VENTA AL CONTADO C</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_019' model='voucher.type'>
+            <field name="code">019</field>
+            <field name='name'>FACTURAS DE EXPORTACION</field>
+            <field name='denomination_id' ref='account_denomination_e'/>
+            <field name="prefix">FC E</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_020' model='voucher.type'>
+            <field name="code">020</field>
+            <field name='name'>NOTAS DE DEBITO POR OPERACIONES CON EL EXTERIOR</field>
+            <field name='denomination_id' ref='account_denomination_e'/>
+            <field name="prefix">ND E</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_021' model='voucher.type'>
+            <field name="code">021</field>
+            <field name='name'>NOTAS DE CREDITO POR OPERACIONES CON EL EXTERIOR</field>
+            <field name='denomination_id' ref='account_denomination_e'/>
+            <field name="prefix">NC E</field>
+            <field name='category'>refund</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_022' model='voucher.type'>
+            <field name="code">022</field>
+            <field name='name'>FACTURAS - PERMISO EXPORTACION SIMPLIFICADO - DTO. 855/97</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_030' model='voucher.type'>
+            <field name="code">030</field>
+            <field name='name'>COMPROBANTES DE COMPRA DE BIENES USADOS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_031' model='voucher.type'>
+            <field name="code">031</field>
+            <field name='name'>MANDATO - CONSIGNACION</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_032' model='voucher.type'>
+            <field name="code">032</field>
+            <field name='name'>COMPROBANTES PARA RECICLAR MATERIALES</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_034' model='voucher.type'>
+            <field name="code">034</field>
+            <field name='name'>COMPROBANTES A DEL APARTADO A  INCISO F  R G  N  1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_035' model='voucher.type'>
+            <field name="code">035</field>
+            <field name='name'>COMPROBANTES B DEL ANEXO I, APARTADO A, INC. F), RG N° 1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_036' model='voucher.type'>
+            <field name="code">036</field>
+            <field name='name'>COMPROBANTES C DEL Anexo I, Apartado A, INC.F), R.G. N° 1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_037' model='voucher.type'>
+            <field name="code">037</field>
+            <field name='name'>NOTAS DE DEBITO O DOCUMENTO EQUIVALENTE QUE CUMPLAN CON LA R.G. N° 1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_038' model='voucher.type'>
+            <field name="code">038</field>
+            <field name='name'>NOTAS DE CREDITO O DOCUMENTO EQUIVALENTE QUE CUMPLAN CON LA R.G. N° 1415</field>
+            <field name='category'>refund</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_039' model='voucher.type'>
+            <field name="code">039</field>
+            <field name='name'>OTROS COMPROBANTES A QUE CUMPLEN CON LA R G  1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_040' model='voucher.type'>
+            <field name="code">040</field>
+            <field name='name'>OTROS COMPROBANTES B QUE CUMPLAN CON LA R.G. N° 1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_041' model='voucher.type'>
+            <field name="code">041</field>
+            <field name='name'>OTROS COMPROBANTES C QUE CUMPLAN CON LA R.G. N° 1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_050' model='voucher.type'>
+            <field name="code">050</field>
+            <field name='name'>RECIBO FACTURA A REGIMEN DE FACTURA DE CREDITO </field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_051' model='voucher.type'>
+            <field name="code">051</field>
+            <field name='name'>FACTURAS M</field>
+            <field name='denomination_id' ref='account_denomination_m'/>
+            <field name="prefix">FC M</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_052' model='voucher.type'>
+            <field name="code">052</field>
+            <field name='name'>NOTAS DE DEBITO M</field>
+            <field name='denomination_id' ref='account_denomination_m'/>
+            <field name="prefix">ND M</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_053' model='voucher.type'>
+            <field name="code">053</field>
+            <field name='name'>NOTAS DE CREDITO M</field>
+            <field name='denomination_id' ref='account_denomination_m'/>
+            <field name="prefix">NC M</field>
+            <field name='category'>refund</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_054' model='voucher.type'>
+            <field name="code">054</field>
+            <field name='name'>RECIBOS M</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_055' model='voucher.type'>
+            <field name="code">055</field>
+            <field name='name'>NOTAS DE VENTA AL CONTADO M</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_056' model='voucher.type'>
+            <field name="code">056</field>
+            <field name='name'>COMPROBANTES M DEL ANEXO I  APARTADO A  INC F   R G  N  1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_057' model='voucher.type'>
+            <field name="code">057</field>
+            <field name='name'>OTROS COMPROBANTES M QUE CUMPLAN CON LA R G  N  1415</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_058' model='voucher.type'>
+            <field name="code">058</field>
+            <field name='name'>CUENTAS DE VENTA Y LIQUIDO PRODUCTO M</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_059' model='voucher.type'>
+            <field name="code">059</field>
+            <field name='name'>LIQUIDACIONES M</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_060' model='voucher.type'>
+            <field name="code">060</field>
+            <field name='name'>CUENTAS DE VENTA Y LIQUIDO PRODUCTO A</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_061' model='voucher.type'>
+            <field name="code">061</field>
+            <field name='name'>CUENTAS DE VENTA Y LIQUIDO PRODUCTO B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_063' model='voucher.type'>
+            <field name="code">063</field>
+            <field name='name'>LIQUIDACIONES A</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_064' model='voucher.type'>
+            <field name="code">064</field>
+            <field name='name'>LIQUIDACIONES B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_065' model='voucher.type'>
+            <field name="code">065</field>
+            <field name='name'>NOTAS DE CREDITO DE COMPROBANTES CON COD. 34, 39, 58, 59, 60, 63, 96, 97 </field>
+            <field name='category'>refund</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_066' model='voucher.type'>
+            <field name="code">066</field>
+            <field name='name'>DESPACHO DE IMPORTACION</field>
+            <field name='denomination_id' ref='account_denomination_d'/>
+            <field name="prefix">DI</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_067' model='voucher.type'>
+            <field name="code">067</field>
+            <field name='name'>IMPORTACION DE SERVICIOS</field>
+            <field name='denomination_id' ref='account_denomination_d'/>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_068' model='voucher.type'>
+            <field name="code">068</field>
+            <field name='name'>LIQUIDACION C</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_070' model='voucher.type'>
+            <field name="code">070</field>
+            <field name='name'>RECIBOS FACTURA DE CREDITO</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_071' model='voucher.type'>
+            <field name="code">071</field>
+            <field name='name'>CREDITO FISCAL POR CONTRIBUCIONES PATRONALES</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_073' model='voucher.type'>
+            <field name="code">073</field>
+            <field name='name'>FORMULARIO 1116 RT</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_074' model='voucher.type'>
+            <field name="code">074</field>
+            <field name='name'>CARTA DE PORTE PARA EL TRANSPORTE AUTOMOTOR PARA GRANOS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_075' model='voucher.type'>
+            <field name="code">075</field>
+            <field name='name'>CARTA DE PORTE PARA EL TRANSPORTE FERROVIARIO PARA GRANOS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_080' model='voucher.type'>
+            <field name="code">080</field>
+            <field name='name'>COMPROBANTE DIARIO DE CIERRE (ZETA)</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_081' model='voucher.type'>
+            <field name="code">081</field>
+            <field name='name'>TIQUE FACTURA A CONTROLADORES FISCALES</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_082' model='voucher.type'>
+            <field name="code">082</field>
+            <field name='name'>TIQUE - FACTURA B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_083' model='voucher.type'>
+            <field name="code">083</field>
+            <field name='name'>TIQUE</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_084' model='voucher.type'>
+            <field name="code">084</field>
+            <field name='name'>COMPROBANTE   FACTURA DE SERVICIOS PUBLICOS   INTERESES FINANCIEROS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_085' model='voucher.type'>
+            <field name="code">085</field>
+            <field name='name'>NOTA DE CREDITO   SERVICIOS PUBLICOS   NOTA DE CREDITO CONTROLADORES FISCALES</field>
+            <field name='category'>refund</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_086' model='voucher.type'>
+            <field name="code">086</field>
+            <field name='name'>NOTA DE DEBITO   SERVICIOS PUBLICOS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_087' model='voucher.type'>
+            <field name="code">087</field>
+            <field name='name'>OTROS COMPROBANTES - SERVICIOS DEL EXTERIOR</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_088' model='voucher.type'>
+            <field name="code">088</field>
+            <field name='name'>OTROS COMPROBANTES - DOCUMENTOS EXCEPTUADOS / REMITO ELECTRONICO </field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_089' model='voucher.type'>
+            <field name="code">089</field>
+            <field name='name'>OTROS COMPROBANTES - DOCUMENTOS EXCEPTUADOS - NOTAS DE DEBITO / RESUMEN DE DATOS</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_090' model='voucher.type'>
+            <field name="code">090</field>
+            <field name='name'>OTROS COMPROBANTES - DOCUMENTOS EXCEPTUADOS - NOTAS DE CREDITO</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_091' model='voucher.type'>
+            <field name="code">091</field>
+            <field name='name'>REMITOS R</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_092' model='voucher.type'>
+            <field name="code">092</field>
+            <field name='name'>AJUSTES CONTABLES QUE INCREMENTAN EL DEBITO FISCAL</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_093' model='voucher.type'>
+            <field name="code">093</field>
+            <field name='name'>AJUSTES CONTABLES QUE DISMINUYEN EL DEBITO FISCAL</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_094' model='voucher.type'>
+            <field name="code">094</field>
+            <field name='name'>AJUSTES CONTABLES QUE INCREMENTAN EL CREDITO FISCAL</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_095' model='voucher.type'>
+            <field name="code">095</field>
+            <field name='name'>AJUSTES CONTABLES QUE DISMINUYEN EL CREDITO FISCAL</field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_096' model='voucher.type'>
+            <field name="code">096</field>
+            <field name='name'>FORMULARIO 1116 B</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_097' model='voucher.type'>
+            <field name="code">097</field>
+            <field name='name'>FORMULARIO 1116 C</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_099' model='voucher.type'>
+            <field name="code">099</field>
+            <field name='name'>OTROS COMP  QUE NO CUMPLEN CON LA R G  3419 Y SUS MODIF </field>
+            <field name='denomination_id' ref='account_denomination_o'/>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_101' model='voucher.type'>
+            <field name="code">101</field>
+            <field name='name'>AJUSTE ANUAL PROVENIENTE DE LA  D J  DEL IVA  POSITIVO </field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_102' model='voucher.type'>
+            <field name="code">102</field>
+            <field name='name'>AJUSTE ANUAL PROVENIENTE DE LA  D J  DEL IVA  NEGATIVO </field>
+            <field name='category'>invoice</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_103' model='voucher.type'>
+            <field name="code">103</field>
+            <field name='name'>NOTA DE ASIGNACION</field>
+            <field name='category'>invoice</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_104' model='voucher.type'>
+            <field name="code">104</field>
+            <field name='name'>NOTA DE CREDITO DE ASIGNACION</field>
+            <field name='category'>refund</field>
+            <field name='active'>False</field>
+        </record>
+
+        <record id='afip_voucher_type_201' model='voucher.type'>
+            <field name="code">201</field>
+            <field name='name'>FACTURA DE CRÉDITO ELECTRÓNICA MiPyMEs (FCE) A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">FCE A</field>
+            <field name='category'>invoice</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_202' model='voucher.type'>
+            <field name="code">202</field>
+            <field name='name'>NOTA DE DEBITO ELECTRÓNICA MiPyMEs (FCE) A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">NDE A</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_203' model='voucher.type'>
+            <field name="code">203</field>
+            <field name='name'>NOTA DE CREDITO ELECTRÓNICA MiPyMEs (FCE) A</field>
+            <field name='denomination_id' ref='account_denomination_a'/>
+            <field name="prefix">NCE A</field>
+            <field name='category'>refund</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_206' model='voucher.type'>
+            <field name="code">206</field>
+            <field name='name'>FACTURA DE CRÉDITO ELECTRÓNICA MiPyMEs (FCE) B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name="prefix">FCE B</field>
+            <field name='category'>invoice</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_207' model='voucher.type'>
+            <field name="code">207</field>
+            <field name='name'>NOTA DE DEBITO ELECTRÓNICA MiPyMEs (FCE) B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name="prefix">NDE B</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_208' model='voucher.type'>
+            <field name="code">208</field>
+            <field name='name'>NOTA DE CREDITO ELECTRÓNICA MiPyMEs (FCE) B</field>
+            <field name='denomination_id' ref='account_denomination_b'/>
+            <field name="prefix">NCE B</field>
+            <field name='category'>refund</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_211' model='voucher.type'>
+            <field name="code">211</field>
+            <field name='name'>FACTURA DE CRÉDITO ELECTRÓNICA MiPyMEs (FCE) C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">FCE C</field>
+            <field name='category'>invoice</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_212' model='voucher.type'>
+            <field name="code">212</field>
+            <field name='name'>NOTA DE DEBITO ELECTRÓNICA MiPyMEs (FCE) C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">NDE C</field>
+            <field name='category'>invoice</field>
+            <field name="is_debit_note">True</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <record id='afip_voucher_type_213' model='voucher.type'>
+            <field name="code">213</field>
+            <field name='name'>NOTA DE CREDITO ELECTRÓNICA MiPyMEs (FCE) C</field>
+            <field name='denomination_id' ref='account_denomination_c'/>
+            <field name="prefix">NCE C</field>
+            <field name='category'>refund</field>
+            <field name="is_credit_invoice">True</field>
+            <field name='active'>True</field>
+        </record>
+
+        <!--RECIBOS Y ORDENES DE PAGO-->
+        <record id='voucher_type_payment_in' model='voucher.type'>
+            <field name='name'>RECIBO</field>
+            <field name="prefix">REC</field>
+            <field name='category'>payment_in</field>
+            <field name='active'>True</field>
+        </record>
+
+         <record id='voucher_type_payment_out' model='voucher.type'>
+            <field name='name'>ORDEN DE PAGO</field>
+            <field name="prefix">OP</field>
+            <field name='category'>payment_out</field>
+            <field name='active'>True</field>
+        </record>
+
+        <!-- DOCUMENTOS DE DEVOLUCION -->
+        <record id='afip_voucher_type_001' model='voucher.type'>
+            <field name="refund_voucher_type_id" ref="afip_voucher_type_003"/>
+        </record>
+
+        <record id='afip_voucher_type_002' model='voucher.type'>
+            <field name="refund_voucher_type_id" ref="afip_voucher_type_003"/>
+        </record>
+
+        <record id='afip_voucher_type_003' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_002"/>
+        </record>
+
+        <record id='afip_voucher_type_006' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_008"/>
+        </record>
+
+        <record id='afip_voucher_type_007' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_008"/>
+        </record>
+
+        <record id='afip_voucher_type_008' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_007"/>
+        </record>
+
+        <record id='afip_voucher_type_011' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_013"/>
+        </record>
+
+        <record id='afip_voucher_type_012' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_013"/>
+        </record>
+
+        <record id='afip_voucher_type_013' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_012"/>
+        </record>
+
+        <record id='afip_voucher_type_019' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_021"/>
+        </record>
+
+        <record id='afip_voucher_type_020' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_021"/>
+        </record>
+
+        <record id='afip_voucher_type_021' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_020"/>
+        </record>
+
+        <record id='afip_voucher_type_051' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_053"/>
+        </record>
+
+        <record id='afip_voucher_type_052' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_053"/>
+        </record>
+
+        <record id='afip_voucher_type_053' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_052"/>
+        </record>
+
+        <record id='afip_voucher_type_092' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_093"/>
+        </record>
+
+        <record id='afip_voucher_type_093' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_092"/>
+        </record>
+
+        <record id='afip_voucher_type_094' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_095"/>
+        </record>
+
+        <record id='afip_voucher_type_095' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_094"/>
+        </record>
+
+        <record id='afip_voucher_type_103' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_104"/>
+        </record>
+
+        <record id='afip_voucher_type_104' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_103"/>
+        </record>
+
+        <record id='afip_voucher_type_201' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_203"/>
+        </record>
+
+        <record id='afip_voucher_type_202' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_203"/>
+        </record>
+
+        <record id='afip_voucher_type_203' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_202"/>
+        </record>
+
+        <record id='afip_voucher_type_206' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_208"/>
+        </record>
+
+        <record id='afip_voucher_type_207' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_208"/>
+        </record>
+
+        <record id='afip_voucher_type_208' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_207"/>
+        </record>
+
+        <record id='afip_voucher_type_211' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_213"/>
+        </record>
+
+        <record id='afip_voucher_type_212' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_213"/>
+        </record>
+
+        <record id='afip_voucher_type_213' model='voucher.type'>
+          <field name="refund_voucher_type_id" ref="afip_voucher_type_212"/>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

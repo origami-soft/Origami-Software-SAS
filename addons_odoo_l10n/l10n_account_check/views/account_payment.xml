@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_payment_checks_form">
+        <field name="name">account_payment_checks_form</field>
+        <field name="model">account.payment</field>
+        <field name="priority">20</field>
+        <field name="inherit_id" ref="l10n_payment_line.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <field name="check_issue_date" invisible="1"/>
+                <page string="Cheques de terceros" name="third_checks"
+                      attrs="{'invisible': [('payment_type', '!=', 'inbound')]}">
+                    <field name="account_third_check_ids" nolabel="1"
+                           attrs="{'readonly': [('state', '!=', 'draft')]}"
+                           context="{'default_issue_date': check_issue_date}">
+                        <tree editable="bottom">
+                            <field name="company_id" invisible="1"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="payment_currency_id" invisible="1"/>
+                            <field name="journal_id"/>
+                            <field name="currency_id"/>
+                            <field name="same_currency_as_payment" invisible="1"/>
+                            <field name="rate" attrs="{'invisible': [('same_currency_as_payment', '=', True)]}"/>
+                            <field name="amount"/>
+                            <field name="payment_currency_amount" sum="Total"
+                            widget="monetary" options="{'currency_field': 'payment_currency_id'}"/>
+                            <field name="name"/>
+                            <field name="issue_name"/>
+                            <field name="issue_date"/>
+                            <field name="payment_date" force_save="1"
+                                   attrs="{'readonly': [('check_type', '=', 'common')]}"/>
+                            <field name="bank_id"/>
+                            <field name="check_type"/>
+                            <field name="not_to_order"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Cheques propios" name="own_checks"
+                      attrs="{'invisible': [('payment_type', '!=', 'outbound')]}">
+                    <field name="account_own_check_ids" nolabel="1"
+                           attrs="{'readonly': [('state', '!=', 'draft')]}"
+                           context="{'default_issue_date': check_issue_date}">
+                        <tree editable="bottom">
+                            <field name="company_id" invisible="1"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="payment_currency_id" invisible="1"/>
+                            <field name="journal_id"/>
+                            <field name="currency_id"/>
+                            <field name="same_currency_as_payment" invisible="1"/>
+                            <field name="rate" attrs="{'invisible': [('same_currency_as_payment', '=', True)]}"/>
+                            <field name="amount"/>
+                            <field name="payment_currency_amount" sum="Total"
+                            widget="monetary" options="{'currency_field': 'payment_currency_id'}"/>
+                            <field name="name"/>
+                            <field name="issue_date"/>
+                            <field name="payment_date" force_save="1"
+                                   attrs="{'readonly': [('check_type', '=', 'common')]}"/>
+                            <field name="bank_id"/>
+                            <field name="check_type"/>
+                        </tree>
+                    </field>
+                </page>
+
+                <page string="Cheques de terceros" name="third_checks_sent"
+                      attrs="{'invisible': [('payment_type', '!=', 'outbound')]}">
+                    <field name="account_third_check_sent_ids" nolabel="1"
+                            attrs="{'readonly': [('state', '!=', 'draft')]}"
+                            options="{'no_create': True}"
+                            domain="[('state', '=', 'wallet'), ('destination_payment_id', '=', False),
+                                     ('not_to_order', '=', False), ('company_id', '=', company_id)]"
+                            context="{'payment_currency': currency_id}"
+                            widget="many2many">
+                        <tree editable="bottom">
+                            <field name="company_id" invisible="1"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="payment_currency_id" invisible="1"/>
+                            <field name="journal_id" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="same_currency_as_sent_payment" invisible="1"/>
+                            <field name="sent_rate" string="Cotización"
+                                   attrs="{'invisible': [('same_currency_as_sent_payment', '=', True)]}"/>
+                            <field name="amount" readonly="1"/>
+                            <field name="sent_payment_currency_id" invisible="1"/>
+                            <field name="sent_payment_currency_amount" string="Monto en moneda de pago" sum="Total"
+                                   attrs="{'readonly': [('same_currency_as_sent_payment', '=', True)]}"
+                                   widget="monetary" options="{'currency_field': 'sent_payment_currency_id'}" force_save="1"/>
+                            <field name="name" readonly="1"/>
+                            <field name="issue_name" readonly="1"/>
+                            <field name="issue_date" readonly="1"/>
+                            <field name="payment_date"  readonly="1"/>
+                            <field name="bank_id" readonly="1"/>
+                            <field name="check_type" readonly="1"/>
+                            <field name="not_to_order" readonly="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <!-- TRANSFERENCIAS INTERNAS -->
+    <record id="view_internal_transfers_tree" model="ir.ui.view">
+        <field name="name">Internal transfers tree</field>
+        <field name="model">account.payment</field>
+        <field name="arch" type="xml">
+            <tree decoration-info="state=='draft'" decoration-muted="state=='reconciled'" edit="false">
+                <field name="payment_date"/>
+                <field name="name"/>
+                <field name="journal_id"/>
+                <field name="destination_journal_id"/>
+                <field name="amount" sum='Total'/>
+                <field name="state"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="partner_type" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_internal_transfers" model="ir.actions.act_window">
+        <field name="name">Transferencias internas</field>
+        <field name="res_model">account.payment</field>
+        <field name="view_mode">tree,form,graph</field>
+        <field name="context">{'default_payment_type': 'transfer'}</field>
+        <field name="domain">[('payment_type', '=', 'transfer')]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+              Haga click para registrar una transferencia interna
+            </p><p>
+              Las tranferencias internas se utilizan para registrar movimientos entre cuentras de liquidez
+            </p>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

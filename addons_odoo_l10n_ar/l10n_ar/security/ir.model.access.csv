@@ -1,0 +1,7 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+perception_template_user,perception_template_user,model_perception_perception_template,base.group_user,1,0,0,0
+retention_template_user,retention_template_user,model_retention_retention_template,base.group_user,1,0,0,0
+l10n_ar_perception_perception_user,l10n_ar.perception_perception.user,l10n_ar.model_perception_perception,base.group_user,1,0,0,0
+l10n_ar_perception_perception_manager,l10n_ar.perception_perception.manager,l10n_ar.model_perception_perception,account.group_account_manager,1,1,1,1
+l10n_ar_retention_retention_user,l10n_ar.retention_retention.user,l10n_ar.model_retention_retention,base.group_user,1,0,0,0
+l10n_ar_retention_retention_manager,l10n_ar.retention_retention.manager,l10n_ar.model_retention_retention,account.group_account_manager,1,1,1,1

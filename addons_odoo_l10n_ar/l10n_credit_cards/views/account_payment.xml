@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_payment_credit_card_lines_form">
+        <field name="name">account_payment_credit_card_lines_form</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="l10n_payment_line.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page name="credit_card_lines" string="Tarjetas de crédito">
+                    <field name="credit_card_line_ids" nolabel="1"
+                           attrs="{'readonly': [('state', '!=', 'draft')]}">
+                        <tree editable="bottom">
+                            <field name="company_id" invisible="1"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="payment_currency_id" invisible="1"/>
+                            <field name="journal_id" invisible="1"/>
+                            <field name="credit_card_id" domain="['|', ('type', '=', parent.payment_type == 'outbound' and parent.partner_type == 'supplier' and 'purchase'),
+                                                                       ('type', '=', parent.partner_type == 'customer' and 'sale')]"/>
+                            <field name="payment_plan_id"/>
+                            <field name="currency_id"/>
+                            <field name="same_currency_as_payment" invisible="1"/>
+                            <field name="rate" attrs="{'invisible': [('same_currency_as_payment', '=', True)]}"/>
+                            <field name="amount"/>
+                            <field name="payment_currency_amount"/>
+                            <field name="name" string="N° Cupón"/>
+                        </tree>
+                        <form>
+                            <group>
+                                <field name="credit_card_id"/>
+                                <field name="payment_plan_id"/>
+                                <field name="currency_id"/>
+                            </group>
+                            <group>
+                                <field name="name" string="N° Cupón"/>
+                                <field name="amount"/>
+                                <field name="same_currency_as_payment" invisible="1"/>
+                                <field name="rate" attrs="{'invisible': [('same_currency_as_payment', '=', True)]}"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="account_invoice_voucher_type_filter" model="ir.ui.view">
+        <field name="name">Account invoice voucher type filter</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="voucher_type_id"/>
+            </field>
+            <group>
+                <filter string="Tipo de comprobante" name="voucher_type" domain="" context="{'group_by':'voucher_type_id'}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="account_move_voucher_type_filter" model="ir.ui.view">
+        <field name="name">Account move voucher type filter</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_move_filter"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="voucher_type_id"/>
+            </field>
+            <group>
+                <filter string="Tipo de comprobante" name="voucher_type" domain="" context="{'group_by':'voucher_type_id'}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="account_move_voucher_type_form" model="ir.ui.view">
+        <field name="name">Account move voucher type form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="voucher_type_id"
+                    attrs="{'readonly': [('state', '!=', 'draft')]}"
+                />
+            </field>
+        </field>
+    </record>
+
+</odoo>

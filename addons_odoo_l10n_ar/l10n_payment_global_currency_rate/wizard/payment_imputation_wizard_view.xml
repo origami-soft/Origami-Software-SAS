@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="payment_imputation_wizard_rate_form">
+            <field name="name">Payment imputation wizard rate form</field>
+            <field name="model">payment.imputation.wizard</field>
+            <field name="inherit_id" ref="payment_imputation.payment_imputation_wizard_form"/>
+            <field name="arch" type="xml">
+                <field name="journal_id" position="after">
+                    <field name="need_rate" invisible="1"/>
+                    <field name="currency_rate" string="Cotización pago" groups="base.group_multi_currency"
+                           attrs="{'invisible': [('need_rate', '=', False)]}"/>
+                    <field name="current_currency_rate" groups="base.group_multi_currency" attrs="{'invisible': [('need_rate', '=', False)]}"/>
+                    <div class="alert alert-warning" role="alert" colspan="2" attrs="{'invisible': [('need_rate', '=', False)]}">
+                        Si carga una cotización en <strong>cotización pago</strong>, se utilizará la misma para hacer las conversiones. De lo contrario se utilizará la <strong>cotización actual</strong>.
+                    </div>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+
+    <record model="ir.ui.view" id="check_wallet_report_wizard_form">
+        <field name="name">check_wallet_report_wizard_form</field>
+        <field name="model">check.wallet.report.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="date"/>
+                </group>
+                <footer>
+                    <button type="object" name="generate_report" string="Generar" class="oe_highlight"/>
+                    <button class="oe_link" special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="check_wallet_report_wizard_action" model="ir.actions.act_window">
+        <field name="name">Reporte de cheques en cartera</field>
+        <field name="res_model">check.wallet.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem
+        id="check_wallet_report_wizard_menu"
+        action="check_wallet_report_wizard_action"
+        name="Reporte de cheques en cartera"
+        parent="l10n_account_check.treasury_third_checks_main_menu"
+        sequence="50"
+    />
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

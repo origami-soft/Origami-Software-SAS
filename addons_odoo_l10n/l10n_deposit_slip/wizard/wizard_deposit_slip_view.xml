@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_deposit_slip_wizard_form">
+        <field name="name">account.deposit.slip.wizard.form</field>
+        <field name="model">wizard.deposit.slip</field>
+        <field name="arch" type="xml">
+            <form string="Check Deposit">
+                <field name="valid_deposit" invisible="1"/>
+                <group attrs="{'invisible': [('valid_deposit', '=', False)]}">
+                    <group>
+                        <field name="journal_id" widget="selection"/>
+                        <field name="total" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="date"/>
+                        <field name="currency_id" invisible="1"/>
+                    </group>
+                </group>
+                <p attrs="{'invisible': [('valid_deposit', '=', True)]}">
+                    Los cheques a depositar deben estar en cartera.
+                </p>
+                <footer>
+                    <button type="object" name="action_create_deposit_slip" string="Depositar" class="oe_highlight"
+                            attrs="{'invisible': [('valid_deposit', '=', False)]}"
+                            groups="l10n_account_check.group_account_treasury_manager"/>
+                    <button class="oe_link" special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <act_window
+        id="action_check_deposit"
+        name="Depositar cheques"
+        res_model="wizard.deposit.slip"
+        binding_model="account.third.check"
+        binding_views="list,form"
+        view_mode="form"
+        view_id="account_deposit_slip_wizard_form"
+        target="new"
+    />
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

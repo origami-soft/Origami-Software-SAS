@@ -1,0 +1,32 @@
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="reject_checks_wizard_form">
+            <field name="name">Reject checks wizard form</field>
+            <field name="model">reject.checks.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <div class="alert alert-warning" role="alert" colspan="2" attrs="{'invisible': [('check_state', '!=', 'sold')]}">
+                        El cheque está en estado 'Vendido', deberá generar el asiento de rechazo manualmente.
+                    </div>
+                    <group>
+                        <field name="create_moves" attrs="{'invisible': [('check_state', '=', 'sold')]}"/>
+                        <field name="check_state" invisible="1"/>
+                    </group>
+                    <footer>
+                        <button
+                            type="object"
+                            name="reject_check_wizard"
+                            class="oe_highlight"
+                            string="Rechazar"
+                        />
+                        <button
+                            type="special"
+                            special="cancel"
+                            string="Cancelar"
+                        />
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

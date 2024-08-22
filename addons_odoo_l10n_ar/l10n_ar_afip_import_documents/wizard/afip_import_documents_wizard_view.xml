@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="afip_import_documents_wizard">
+            <field name="name">Afip import documents wizard form</field>
+            <field name="model">afip.import.documents.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <div class="alert alert-info" role="alert">
+                        El archivo a subir es el archivo descargado desde "Mis Comprobantes" en AFIP, en formato XLSX o CSV.<br/>
+                        Debido a que la información de las facturas de exportación no es suficiente para ser cargada en el sistema,
+                        no se podrán crear facturas de exportación automáticamente.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="file" filename="filename"/>
+                            <field name="filename" invisible="1"/>
+                            <field name="available_account_ids" invisible="1"/>
+                            <field name="account_id"/>
+                        </group>
+                        <group>
+                            <field name="type"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="validate_documents" class="oe_highlight" string="Validar documentos" type="object"/>
+                        <button string="Cancelar" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="afip_non_found_documents_wizard">
+            <field name="name">Afip non found documents wizard form</field>
+            <field name="model">afip.import.documents.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group string="Documentos no encontrados" attrs="{'invisible': [('document_line_ids', '=', [])]}">
+                        <field name="document_line_ids" nolabel="1" readonly="1">
+                            <tree editable="bottom">
+                                <field name="date"/>
+                                <field name="voucher_type"/>
+                                <field name="point_of_sale"/>
+                                <field name="voucher_name"/>
+                                <field name="document_type" optional="hide"/>
+                                <field name="document_number" optional="hide"/>
+                                <field name="name"/>
+                                <field name="currency_value" optional="hide"/>
+                                <field name="currency" optional="hide"/>
+                                <field name="amount_untaxed" optional="hide"/>
+                                <field name="amount_not_taxed" optional="hide"/>
+                                <field name="amount_exempt" optional="hide"/>
+                                <field name="amount_other_tributes" optional="hide"/>
+                                <field name="amount_vat" optional="hide"/>
+                                <field name="amount_total"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <div class="alert alert-success" role="alert" attrs="{'invisible': [('document_line_ids', '!=', [])]}">
+                      No hay facturas que importar!
+                    </div>
+                    <footer>
+                        <button
+                            name="create_invoices"
+                            class="oe_highlight"
+                            string="Crear facturas"
+                            type="object"
+                            attrs="{'invisible': [('document_line_ids', '=', [])]}"
+                        />
+                        <button
+                            class="oe_highlight"
+                            string="Finalizar"
+                            attrs="{'invisible': [('document_line_ids', '!=', [])]}"
+                        />
+                        <button string="Cancelar" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_afip_import_documents" model="ir.actions.act_window">
+            <field name="name">Importar comprobantes de AFIP</field>
+            <field name="res_model">afip.import.documents.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem
+            id="menu_action_afip_import_documents"
+            name="Importar comprobantes de AFIP"
+            action="action_afip_import_documents"
+            parent="account.menu_finance_entries_actions"
+            groups="account.group_account_manager"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

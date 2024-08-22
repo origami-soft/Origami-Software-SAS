@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="afip_missed_document_wizard_form">
+            <field name="name">Afip missed document wizard</field>
+            <field name="model">afip.missed.document.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group col="2">
+                        <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="pos_ar_id" domain="[('company_id', '=', company_id)]"/>
+                        <field name="available_voucher_type_ids" invisible="1"/>
+                        <field name="voucher_type_id" domain="[('id', 'in', available_voucher_type_ids)]"/>
+                        <field name="document_number"/>
+                    </group>
+                    <notebook>
+                        <page string="Respuesta" attrs="{'invisible': [('response', '=', False)]}">
+                            <field name="response" readonly="1"/>
+                            <group string="Documento a asignar">
+                                <field
+                                    name="move_id"
+                                    domain="[
+                                        ('voucher_type_id', '=', voucher_type_id),
+                                        ('pos_ar_id', '=', pos_ar_id),
+                                        ('type', 'in', ['out_invoice', 'out_refund'])
+                                   ]"
+                                />
+                            </group>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button
+                            type="object"
+                            name="fill_data"
+                            attrs="{'invisible': ['|', ('move_id', '=', False), ('response', '=', False)]}"
+                            class="btn-primary"
+                            string="Completar documento"
+                        />
+                        <button
+                            type="object"
+                            name="get_documents_data"
+                            class="btn-primary"
+                            string="Obtener datos"
+                        />
+                        <button special="cancel" string="Cancelar" class="btn-secondary" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_afip_missed_document_wizard_view" model="ir.actions.act_window">
+            <field name="name">Recuperar comprobantes</field>
+            <field name="res_model">afip.missed.document.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem
+            id="menu_afip_missed_document_wizard"
+            name="Recuperar comprobantes"
+            action="action_afip_missed_document_wizard_view"
+            parent="l10n_ar_point_of_sale.document_books_main_menu"
+            sequence="20"
+        />
+            
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+-->

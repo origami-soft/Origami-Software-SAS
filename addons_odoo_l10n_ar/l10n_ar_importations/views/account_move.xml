@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_move_supplier_importation_form">
+            <field name="name">account_move_supplier_importation_form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <page name="other_info" position="after">
+                    <field name="voucher_type_importation" invisible="1"/>
+                    <page name="importation_forward" string="Carpeta de importación" attrs="{'invisible': ['|', ('type', 'not in', ['in_invoice', 'in_refund']), ('voucher_type_importation', '=', False)]}">
+                        <group>
+                            <group>
+                                <field name="importation_partner_id" domain="[('supplier_rank', '>', 0)]"/>
+                                <field name="importation_operation_type"/>
+                            </group>
+                            <group>
+                                <field name="importation_djai"/>
+                                <field name="importation_overdue_djai_date"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <!--IMPORTANTE: Este campo está deprecado. Usar voucher_name en su lugar-->
+                                <field name="importation_forward_number" attrs="{'invisible': True}" />
+                                <field name="importation_date"/>
+                            </group>
+                            <group>
+                                <field name="importation_bl"/>
+                                <field name="importation_etd"/>
+                                <field name="importation_eta"/>
+                            </group>
+                        </group>
+                    </page>
+                </page>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

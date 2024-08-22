@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+        
+        <record model="ir.ui.view" id="voucher_type_account_form">
+            <field name="name">Voucher type account form</field>
+            <field name="model">voucher.type</field>
+            <field name="inherit_id" ref="l10n_voucher_type.voucher_type_form"/>
+            <field name="arch" type="xml">
+                <field name="code" position="after">
+                    <field name="refund_voucher_type_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="voucher_type_action" model="ir.actions.act_window">
+            <field name="name">Tipos de comprobante</field>
+            <field name="res_model">voucher.type</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            id="voucher_type_menu"
+            name="Tipos de comprobante"
+            action="voucher_type_action"
+            sequence="20"
+            parent="account.account_account_menu"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

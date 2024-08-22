@@ -1,0 +1,3 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+payment_imputation_line_user,payment_imputation.payment_imputation_line.user,payment_imputation.model_payment_imputation_line,account.group_account_invoice,1,1,1,1
+payment_imputation_move_user,payment_imputation.payment_imputation_move.user,payment_imputation.model_payment_imputation_move,account.group_account_invoice,1,1,1,1

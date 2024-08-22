@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_invoice_wsfe_form">
+            <field name="name">Account invoice wsfe form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <field name="invoice_user_id" position="after">
+                    <field name="date_service_from"
+                           attrs="{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}"/>
+                    <field name="date_service_to"
+                           attrs="{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}"/>
+                </field>
+                <field name="voucher_type_id" position="after">
+                    <field name="cae" attrs="{'invisible': [('document_book_type', 'not in', ['electronic', 'electronic_exportation', 'fiscal_electronic_bond'])]}"/>
+                    <field name="cae_due_date" attrs="{'invisible': [('document_book_type', 'not in', ['electronic', 'electronic_exportation', 'fiscal_electronic_bond'])]}"/>
+                </field>
+                <notebook position="inside">
+                    <page string="Documentos asociados">
+                        <field name="fce_associated_document_ids" attrs="{'readonly': [('state', 'not in', ['draft'])]}" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="associated_invoice_id"/>
+                                <field name="point_of_sale"/>
+                                <field name="document_number"/>
+                                <field name="document_code"/>
+                                <field name="cuit_transmitter"/>
+                                <field name="date"/>
+                                <field name="canceled"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="Solicitudes AFIP" attrs="{'invisible': [('document_book_type', 'not in', ['electronic', 'electronic_exportation', 'fiscal_electronic_bond'])]}" groups="base.group_no_one">                        <field name="wsfe_request_detail_ids">
+                            <tree>
+                                <field name="date"/>
+                                <field name="result"/>
+                            </tree>
+                        </field>
+                    </page>
+                    <page string="FCE" attrs="{'invisible': ['|', '|', '|', ('type', '!=', 'out_invoice'), ('is_debit_note', '!=', False), ('document_book_type', 'not in', ['electronic', 'fiscal_electronic_bond']), ('is_credit_invoice', '=', False)]}">
+                        <group>
+                            <field name="company_partner_id" invisible="1"/>
+                            <field name="cbu_partner_bank_id" domain="[('partner_id', '=', company_partner_id)]" attrs="{
+                            'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}"/>
+                            <field name="cbu_transmitter" attrs="{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)],
+                                'required': [('document_book_type', 'in', ['electronic', 'fiscal_electronic_bond']), ('is_credit_invoice', '!=', False), ('type', '=', 'out_invoice'), ('is_debit_note', '=', False)]}"/>
+                            <field name="transfer_option" attrs="{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)],
+                                'required': [('document_book_type', 'in', ['electronic', 'fiscal_electronic_bond']), ('is_credit_invoice', '!=', False), ('type', '=', 'out_invoice'), ('is_debit_note', '=', False), ('state', '=', 'draft')]}"/>
+                            <field name="fce_rejected"/>
+                        </group>
+                    </page>
+                </notebook>
+
+                <!--READONLYS SI EL DOCUMENTO TIENE CAE-->
+                <field name="invoice_date" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="invoice_date_due" position="attributes">
+                    <attribute name="attrs">{'invisible': ['|', ('invoice_payment_term_id', '!=', False), ('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))], 'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)], 'required': [('is_debit_note', '=', False), ('document_book_type', '=', 'electronic'), ('is_credit_invoice', '!=', False)]}</attribute>
+                </field>
+                <field name="partner_id" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="invoice_payment_term_id" position="attributes">
+                    <attribute name="attrs">{'invisible': [('type', 'not in', ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt'))], 'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="currency_id" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="invoice_line_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="line_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                    <attribute name="force_save">1</attribute>
+                </field>
+                <field name="fiscal_position_id" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <!--<field name="perception_ids" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>-->
+                <field name="voucher_type_id" position="attributes">
+                    <attribute name="attrs">{'readonly': ['|', ('state', 'not in', ['draft']), ('cae', '!=', False)]}</attribute>
+                </field>
+                <field name="voucher_type_id" position="attributes">
+                    <attribute name="attrs">{'invisible': [('type', 'not in', ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'])], 'readonly': ['|', ('cae', '!=', False), ('state', '!=', 'draft')]}</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_invoice_wsfe_currency_rate_form">
+            <field name="name">Account invoice currency rate form</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="invoice_currency_rate.account_move_invoice_currency_rate_form"/>
+            <field name="arch" type="xml">
+                <field name="currency_rate" position="attributes">
+                    <attribute name="attrs">
+                        {'invisible': ['|', ('need_rate', '=', False), ('type', 'not in', ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'])], 'readonly': ['|', ('cae', '!=', False), ('state', '!=', 'draft')]}
+                    </attribute>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->
