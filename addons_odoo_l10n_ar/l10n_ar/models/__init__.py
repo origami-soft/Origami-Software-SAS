@@ -13,9 +13,9 @@ from . import res_partner_bank
 from . import retention_retention
 from . import account_tax_repartition_line
 
-# from . import account_tax_ar_template
-# from . import account_tax_template
-# from . import perception_perception_template
-# from . import retention_retention_template
+from . import account_tax_ar_template
+from . import account_tax_template
+from . import perception_perception_template
+from . import retention_retention_template
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
