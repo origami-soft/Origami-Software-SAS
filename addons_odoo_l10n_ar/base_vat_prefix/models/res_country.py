@@ -33,7 +33,7 @@ class ResCountry(models.Model):
 
     code = fields.Char(
         string='Country Code', size=2,
-        required=True, default='',
+        required=True,
         help='The ISO country code in two chars. \nYou can use this field for quick search.')
 
     _sql_constraints = [

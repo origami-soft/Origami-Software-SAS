@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar',
 
-    'version': '1.0.2',
+    'version': '17.1.0.2',
 
     'countries': ['ar'],
 
