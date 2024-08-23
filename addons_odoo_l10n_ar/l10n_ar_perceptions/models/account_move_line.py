@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models
 
@@ -6,12 +22,8 @@ from odoo import models
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
-    def _compute_all_tax(self):
-        for m in self.mapped('move_id'):
-            super(AccountMoveLine, self.filtered(lambda l: l.move_id == m).with_context(perception_ctx=m.get_perception_ctx()))._compute_all_tax()
-
     def perception_applies(self):
         self.ensure_one()
-        return self.product_id and self.product_id.perception_taxable or not (self.product_id or self.display_type in ('line_section', 'line_note'))
+        return self.product_id and self.product_id.perception_taxable or not (self.product_id or self.display_type)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

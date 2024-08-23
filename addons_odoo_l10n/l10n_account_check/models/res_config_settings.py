@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 
@@ -10,13 +26,13 @@ class ResConfigSettings(models.TransientModel):
         related='company_id.account_third_check_journal_id',
         string='Diario de cheques de terceros',
         readonly=False,
-        domain="[('company_id', '=', company_id), ('payment_usage', '=', 'third_check')]"
+        domain="[('company_id', '=', company_id), ('multiple_payment_journal', '=', False), ('check_journal', '=', True)]"
     )
     account_own_check_journal_id = fields.Many2one(
         related='company_id.account_own_check_journal_id',
         string='Diario de cheques propios',
         readonly=False,
-        domain="[('company_id', '=', company_id), ('payment_usage', '=', 'own_check') ]"
+        domain="[('company_id', '=', company_id), ('multiple_payment_journal', '=', False), ('check_journal', '=', True)]"
     )
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

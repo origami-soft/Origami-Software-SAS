@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
@@ -7,47 +23,32 @@ from odoo.exceptions import ValidationError
 class AccountOwnCheck(models.Model):
     _inherit = 'account.own.check'
 
-    def get_reject_move_vals(self, move_date):
+    def get_reject_move_vals(self):
         debit_line = {}
         credit_line = {}
         message = 'Rechazo de cheque propio: {}'.format(self.name)
         if self.state == 'handed':
+            # Debe: Cuenta a pagar del partner (La linea con la cuenta a pagar tiene que tener partner.)
             if not self.destination_partner_id:
                 raise ValidationError("El cheque no tiene partner destino.")
-            # Debe
             debit_line = self._get_reject_move_line(
-                self.journal_id._get_journal_inbound_outstanding_payment_accounts()[0],
-                debit=self.amount,
-                reference=message
-            )
-            # Haber: Cuenta a pagar del partner (La línea con la cuenta a pagar tiene que tener partner)
-            credit_line = self._get_reject_move_line(
-                self.destination_partner_id.with_company(self.company_id).property_account_payable_id,
+                self.destination_partner_id.with_context(force_company=self.company_id.id).property_account_payable_id,
                 credit=self.amount,
                 partner_id=self.destination_partner_id.id,
                 reference=message
             )
-        elif self.state == 'reconciled':
-            if not self.destination_partner_id:
-                raise ValidationError("El cheque no tiene partner destino.")
             # Haber
             credit_line = self._get_reject_move_line(
-                self.destination_partner_id.with_company(self.company_id).property_account_payable_id,
-                credit=self.amount,
-                partner_id=self.destination_partner_id.id,
-                reference=message
-            )
-            # Debe: Cuenta a pagar del partner (La línea con la cuenta a pagar tiene que tener partner)
-            debit_line = self._get_reject_move_line(
-                self.bank_journal_id._get_journal_inbound_outstanding_payment_accounts()[0],
+                self.journal_id.default_credit_account_id,
                 debit=self.amount,
                 reference=message
             )
+
         vals = {
-            'date': move_date,
+            'date': fields.Date.today(),
             'ref': message,
             'journal_id': self.journal_id.id,
-            'line_ids': [(0, 0, credit_line), (0, 0, debit_line)]
+            'line_ids': [(0, 0, debit_line), (0, 0, credit_line)]
         }
         return vals
 
@@ -69,14 +70,5 @@ class AccountOwnCheck(models.Model):
             'partner_id': partner_id,
         }
         return move_line_vals
-    
-    def revert_reject(self):
-        res = super().revert_reject()
-        # Cancelamos y borramos el asiento
-        self.reject_move_id.button_draft()
-        self.reject_move_id.button_cancel()
-        self.reject_move_id.with_context(force_delete=True).unlink()
-        self.reject_date = False
-        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

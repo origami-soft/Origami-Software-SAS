@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -9,7 +25,7 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
     _description = 'Linea de imputación abstracto'
 
     @api.depends(
-        'payment_id.date', 'company_currency_id', 'move_line_id.amount_residual',
+        'payment_id.payment_date', 'company_currency_id', 'move_line_id.amount_residual',
         'move_line_id.balance', 'move_line_id.amount_currency', 'move_line_id.amount_residual_currency'
     )
     def _compute_amounts(self):
@@ -30,7 +46,7 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
                 'amount_total_company': move_line_currency._convert(total, currency, company, date),
             })
 
-    @api.depends('payment_id.date', 'company_currency_id', 'payment_currency_id')
+    @api.depends('payment_id.payment_date', 'company_currency_id', 'payment_currency_id')
     def _get_payment_amounts(self):
         for line in self:
             company_currency = line.company_currency_id
@@ -131,9 +147,6 @@ class PaymentImputationLine(models.Model):
 
     payment_id = fields.Many2one('account.payment', 'Pago', ondelete='cascade')
     payment_state = fields.Selection(related='payment_id.state')
-    move_line_id = fields.Many2one(
-        # ondelete="restrict"
-        ondelete='cascade'
-    )
+    move_line_id = fields.Many2one(ondelete="restrict")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

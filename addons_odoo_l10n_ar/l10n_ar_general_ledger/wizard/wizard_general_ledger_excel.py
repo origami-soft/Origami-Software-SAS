@@ -1,11 +1,28 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 import io
 import base64
 from collections import OrderedDict
 
 import xlwt as xlwt
-from odoo import models, fields, api
+from odoo import models, fields, http, api
+from odoo.addons.web.controllers.main import serialize_exception, content_disposition
 from odoo.exceptions import ValidationError
 
 COLS = {
@@ -53,12 +70,12 @@ class WizardGeneralLedgerExcel(models.TransientModel):
         :return: diccionario con lineas por cada asiento
         """
         lines_by_move = OrderedDict()
-        line_ids = moves.mapped('line_ids').filtered(lambda aml: aml.display_type not in ('line_section', 'line_note')).sorted(lambda l: (l.move_id.date, l.full_voucher_name, l.move_id.id))
+        line_ids = moves.mapped('line_ids').filtered(lambda aml: not aml.display_type).sorted(lambda l: (l.move_id.date, l.move_id.name, l.move_id.id))
         for line in line_ids:
             account = line.account_id
-            if not lines_by_move.get(line.full_voucher_name):
-                lines_by_move[line.full_voucher_name] = []
-            lines_by_move[line.full_voucher_name].append((line.date.strftime('%d/%m/%Y'),
+            if not lines_by_move.get(line.move_id.name):
+                lines_by_move[line.move_id.name] = []
+            lines_by_move[line.move_id.name].append((line.date.strftime('%d/%m/%Y'),
                                                      account.code.replace('.', ''),
                                                      account.name,
                                                      line.debit or '-',
@@ -108,7 +125,7 @@ class WizardGeneralLedgerExcel(models.TransientModel):
             current_row += 1
 
     def domain_account_move_search(self):
-        return [('date', '>=', self.date_from), ('date', '<=', self.date_to), ('state', '=', 'posted')]
+        return [('date', '>=', self.date_from), ('date', '<=', self.date_to)]
 
     def generate_ledger(self):
         """
@@ -118,7 +135,7 @@ class WizardGeneralLedgerExcel(models.TransientModel):
         moves = self.env['account.move'].search(self.domain_account_move_search())
         values = self.get_values(moves)
         wb = xlwt.Workbook()
-        sheet = wb.add_sheet("Diario")
+        sheet = wb.add_sheet("Mayor")
         self.fill_sheet(sheet, values)
 
         file_data = io.BytesIO()
@@ -128,12 +145,27 @@ class WizardGeneralLedgerExcel(models.TransientModel):
 
         date_from = fields.Date.from_string(self.date_from).strftime('%d-%m-%Y')
         date_to = fields.Date.from_string(self.date_to).strftime('%d-%m-%Y')
-        filename = 'Libro diario ' + date_from + ' - ' + date_to
+        filename = 'Libro mayor ' + date_from + ' - ' + date_to
 
         return {
             'type': 'ir.actions.act_url',
             'url': '/web/binary/download_general_ledger?wizard_id=%s&filename=%s' % (self.id, filename + '.xls'),
             'target': 'new',
         }
+
+
+class WizardGeneralLedgerExcelRoute(http.Controller):
+    @http.route('/web/binary/download_general_ledger', type='http', auth="public")
+    @serialize_exception
+    def download_general_ledger(self, debug=1, wizard_id=0, filename=''):  # pragma: no cover
+        """ Descarga un documento cuando se accede a la url especificada en http route.
+        :param debug: Si esta o no en modo debug.
+        :param int wizard_id: Id del modelo que contiene el documento.
+        :param filename: Nombre del archivo.
+        :returns: :class:`werkzeug.wrappers.Response`, descarga del archivo excel.
+        """
+        file = base64.b64decode(http.request.env['wizard.general.ledger.excel'].browse(int(wizard_id)).ledger or '')
+        return http.request.make_response(file, [('Content-Type', 'application/excel'),
+                                                 ('Content-Disposition', content_disposition(filename))])
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

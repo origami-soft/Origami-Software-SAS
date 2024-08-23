@@ -1,6 +1,22 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class AccountMoveReversal(models.TransientModel):
@@ -8,32 +24,8 @@ class AccountMoveReversal(models.TransientModel):
     _inherit = 'account.move.reversal'
 
     voucher_type_id = fields.Many2one(
-        comodel_name='voucher.type',
-        string='Tipo de comprobante'
+        'voucher.type',
+        'Tipo de comprobante'
     )
-
-    def _get_document_book(self):
-        return self.journal_id.pos_ar_id.document_book_ids.filtered(
-            lambda b: b.voucher_type_id == self.voucher_type_id
-        )
-
-    @api.onchange('move_ids')
-    def onchange_move_document_type(self):
-        if self.move_ids:
-            move = self.move_ids[0]
-            self.voucher_type_id = move.refund_voucher_type_id
-            params = move.get_params_for_available_vouchers()
-            params['category'] = 'refund' if move.move_type == 'out_invoice' else 'invoice'
-            available_voucher_types = self.voucher_type_id.get_available_voucher_types(params)
-            return {'domain': {'voucher_type_id': [('id', 'in', available_voucher_types.ids)]}}
-
-    def _prepare_default_reversal(self, move):
-        res = super()._prepare_default_reversal(move)
-        document_book = self._get_document_book()
-        res.update({
-            'voucher_type_id': self.voucher_type_id.id,
-            'document_book_id': document_book.id if document_book else False
-        })
-        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

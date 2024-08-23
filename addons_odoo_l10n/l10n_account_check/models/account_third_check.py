@@ -1,7 +1,25 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
-from ..exceptions import exceptions
+from ..exceptions.exceptions import CheckInOtherPaymentError, DeleteNonDraftCheckError, PostReceiptNonDraftCheckError,\
+    PostPaymentNonWalletCheckError, PostPaymentNotToOrderCheckError, CancelReceiptNonWalletCheckError,\
+    CancelPaymentNonHandedCheckError, InvalidSentRateError
 
 
 class AccountThirdCheck(models.Model):
@@ -10,31 +28,36 @@ class AccountThirdCheck(models.Model):
     _description = 'Cheque de terceros'
 
     issue_name = fields.Char(
-        'Emisor',
-        tracking=True
+        'Nombre de emisor',
+        track_visibility='onchange'
     )
+
     destination_payment_id = fields.Many2one(
         'account.payment',
         'Pago destino',
         help="Pago donde se utilizó el cheque",
     )
-    payment_register_ids = fields.Many2many('account.payment.register')
+
     not_to_order = fields.Boolean(
         string="No a la orden",
         help="Si está establecido, este cheque no podrá ser utilizado para realizar pagos."
     )
+
     sent_rate = fields.Float(
-        string="Cotización de entrega",
+        string="Cotización de envío",
         digits=(12, 6)
     )
+
     sent_payment_currency_amount = fields.Float(
-        string="Monto en moneda de pago en entrega",
+        string="Monto en moneda de pago en envío",
         currency_field='sent_payment_currency_id'
     )
+
     sent_payment_currency_id = fields.Many2one(
         related='destination_payment_id.currency_id',
         store=True
     )
+
     same_currency_as_sent_payment = fields.Boolean(
         compute='get_same_currency_as_sent_payment'
     )
@@ -47,9 +70,6 @@ class AccountThirdCheck(models.Model):
         related='destination_payment_id.partner_id',
         string="Partner de Destino",
         store=True
-    )
-    journal_id = fields.Many2one(
-        domain="[('company_id', '=', company_id), ('payment_usage', '=', 'third_check')]"
     )
 
     @api.depends('currency_id', 'sent_payment_currency_id')
@@ -66,7 +86,7 @@ class AccountThirdCheck(models.Model):
     @api.constrains('sent_rate')
     def check_sent_rate(self):
         if not self.validate_sent_rate():
-            exceptions.invalid_sent_rate()
+            raise InvalidSentRateError("La cotización de la línea debe ser positiva.")
 
     @api.onchange('sent_rate')
     def onchange_sent_rate(self):
@@ -104,7 +124,7 @@ class AccountThirdCheck(models.Model):
 
     def unlink(self):
         if any(not r._check_unlink_state() for r in self):
-            exceptions.delete_non_draft_check()
+            raise DeleteNonDraftCheckError("Solamente se pueden borrar cheques en borrador.")
         super(AccountThirdCheck, self).unlink()
 
     def _check_post_receipt_state(self):
@@ -113,7 +133,7 @@ class AccountThirdCheck(models.Model):
     def post_receipt(self):
         """ Lo que deberia pasar con el cheque cuando se valida un recibo """
         if any(not r._check_post_receipt_state() for r in self):
-            exceptions.post_payment_non_draft_check()
+            raise PostReceiptNonDraftCheckError("Los cheques de terceros recibidos deben estar en borrador.")
         self.next_state('draft')
 
     def _check_post_payment_state(self):
@@ -123,9 +143,9 @@ class AccountThirdCheck(models.Model):
         """ Lo que deberia pasar con el cheque cuando se valida un pago """
         for r in self:
             if not r._check_post_payment_state():
-                exceptions.post_payment_non_wallet_check()
+                raise PostPaymentNonWalletCheckError("Los cheques de terceros entregados deben estar en cartera.")
             if r.not_to_order:
-                exceptions.post_payment_not_to_order_check()
+                raise PostPaymentNotToOrderCheckError('No se puede validar un pago con cheques que son "no a la orden".')
         self.next_state('wallet_handed')
 
     def _check_cancel_receipt_state(self):
@@ -134,13 +154,15 @@ class AccountThirdCheck(models.Model):
     def cancel_receipt(self):
         """ Lo que deberia pasar con el cheque cuando se cancela un recibo """
         if any(not check._check_cancel_receipt_state() for check in self):
-            exceptions.cancel_receipt_non_wallet_check()
+            raise CancelReceiptNonWalletCheckError("Los cheques de tercero deberian estar en "
+                                                   "cartera para poder cancelar el pago.")
         self.cancel_state('wallet')
 
     def cancel_payment(self):
         """ Lo que deberia pasar con el cheque cuando se cancela una orden de pago """
         if any(not check._check_state_for_cancel_payment() for check in self):
-            exceptions.cancel_payment_non_handed_check()
+            raise CancelPaymentNonHandedCheckError("Los cheques de tercero deberian estar en "
+                                                 "entregados para poder cancelar el pago.")
         self.cancel_state('handed')
 
     def get_cancel_states(self):
@@ -166,8 +188,8 @@ class AccountThirdCheck(models.Model):
         return 'sent_payment_currency_amount' if payment.payment_type == 'outbound' \
             else super(AccountThirdCheck, self).get_amount_field(payment)
 
-    def get_name_for_move_line(self):
-        return 'CHEQUE DE TERCEROS N° {}'.format(self.name)
+    def get_first_move_line_name(self):
+        return 'CHEQUE DE TERCEROS N° {}'.format(super(AccountThirdCheck, self).get_first_move_line_name())
 
     def get_move_vals(self, payment):
         # Se hereda este metodo, que proviene de account.abstract.payment.line, para poder modificar el partner que va a tener
@@ -183,15 +205,6 @@ class AccountThirdCheck(models.Model):
         res = super().open_correct_wizard()
         res['context'] = {'default_third_check_id': self.id}
         return res
-    
-    def rename_moves(self, previous_number):
-        res = super().rename_moves(previous_number)
-        new_move_line_name = self.get_first_move_line_name()
-        move_line_name_array = new_move_line_name.split(' ')
-        move_line_name_array[-1] = previous_number
-        prev_move_line_name = ' '.join(move_line_name_array)
-        move_lines = self.destination_payment_id.move_ids.line_ids.filtered(lambda l: l.name == prev_move_line_name)
-        move_lines.write({'name': new_move_line_name})
-        return res
 
+    
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

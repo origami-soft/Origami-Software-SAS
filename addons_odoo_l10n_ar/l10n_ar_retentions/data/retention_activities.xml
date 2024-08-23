@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
     <data>
@@ -9,7 +23,7 @@
         </record>
 
         <record model="retention.activity" id="ret_act_21">
-            <field name="name">Intereses originados en operaciones no comprendidas en el regimen anterior</field>
+            <field name="name">Intereses originado en operaciones no comprendidas en el regimen anterior</field>
             <field name="code">21</field>
         </record>
 
@@ -39,7 +53,7 @@
         </record>
 
         <record model="retention.activity" id="ret_act_43">
-            <field name="name">Interes accionarios, excedentes y retornos distribiudos entre asociados, cooperativas-excepto consumo</field>
+            <field name="name">Interes accionario, excedentes y retornos distribiudos entre asociados, cooperativas-excepto consumo</field>
             <field name="code">43</field>
         </record>
 
@@ -49,7 +63,7 @@
         </record>
 
         <record model="retention.activity" id="ret_act_53">
-            <field name="name">Operaciones realizadas por intermedio de mercados de cereales a termino que se resuelvan en el curso del termino (arbitrajes) y de mercados de futuros y opciones</field>
+            <field name="name">Operaciones realizadas por intermedio de mercados de cerealesa termino que se resuelvan en el curso del termino (arbitrajes) y de mercados de futuros y opciones</field>
             <field name="code">53</field>
         </record>
 
@@ -64,7 +78,7 @@
         </record>
 
         <record model="retention.activity" id="ret_act_86">
-            <field name="name">Transferencia temporaria o definitiva de derechos de llave, marcas, patentes de invencion, regalias, concesiones y similares</field>
+            <field name="name">Transferencia temporaria o definitiva de derechos de llave, marcas, patentes de invencion, regalias, conseciones y similares</field>
             <field name="code">86</field>
         </record>
 
@@ -89,7 +103,7 @@
         </record>
 
         <record model="retention.activity" id="ret_act_111">
-            <field name="name">Cualquier otra cesion o locacion de derechos, excepto las que correspondan a operaciones realizadas por intermedio de mercados de cereales a termino que se resuelvan en el curso del termino (arbitrajes) y de mercados de futuros y opciones</field>
+            <field name="name">Cualquier otra cesion o locacion de derechos, excepto las que correspondan a operaciones realizadas por intermedio de mercados de cerealesa termino que se resuelvan en el curso del termino (arbitrajes) y de mercados de futuros y opciones</field>
             <field name="code">111</field>
         </record>
 
@@ -110,7 +124,7 @@
 
         <record model="retention.activity" id="ret_act_116B">
             <field name="name">Profesionales liberales, oficios, albacea, mandatario, gestor de negocio</field>
-            <field name="code">116</field>
+            <field name="code">119</field>
         </record>
 
         <record model="retention.activity" id="ret_act_124">
@@ -123,14 +137,14 @@
             <field name="code">499</field>
         </record>
 
+        <record model="retention.activity" id="ret_act_965">
+            <field name="name">Factura A con leyenda de operación sujeta a retención</field>
+            <field name="code">965</field>
+        </record>
+
         <record model="retention.activity" id="ret_act_0">
             <field name="name">Monotributista</field>
             <field name="code">0</field>
-        </record>
-
-        <record model="retention.activity" id="ret_act_965">
-            <field name="name">Factura A con Leyenda OPERACIÓN SUJETA A RETENCIÓN - Ganancias - Emisión de comprobantes con discriminación del gravamen</field>
-            <field name="code">965</field>
         </record>
 
     </data>

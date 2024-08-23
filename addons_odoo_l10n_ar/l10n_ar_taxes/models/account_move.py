@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 import json
 from odoo import models, fields, api
@@ -19,7 +35,7 @@ class AccountMove(models.Model):
     amount_not_taxable = fields.Monetary(string='No gravado', store=True, readonly=True, compute='_compute_amount')
     # Exento
     amount_exempt = fields.Monetary(string='Exento', store=True, readonly=True, compute='_compute_amount')
-    amounts_widget = fields.Binary(compute='_get_amount_info_JSON')
+    amounts_widget = fields.Text(compute='_get_amount_info_JSON')
 
     @api.depends('amount_to_tax', 'amount_not_taxable', 'amount_exempt')
     def _get_amount_info_JSON(self):
@@ -31,10 +47,11 @@ class AccountMove(models.Model):
                     'amount_to_tax': inv.amount_to_tax,
                     'amount_not_taxable': inv.amount_not_taxable,
                     'amount_exempt': inv.amount_exempt,
-                    'currency_id': inv.currency_id.id,
+                    'currency': inv.currency_id.symbol,
+                    'position': inv.currency_id.position,
                 }]
             }
-            inv.amounts_widget = info
+            inv.amounts_widget = json.dumps(info)
 
     def _compute_amount(self):
         res = super(AccountMove, self)._compute_amount()

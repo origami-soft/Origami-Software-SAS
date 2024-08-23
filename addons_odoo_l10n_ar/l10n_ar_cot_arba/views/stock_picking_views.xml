@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<odoo>
+
+    <record id="view_picking_cot_form" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="groups_id" eval="[(4, ref('l10n_ar_cot_arba.arba_cot_enabled'))]"/>
+        <field name="arch" type="xml">
+            <button name="do_print_picking" position="after">
+                <button name="%(action_arba_cot_wizard)d" 
+                    string="Obtener COT" 
+                    type="action" 
+                    class='btn btn-primary'
+                    attrs="{'invisible': ['|', ('picking_type_code','=','incoming'), '|', ('state','!=','done'), ('cot', '!=', False)]}" 
+                    context="{'default_amount': insurance_value}"/>
+            </button>
+            <group name="other_infos" position="after">
+                <group string="Remito electrónico (COT)" name="cot">
+                    <field name="cot"/>
+                    <field name="unique_cot_number"/>
+                    <field name="cot_voucher_number"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+    <record id="ir_action_server_get_cot_arba" model="ir.actions.act_window">
+        <field name="name">Obtener COT de ARBA</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">arba.cot.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_arba_cot_wizard_vehicle_patent"/>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="context">{'use_default_values' : True}</field>
+        <field name="binding_view_types">list</field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

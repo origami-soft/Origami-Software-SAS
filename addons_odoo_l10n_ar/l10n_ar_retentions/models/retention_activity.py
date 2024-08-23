@@ -1,11 +1,27 @@
 # -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class RetentionActivity(models.Model):
     _name = 'retention.activity'
-    _description = 'Actividad de retención'
+    _description = 'Actividad de retencion'
 
     name = fields.Char(
         string="Actividad",
@@ -13,14 +29,15 @@ class RetentionActivity(models.Model):
     )
 
     code = fields.Integer(
-        string="Código AFIP",
+        string="Codigo AFIP",
         required=True,
     )
 
-    @api.depends('code', 'name')
-    def _compute_display_name(self):
+    def name_get(self):
+        res = []
         for r in self:
             format_string = "{} - {}" if len(r.name) <= 40 else "{} - {}..."
-            r.display_name = format_string.format(r.code, r.name[:40])
+            res.append((r.id, format_string.format(r.code, r.name[:40])))
+        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

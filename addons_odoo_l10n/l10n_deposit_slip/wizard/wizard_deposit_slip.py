@@ -1,10 +1,27 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
 
 
 class WizardDepositSlip(models.TransientModel):
+
     _name = "wizard.deposit.slip"
     _description = 'Wizard de boleta de depósito'
 
@@ -55,9 +72,10 @@ class WizardDepositSlip(models.TransientModel):
 
     def action_create_deposit_slip(self):
         """
-        Crea la boleta de depósito y relaciona los cheques a la misma
-        :return: Formulario de la boleta de depósito creada
+        Crea la boleta de deposito y relaciona los cheques a la misma
+        :return: Formulario de la boleta de deposito creada
         """
+
         deposit_slip = self._create_deposit_slip()
 
         return {
@@ -67,25 +85,25 @@ class WizardDepositSlip(models.TransientModel):
             'type': 'ir.actions.act_window',
             'res_id': deposit_slip.id,
         }
-    
-    def _get_deposit_slip_vals(self):
-        self.ensure_one()
-        return {
-            'date': self.date,
-            'journal_id': self.journal_id.id,
-            'amount': self.total,
-            'check_ids': [(6, 0, self._get_checks().ids)],
-            'state': 'draft',
-            'currency_id': self.currency_id.id,
-        }
 
     def _create_deposit_slip(self):
         """
-        Crea la boleta de depósito y la asocia al asiento
+        Crea la boleta de deposito y la asocia al asiento
         :param name: Nombre de de la boleta de deposito
         :param move: Asiento asociado a la boleta de deposito
         :return: account.deposit.slip - Boleta de deposito creada
         """
-        return self.env['account.deposit.slip'].create(self._get_deposit_slip_vals())
+
+        check_ids = self._get_checks().ids
+
+        deposit_slip = self.env['account.deposit.slip'].create({
+            'date': self.date,
+            'journal_id': self.journal_id.id,
+            'amount': self.total,
+            'check_ids': [(6, 0, check_ids)],
+            'state': 'draft',
+            'currency_id': self.currency_id.id
+        })
+        return deposit_slip
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

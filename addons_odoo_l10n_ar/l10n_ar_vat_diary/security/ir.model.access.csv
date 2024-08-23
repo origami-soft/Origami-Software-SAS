@@ -1,3 +1,2 @@
 id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-vat_diary_user,vat_diary.user,model_vat_diary,account.group_account_readonly,1,1,1,1
-l10n_ar_vat_diary_wizard_vat_diary_user,l10n_ar_vat_diary.wizard_vat_diary.user,model_wizard_vat_diary,account.group_account_readonly,1,1,1,1
+l10n_ar_vat_diary_wizard_vat_diary_user,l10n_ar_vat_diary.wizard_vat_diary.user,model_wizard_vat_diary,account.group_account_user,1,1,1,1

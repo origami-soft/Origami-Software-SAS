@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
     <data>
@@ -11,10 +25,9 @@
                 <div name="amount_div" position="after">
                     <field name="need_rate" invisible="1"/>
                     <field name="currency_rate" string="Cotización pago" groups="base.group_multi_currency"
-                            invisible="not need_rate"
-                            readonly="state != 'draft'"/>
-                    <field name="current_currency_rate" groups="base.group_multi_currency" invisible="not need_rate or state != 'draft'"/>
-                    <div class="alert alert-warning" role="alert" colspan="2" invisible="not need_rate or state != 'draft'">
+                           attrs="{'invisible': [('need_rate', '=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
+                    <field name="current_currency_rate" groups="base.group_multi_currency" attrs="{'invisible': ['|', ('need_rate', '=', False), ('state', '!=', 'draft')]}"/>
+                    <div class="alert alert-warning" role="alert" colspan="2" attrs="{'invisible': ['|', ('need_rate', '=', False), ('state', '!=', 'draft')]}">
                         Si carga una cotización en <strong>cotización pago</strong>, se utilizará la misma para hacer las conversiones. De lo contrario se utilizará la <strong>cotización actual</strong>.
                     </div>
                 </div>
@@ -24,5 +37,4 @@
     </data>
 </odoo>
 
-<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
--->
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

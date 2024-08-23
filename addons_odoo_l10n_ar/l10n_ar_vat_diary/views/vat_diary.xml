@@ -1,10 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <odoo>
 
     <record model="ir.ui.view" id="vat_diary_view_form">
         <field name="name">Vat diary view form</field>
-        <field name="model">vat.diary</field>
+        <field name="model">wizard.vat.diary</field>
         <field name="arch" type="xml">
             <form>
                 <header>
@@ -14,13 +27,14 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="date_from" widget="daterange" options="{'end_date_field': 'date_to'}"/>
-                            <field name="date_to" invisible="1"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
                             <field name="type"/>
+                            <field name="company_id"/>
                         </group>
                         <group>
                             <field name="separate_not_taxable_from_exempt"/>
-                            <field name="include_suffered_retentions" invisible="type != 'purchases'"/>
+                            <field name="include_suffered_retentions" attrs="{'invisible': [('type', '!=', 'purchases')]}"/>
                             <field name="report" filename="report_filename" widget="binary"/>
                             <field name="report_filename" invisible="1"/>
                         </group>
@@ -32,19 +46,20 @@
 
     <record model="ir.ui.view" id="vat_diary_view_tree">
         <field name="name">Vat diary view tree</field>
-        <field name="model">vat.diary</field>
+        <field name="model">wizard.vat.diary</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="date_from"/>
                 <field name="date_to"/>
                 <field name="type"/>
+                <field name="company_id"/>
             </tree>
         </field>
     </record>
 
     <record id="action_view_vat_diary" model="ir.actions.act_window">
         <field name="name">Subdiario IVA</field>
-        <field name="res_model">vat.diary</field>
+        <field name="res_model">wizard.vat.diary</field>
         <field name="view_mode">tree,form</field>
     </record>
 

@@ -20,7 +20,7 @@
 
     'name': 'Currency inverse rate',
 
-    'version': '1.0.4',
+    'version': '1.0.3',
 
     'category': 'base',
 
@@ -35,8 +35,8 @@
     ],
 
     'data': [
-        # 'views/res_currency_view.xml',
-        # 'views/res_currency_rate_view.xml'
+        'views/res_currency_view.xml',
+        'views/res_currency_rate_view.xml'
     ],
 
     'installable': True,

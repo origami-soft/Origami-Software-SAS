@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo.tests.common import TransactionCase
 from ..exceptions.exceptions import NoAccountError, InvalidAmountError, InvalidRateError
@@ -19,7 +35,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
 
     def test_validate_journal_accounts_inbound_payment_and_journal_with_debit_account_should_return_true(self):
         payment = self.env['account.payment'].new({'payment_type': 'inbound'})
-        journal = self.env['account.journal'].new({'default_account_id': self.env['account.account'].new()})
+        journal = self.env['account.journal'].new({'default_debit_account_id': self.env['account.account'].new()})
         line = self.env['account.abstract.payment.line'].new({'payment_id': payment, 'journal_id': journal})
         assert line.validate_journal_accounts()
 
@@ -31,7 +47,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
 
     def test_validate_journal_accounts_outbound_payment_and_journal_with_credit_account_should_return_true(self):
         payment = self.env['account.payment'].new({'payment_type': 'outbound'})
-        journal = self.env['account.journal'].new({'default_account_id': self.env['account.account'].new()})
+        journal = self.env['account.journal'].new({'default_credit_account_id': self.env['account.account'].new()})
         line = self.env['account.abstract.payment.line'].new({'payment_id': payment, 'journal_id': journal})
         assert line.validate_journal_accounts()
 
@@ -99,7 +115,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
 
     def test_onchange_amount_should_update_payment_currency_amount(self):
         company = self.env.company
-        payment = self.env['account.payment'].new({'company_id': company, 'date': date.today()})
+        payment = self.env['account.payment'].new({'company_id': company, 'payment_date': date.today()})
         line = self.env['account.abstract.payment.line'].new({
             'payment_id': payment,
             'rate': 0.1,
@@ -112,7 +128,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
 
     def test_onchange_payment_currency_amount_should_update_amount(self):
         company = self.env.company
-        payment = self.env['account.payment'].new({'company_id': company, 'date': date.today()})
+        payment = self.env['account.payment'].new({'company_id': company, 'payment_date': date.today()})
         line = self.env['account.abstract.payment.line'].new({
             'payment_id': payment,
             'rate': 0.1,
@@ -162,20 +178,23 @@ class TestAccountAbstractPaymentLine(TransactionCase):
         today = date.today()
         usd = self.env.ref('base.USD')
         ars = self.env.ref('base.ARS')
-        account_1 = self.env['account.account'].new()
-        account_2 = self.env['account.account'].new()
+        debit_account_1 = self.env['account.account'].new()
+        credit_account_1 = self.env['account.account'].new()
+        debit_account_2 = self.env['account.account'].new()
+        credit_account_2 = self.env['account.account'].new()
         company = self.env.company
         commercial_partner = self.env['res.partner'].new()
         partner = self.env['res.partner'].new({'commercial_partner_id': commercial_partner})
         journal = self.env['account.journal'].new({
             'currency_id': ars,
             'name': "Diario de pago",
-            'default_account_id': account_1,
+            'default_debit_account_id': debit_account_1,
+            'default_credit_account_id': credit_account_1
         })
         payment = self.env['account.payment'].new({
             'company_id': company,
-            'date': today,
-            'ref': "Ejemplo",
+            'payment_date': today,
+            'communication': "Ejemplo",
             'payment_type': 'outbound',
             'currency_id': ars,
             'partner_id': partner,
@@ -185,7 +204,8 @@ class TestAccountAbstractPaymentLine(TransactionCase):
         line_journal = self.env['account.journal'].new({
             'currency_id': usd,
             'name': "Método ejemplo",
-            'default_account_id': account_2,
+            'default_debit_account_id': debit_account_2,
+            'default_credit_account_id': credit_account_2
         })
         line = self.env['account.abstract.payment.line'].new({
             'payment_id': payment,
@@ -211,7 +231,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
                     'credit': 500.0,
                     'date_maturity': today,
                     'partner_id': commercial_partner.id,
-                    'account_id': account_2.id,
+                    'account_id': credit_account_2.id,
                     'payment_id': payment.id,
                 }),
                 (0, 0, {
@@ -222,7 +242,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
                     'credit': 0.0,
                     'date_maturity': today,
                     'partner_id': commercial_partner.id,
-                    'account_id': account_1.id,
+                    'account_id': debit_account_1.id,
                     'payment_id': payment.id,
                 }),
             ],
@@ -231,20 +251,23 @@ class TestAccountAbstractPaymentLine(TransactionCase):
     def test_get_move_vals_on_inbound_payment_with_valid_line_should_return_values_dictionary(self):
         today = date.today()
         ars = self.env.ref('base.ARS')
-        account_1 = self.env['account.account'].new()
-        account_2 = self.env['account.account'].new()
+        debit_account_1 = self.env['account.account'].new()
+        credit_account_1 = self.env['account.account'].new()
+        debit_account_2 = self.env['account.account'].new()
+        credit_account_2 = self.env['account.account'].new()
         company = self.env.company
         commercial_partner = self.env['res.partner'].new()
         partner = self.env['res.partner'].new({'commercial_partner_id': commercial_partner})
         journal = self.env['account.journal'].new({
             'currency_id': ars,
             'name': "Diario de pago",
-            'default_account_id': account_1,
+            'default_debit_account_id': debit_account_1,
+            'default_credit_account_id': credit_account_1
         })
         payment = self.env['account.payment'].new({
             'company_id': company,
-            'date': today,
-            'ref': "Ejemplo",
+            'payment_date': today,
+            'communication': "Ejemplo",
             'payment_type': 'inbound',
             'currency_id': ars,
             'partner_id': partner,
@@ -254,7 +277,8 @@ class TestAccountAbstractPaymentLine(TransactionCase):
         line_journal = self.env['account.journal'].new({
             'currency_id': ars,
             'name': "Método ejemplo",
-            'default_account_id': account_2,
+            'default_debit_account_id': debit_account_2,
+            'default_credit_account_id': credit_account_2
         })
         line = self.env['account.abstract.payment.line'].new({
             'payment_id': payment,
@@ -280,7 +304,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
                     'credit': 0.0,
                     'date_maturity': today,
                     'partner_id': commercial_partner.id,
-                    'account_id': account_2.id,
+                    'account_id': debit_account_2.id,
                     'payment_id': payment.id,
                 }),
                 (0, 0, {
@@ -291,7 +315,7 @@ class TestAccountAbstractPaymentLine(TransactionCase):
                     'credit': 50.0,
                     'date_maturity': today,
                     'partner_id': commercial_partner.id,
-                    'account_id': account_1.id,
+                    'account_id': credit_account_1.id,
                     'payment_id': payment.id,
                 }),
             ],

@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -16,27 +32,18 @@ class PaymentImputationWizard(models.TransientModel):
             - sum(self.credit_imputation_line_ids.mapped('amount'))
             + self.advance_amount, ROUND_PRECISION)
 
-    partner_id = fields.Many2one(
-        'res.partner',
-        'Partner',
-        required=True
-    )
+    partner_id = fields.Many2one('res.partner', 'Partner', required=True)
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
         required=True,
         default=lambda self: self.env.company.currency_id
     )
-    payment_type = fields.Selection(
-        [('inbound', 'Inbound'), ('outbound', 'Outbound')],
-        'Tipo'
-    )
-    advance_amount = fields.Float(
-        'Importe a cuenta'
-    )
+    payment_type = fields.Selection([('inbound', 'Inbound'), ('outbound', 'Outbound')], 'Tipo')
+    advance_amount = fields.Float('Importe a cuenta')
     journal_id = fields.Many2one(
         'account.journal',
-        domain=lambda l: [('type', 'in', ('bank', 'cash')), ("company_id", "=", l.env.company.id)],
+        domain=[('type', 'in', ('bank', 'cash'))],
         required=True
     )
     debit_imputation_line_ids = fields.One2many(
@@ -49,36 +56,16 @@ class PaymentImputationWizard(models.TransientModel):
         'payment_id',
         'Créditos',
     )
-    total = fields.Float(
-        'Total',
-        compute=_get_total_payment
-    )
-    date = fields.Date(
-        'Fecha'
-    )
-    amount_to_pay = fields.Float(
-        string='Total a pagar'
-    )
-    amount_left = fields.Float(
-        string='Faltante a pagar',
-        compute="_compute_amount_left"
-    )
+    total = fields.Float('Total', compute=_get_total_payment)
+    payment_date = fields.Date('Fecha')
+
+    amount_to_pay = fields.Float(string='Total a pagar')
+
+    amount_left = fields.Float(string='Faltante a pagar', compute="_compute_amount_left")
     company_id = fields.Many2one(
         'res.company',
         related='journal_id.company_id'
     )
-
-    select_all_debit = fields.Boolean('Seleccionar todos los débitos')
-    select_all_credit = fields.Boolean('Seleccionar todos los créditos')
-
-    def get_journal_domain(self):
-        return [('type', 'in', ('bank', 'cash')), ('company_id', '=', self.env.company.id)]
-
-    @api.model
-    def default_get(self, fields_list):
-        res = super(PaymentImputationWizard, self).default_get(fields_list)
-        res['journal_id'] = self.env['account.journal'].search(self.get_journal_domain(), limit=1).id
-        return res
 
     @api.depends('amount_to_pay', 'total')
     def _compute_amount_left(self):
@@ -92,7 +79,7 @@ class PaymentImputationWizard(models.TransientModel):
 
     def _get_payment_date(self):
         self.ensure_one()
-        return self.date or fields.Date.today()
+        return self.payment_date or fields.Date.today()
 
     @api.onchange('payment_type')
     def onchange_type(self):
@@ -101,7 +88,7 @@ class PaymentImputationWizard(models.TransientModel):
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
-        currency = self.journal_id.currency_id or self.env.company.currency_id
+        currency = self.journal_id.currency_id
         self.update({
             'debit_imputation_line_ids': None,
             'credit_imputation_line_ids': None,
@@ -120,26 +107,26 @@ class PaymentImputationWizard(models.TransientModel):
     
     def _get_move_lines_domain(self, account_type, currency_id):
         domain = [
-            ('account_id.account_type', '=', account_type),
+            ('account_id.user_type_id.type', '=', account_type),
             ('partner_id', '=', self.partner_id.id),
             ('reconciled', '=', False),
-            ('currency_id', '=', currency_id),
-            ('parent_state', '=', 'posted'),
-            ('company_id', '=', self.company_id.id),
-            '|',
             ('amount_residual', '!=', 0.0),
-            ('amount_residual_currency', '!=', 0.0)
+            ('currency_id', '=', currency_id),
+            ('move_id.state', '=', 'posted'),
+            ('company_id', '=', self.company_id.id)
         ]
+        if currency_id:
+            domain.append(('amount_residual_currency', '!=', 0.0))
         return domain
 
     def _get_move_lines(self, currency_id=None):
-        account_type = 'asset_receivable' if self.payment_type == 'inbound' else 'liability_payable'
+        account_type = 'receivable' if self.payment_type == 'inbound' else 'payable'
         search_domain = self._get_move_lines_domain(account_type, currency_id)
 
         lines = self.env['account.move.line'].search(search_domain)
         return {
-            'debit_lines':  lines.filtered(lambda x: x.debit > 0 if account_type == 'asset_receivable' else x.credit > 0),
-            'credit_lines': lines.filtered(lambda x: x.credit > 0 if account_type == 'asset_receivable' else x.debit > 0)
+            'debit_lines':  lines.filtered(lambda x: x.debit > 0 if account_type == 'receivable' else x.credit > 0),
+            'credit_lines': lines.filtered(lambda x: x.credit > 0 if account_type == 'receivable' else x.debit > 0)
         }
 
     @api.onchange('journal_id')
@@ -169,19 +156,17 @@ class PaymentImputationWizard(models.TransientModel):
         }
 
     def _get_payment_vals(self):
-        payment_methods = self.payment_type == 'inbound' and \
-            self.journal_id.inbound_payment_method_line_ids.mapped('payment_method_id') \
-            or self.journal_id.outbound_payment_method_line_ids.mapped('payment_method_id')
-
+        payment_methods = self.payment_type == 'inbound' and self.journal_id.inbound_payment_method_ids \
+                          or self.journal_id.outbound_payment_method_ids
         return {
             'partner_id': self.partner_id.id,
             'journal_id': self.journal_id.id,
-            'payment_type': self.payment_type or 'outbound',
+            'payment_type': self.payment_type,
             'partner_type': 'customer' if self.payment_type == 'inbound' else 'supplier',
             'payment_method_id': payment_methods and payment_methods[0].id or False,
             'amount': self.total,
             'payment_imputation_ids': self._get_imputation_vals_for_payment(),
-            'date': self._get_payment_date(),
+            'payment_date': self._get_payment_date(),
             'currency_id': self.currency_id.id,
             'advance_amount': self.advance_amount,
         }
@@ -220,7 +205,6 @@ class PaymentImputationWizard(models.TransientModel):
                 imputation_amount = company_currency._convert(
                     minimun_amount, self.currency_id, self.company_id, self._get_payment_date(), round=False
                 )
-                amount_currency = minimun_amount if self.currency_id != company_currency else imputation_amount
 
                 debit_move = imputation.move_line_id if imputation.move_line_id.debit > 0 else line.move_line_id
                 credit_move = imputation.move_line_id if imputation.move_line_id.credit > 0 else line.move_line_id
@@ -232,10 +216,8 @@ class PaymentImputationWizard(models.TransientModel):
                     'debit_move_id': debit_move.id,
                     'credit_move_id': credit_move.id,
                     'amount': imputation_amount,
-                    'debit_amount_currency': amount_currency,
-                    'credit_amount_currency': amount_currency,
-                    'debit_currency_id': self.currency_id.id,
-                    'credit_currency_id': self.currency_id.id,
+                    'amount_currency': minimun_amount if self.currency_id != company_currency else 0.0,
+                    'currency_id': self.currency_id.id if self.currency_id != company_currency else False
                 })
 
                 # Si lo imputado es menor que lo restante a imputar, pasamos a la otra imputación,
@@ -292,23 +274,5 @@ class PaymentImputationWizard(models.TransientModel):
             }))
 
         return payment_imputations
-
-    @api.onchange('select_all_debit')
-    def onchange_select_all_debit(self):
-        if self.select_all_debit:
-            for line in self.debit_imputation_line_ids:
-                line.concile = True
-                line.amount = line.amount_residual_in_payment_currency
-            self._get_total_payment()
-            self.select_all_debit = False
-
-    @api.onchange('select_all_credit')
-    def onchange_select_all_credit(self):
-        if self.select_all_credit:
-            for line in self.credit_imputation_line_ids:
-                line.concile = True
-                line.amount = line.amount_residual_in_payment_currency
-            self._get_total_payment()
-            self.select_all_credit = False
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

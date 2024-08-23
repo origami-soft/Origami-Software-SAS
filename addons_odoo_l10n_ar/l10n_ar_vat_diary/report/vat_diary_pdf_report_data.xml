@@ -1,15 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
 
     <template id="vat_diary_layout">
         <div class="header">
             <t t-set="company" t-value="o.env.company"/>
-            <table class="table-borderless" style="width:100%">
+            <table style="width:100%">
                 <tbody>
                     <tr>
                         <td style="text-align: left; width:50%"><strong>Razón social:</strong> <span t-esc="company.name"/></td>
-                        <td style="text-align: right; width:50%"><strong>Emisión:</strong> <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/></td>
+                        <td style="text-align: right; width:50%">Emisión: <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/></td>
                     </tr>
                     <tr>
                         <td style="text-align: left; width:50%"><strong>CUIT:</strong> <span t-esc="company.vat"/></td>
@@ -19,7 +33,7 @@
             <h2 style="text-align: center; padding-bottom: 10px;">
                 <strong>Subdiario de IVA <span t-field="o.type"/></strong>
             </h2>
-            <table class="table-borderless" style="width:100%">
+            <table style="width:100%">
                 <tbody>
                     <tr>
                         <td style="text-align: center; width:50%"><strong>Desde:</strong> <span t-field="o.date_from" t-options="{'widget': 'date'}"/></td>
@@ -43,14 +57,14 @@
             <t t-foreach="docs" t-as="o">
                 <t t-call="l10n_ar_vat_diary.vat_diary_layout">
                     <div class="page" style="font-size:13px;">
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <thead>
                                 <tr style="border: 2px solid black;">
                                     <th width="6%"><strong>Fecha</strong></th>
                                     <th width="8%"><strong>Comprobante</strong></th>
-                                    <th width="8%"><strong>Razón social</strong></th>
-                                    <th width="8%"><strong>CUIT</strong></th>
-                                    <th width="7%" style="text-align: right;"><strong>Neto grav.</strong></th>
+                                    <th width="8%"><strong>Razon Social</strong></th>
+                                    <th width="8%"><strong>C.U.I.T.</strong></th>
+                                    <th width="7%" style="text-align: right;"><strong>Neto Grav.</strong></th>
                                     <th width="15%" style="text-align: right;"><strong>IVA - Monto</strong></th>
                                     <th width="15%" style="text-align: right;"><strong>Impuestos internos - Monto</strong></th>
                                     <t t-if="o.separate_not_taxable_from_exempt">
@@ -105,13 +119,13 @@
                         </table>
                         <p style="page-break-before:always;"> </p>
                         <h5 style="text-align: left; padding-bottom: 10px;">
-                            <strong>TOTALES DE OPERACIONES QUE GENERAN CRÉDITO FISCAL</strong>
+                            <strong>TOTALES DE OPERACIONES QUE GENERAN CREDITO FISCAL</strong>
                         </h5>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <thead>
                                 <tr style="border: 2px solid black;">
                                     <th width="25%"><strong>Impuesto</strong></th>
-                                    <th width="25%" style="text-align: right;"><strong>Neto grav.</strong></th>
+                                    <th width="25%" style="text-align: right;"><strong>Neto Grav.</strong></th>
                                     <th width="25%" style="text-align: right;"><strong>Monto de impuesto</strong></th>
                                     <th width="25%" style="text-align: right;"><strong>Total</strong></th>
                                 </tr>
@@ -139,7 +153,7 @@
                                 </t>
                             </tbody>
                         </table>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <tbody>
                                 <tr>
                                     <td width="25%"><span>SubTotal</span></td>
@@ -158,7 +172,7 @@
                         <h5 style="text-align: left; padding-bottom: 10px;">
                             <strong>REGIMENES ESPECIALES</strong>
                         </h5>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <thead>
                                 <tr style="border: 2px solid black;">
                                     <th width="50%"><strong>Nombre</strong></th>
@@ -180,10 +194,10 @@
                                 </t>
                             </tbody>
                         </table>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <tbody>
                                 <tr>
-                                    <td width="50%"><span>Subtotal</span></td>
+                                    <td width="50%"><span>SubTotal</span></td>
                                     <td width="50%" style="text-align:right;">
                                         <span t-esc="amount" t-options='{"widget": "float", "decimal_precision": "2"}'/>
                                     </td>
@@ -191,9 +205,9 @@
                             </tbody>
                         </table>
                         <h5 style="text-align: left; padding-bottom: 10px;">
-                            <strong>TOTALES DE OPERACIONES QUE GENERAN DÉBITO FISCAL</strong>
+                            <strong>TOTALES DE OPERACIONES QUE GENERAN DEBITO FISCAL</strong>
                         </h5>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <thead>
                                 <tr style="border: 2px solid black;">
                                     <th width="25%"><strong>Impuesto</strong></th>
@@ -225,10 +239,10 @@
                                 </t>
                             </tbody>
                         </table>
-                        <table class="table table-sm o_main_table table-borderless" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
+                        <table class="table table-sm o_main_table" style="border-style: solid hidden; border-width: 2px; border-color:black;" cellpadding="0px" cellspacing="0px" padding="0px" margin="0px">
                             <tbody>
                                 <tr>
-                                    <td width="25%"><span>Subtotal</span></td>
+                                    <td width="25%"><span>SubTotal</span></td>
                                     <td width="25%" style="text-align:right;">
                                         <span t-esc="base" t-options='{"widget": "float", "decimal_precision": "2"}'/>
                                     </td>

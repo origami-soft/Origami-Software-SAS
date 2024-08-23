@@ -1,69 +1,71 @@
-/** @odoo-module **/
+odoo.define('account.invoice.info', function (require) {
+"use strict";
 
-import { registry } from "@web/core/registry";
-import { usePopover } from "@web/core/popover/popover_hook";
-import { useService } from "@web/core/utils/hooks";
-import { localization } from "@web/core/l10n/localization";
+var AbstractField = require('web.AbstractField');
+var core = require('web.core');
+var QWeb = core.qweb;
+var field_registry = require('web.field_registry');
 
-import { formatMonetary } from "@web/views/fields/formatters";
-import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { Component } from "@odoo/owl";
 
-class AccountMoveShowAmountInfoPopOver extends Component {}
-AccountMoveShowAmountInfoPopOver.props = {
-    "*": { optional: true },
-}
-AccountMoveShowAmountInfoPopOver.template = "l10n_ar_taxes.AccountMoveShowAmountInfoPopOver";
+var ShowAmountInfoWidget = AbstractField.extend({
+    supportedFieldTypes: ['char'],
 
-export class AccountMoveShowAmountInfoField extends Component {
-    static props = {...standardFieldProps};
+    //--------------------------------------------------------------------------
+    // Public
+    //--------------------------------------------------------------------------
 
-    setup() {
-        const position = localization.direction === "rtl" ? "bottom" : "left";
-        this.popover = usePopover(AccountMoveShowAmountInfoPopOver, {position});
-        this.orm = useService("orm");
-        this.action = useService("action");
-    }
+    /**
+     * @override
+     * @returns {boolean}
+     */
+    isSet: function() {
+        return true;
+    },
 
-    getInfo() {
-        const info = this.props.record.data[this.props.name] || {
-            content: [],
-            title: "",
-            move_id: this.props.record.resId,
-        };
-
-        for (const [key, value] of Object.entries(info.content)) {
-            value.amount_to_tax_formatted = formatMonetary(value.amount_to_tax, {
-                currencyId: value.currency_id,
-            });
-            value.amount_not_taxable_formatted = formatMonetary(value.amount_not_taxable, {
-                currencyId: value.currency_id,
-            });
-            value.amount_exempt_formatted = formatMonetary(value.amount_exempt, {
-                currencyId: value.currency_id,
-            });
-
+    /**
+     * @private
+     * @override
+     */
+    _render: function() {
+        var self = this;
+        var info = JSON.parse(this.value);
+        if (!info) {
+            this.$el.html('');
+            return;
         }
-        return {
-            lines: info.content,
-            title: info.title,
-            moveId: info.move_id,
-        };
-    }
+        this.$el.html(QWeb.render('ShowAmountInfo', {
+            title: info.title
+        }));
 
-    onInfoClick(ev, line) {
-        this.popover.open(ev.currentTarget, {
-            title: "Información sobre los importes",
-            ...line
+        _.each(this.$('.js_amount_info'), function(k, v){
+            var content = info.content[v];
+            var options = {
+                content: function() {
+                    return $(QWeb.render('AmountPopOver', {
+                        amount_to_tax: content.amount_to_tax,
+                        amount_not_taxable: content.amount_not_taxable,
+                        amount_exempt: content.amount_exempt,
+                        currency: content.currency,
+                        position: content.position,
+                    }));
+                },
+                html: true,
+                placement: 'left',
+                title: 'Informacion de importes',
+                trigger: 'focus',
+                delay: { "show": 0, "hide": 100 },
+                container: $(k).parent(),
+            };
+            $(k).popover(options);
         });
-    }
-}
+    },
 
-AccountMoveShowAmountInfoField.template = "l10n_ar_taxes.AccountMoveShowAmountInfoField";
+});
 
-export const accountShowInfoField = {
-    component: AccountMoveShowAmountInfoField,
-    supportedTypes: ["char"],
+field_registry.add('amountinfo', ShowAmountInfoWidget);
+
+return {
+    ShowAmountInfoWidget: ShowAmountInfoWidget
 };
 
-registry.category("fields").add("showInfoMove", accountShowInfoField);
+});
