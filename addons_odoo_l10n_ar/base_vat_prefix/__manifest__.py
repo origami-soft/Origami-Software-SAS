@@ -20,7 +20,7 @@
 
     'name': 'base_vat_prefix',
 
-    'version': '17.0.1.0.2',
+    'version': '1.0',
 
     'summary': 'Validation of document type without prefix',
 
@@ -33,18 +33,17 @@
     'category': 'base',
 
     'depends': [
-        'base',
-        'partner_document_type'
+        'base_vat'
     ],
 
     'data': [
-        # 'views/res_country_view.xml'
+        'views/res_country_view.xml'
     ],
 
     'active': False,
 
     'installable': True,
-    'pre_init_hook': 'pre_init_check',
+
 }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
