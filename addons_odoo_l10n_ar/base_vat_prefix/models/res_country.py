@@ -31,14 +31,4 @@ class ResCountry(models.Model):
         )
     )
 
-    code = fields.Char(
-        string='Country Code', size=2,
-        required=True,
-        help='The ISO country code in two chars. \nYou can use this field for quick search.')
-
-    _sql_constraints = [
-        ('name_uniq', 'unique (name)',
-         'The name of the country must be unique!'),
-    ]
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

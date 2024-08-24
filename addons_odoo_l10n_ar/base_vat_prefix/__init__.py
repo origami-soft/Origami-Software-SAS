@@ -17,10 +17,5 @@
 ##############################################################################
 
 from . import models
-# from . import pre_migration
-
-
-# def pre_init_check(cr):
-#     pre_migration.migrate(cr, None)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
