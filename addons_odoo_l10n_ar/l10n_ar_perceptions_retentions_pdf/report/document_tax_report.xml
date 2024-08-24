@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data noupdate="0">
+
+        <record id="document_tax_paperformat" model="report.paperformat">
+            <field name="name">Papel retenciones/percepciones</field>
+            <field name="margin_top">30</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_bottom">25</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <field name="header_spacing">20</field>
+        </record>
+
+        <record id="document_tax_report" model="ir.actions.report">
+            <field name="name">Reporte de percepciones/retenciones</field>
+            <field name="model">account.document.tax</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">l10n_ar_perceptions_retentions_pdf.report_document_tax</field>
+            <field name="report_file">l10n_ar_perceptions_retentions_pdf.report_document_tax</field>
+            <field name="paperformat_id" ref="document_tax_paperformat"/>
+            <field name="binding_type">report</field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

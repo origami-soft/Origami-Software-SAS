@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -30,15 +14,6 @@ class AccountMove(models.Model):
         country_id = self.env.ref('base.ar').id
         return [('country_id', '=', country_id)]
 
-    pos_ar_id = fields.Many2one(
-        'pos.ar',
-        'Punto de venta',
-        related='journal_id.pos_ar_id'
-    )
-    is_debit_note = fields.Boolean(
-        'Es nota de debito?',
-        related='voucher_type_id.is_debit_note'
-    )
     is_credit_invoice = fields.Boolean(
         'Es factura de credito?',
         related='voucher_type_id.is_credit_invoice'
@@ -53,53 +28,85 @@ class AccountMove(models.Model):
         'Numero documento',
         copy=False
     )
-    available_voucher_type_ids = fields.Many2many(
-        'voucher.type',
-        compute='_compute_available_voucher_types'
-    )
-    voucher_type_id = fields.Many2one(
-        'voucher.type',
-        compute='_compute_voucher_type_id',
-        readonly=False,
-        store=True,
-        ondelete='restrict',
-        copy=True
-    )
 
-    # Dato que se va a utilizar desde diferentes modulos para poder aplicar
-    # filtros y cambiar los datos que se visualizan en el formulario de una
-    # factura. Ejemplo: En modulo de facturacion electronica solo se mostrara
-    # cae y fecha vencimiento cae en caso de que el tipo de de talonario sea
-    # electronico.
-    document_book_type = fields.Char(
-        compute='get_document_book_type',
-        string='Tipo de talonario'
-    )
+    @api.depends("pos_ar_id", "move_type", "partner_id")  # Se agrega dependencia de partner_id
+    def compute_document_book(self):
+        return super().compute_document_book()
 
-    @api.constrains('name', 'journal_id', 'state')
-    def _check_unique_sequence_number(self):
-        """ Heredamos la función para que no incluya la validación estandar en un doc. de proveedor """
+    @api.depends("pos_ar_id", "move_type", "partner_id")  # Se agrega dependencia de partner_id
+    def compute_pos_document_book_ids(self):
+        return super().compute_pos_document_book_ids()
+    
+    @api.depends('voucher_name', 'voucher_type_id', 'voucher_type_id.prefix')
+    def compute_full_voucher_name(self):
+        for r in self:
+            if r.voucher_type_id and r.voucher_name:
+                r.full_voucher_name = f"{r.voucher_type_id.prefix} {r.voucher_name}"
+            elif r.voucher_name:
+                r.full_voucher_name = r.voucher_name
+            else:
+                r.full_voucher_name = r.name
+
+    def action_post(self):
+        """ Verifica que si la factura se va a enviar al Organismo correspondiente tenga talonario si es necesario
+
+            :raise ValidationError: si falta el talonario en la factura
+        """
+        for rec in self.filtered(lambda x: x.move_type in ['out_invoice', 'out_refund']
+                                           and x.pos_ar_id and not x.document_book_id):
+            raise ValidationError('La factura no tiene talonario asignado.')
+
+        return super().action_post()
+
+    def get_params_for_available_vouchers_ar(self, params):
+        """Método de la localización Argentina para filtrar
+        talonarios y tipos de comprobante según la denominación
+
+        :param params: Diccionario con parámetros genéricos
+        :type params: dict()
+        :return: Diccionario con los parámetros de la localización Argentina
+        :rtype: dict()
+        """
+        return self._get_document_books_ar(params)
+
+    def get_params_for_document_books_ar(self, params):
+        """
+        Método de la localización Argentina para filtrar
+        los tipos de comprobante según la denominación y tipo de factura
+
+        :param params: Diccionario con parámetros genéricos
+        :type params: dict()
+        :return: Diccionario con los parámetros de la localización Argentina
+        :rtype: dict()
+        """
+        return self._get_document_books_ar(params)
+
+    def _get_document_books_ar(self, params):
+        issue = self.fiscal_position_id if self.is_purchase_document() else self.company_id.account_position_id
+        receipt = self.company_id.account_position_id if self.is_purchase_document() else self.fiscal_position_id
+        denominations = issue.get_available_denominations(receipt)
+        if self.env.context.get('refund'):
+            params['denomination_ids'] = [self.voucher_type_id.denomination_id.id]
+        else:
+            params['denomination_ids'] = denominations.ids
+        return params
+
+    @api.depends('journal_id', 'date')
+    def _compute_highest_name(self):
         purchase_invoices = self.filtered(lambda x: x.is_purchase_document())
-        return super(AccountMove, self - purchase_invoices)._check_unique_sequence_number()
+        purchase_invoices.highest_name = ''
+        super(AccountMove, self - purchase_invoices)._compute_highest_name()
 
-    @api.depends('fiscal_position_id', 'type')
-    def _compute_available_voucher_types(self):
-        self.available_voucher_type_ids = False
-        for document in self.filtered(lambda x: x.fiscal_position_id):
-            available_documents = document._get_available_documents()
-            document.available_voucher_type_ids = available_documents
-
-    @api.depends('fiscal_position_id', 'type')
-    def _compute_voucher_type_id(self):
-        for document in self:
-            available_documents = document._get_available_documents()
-            document.voucher_type_id = available_documents[0] if available_documents else None
+    def get_voucher_type_id(self):
+        super(AccountMove, self).get_voucher_type_id()
+        docs = self._get_available_documents()
+        return docs and docs[0] or False
 
     def _get_available_documents(self):
         """ Obtiene los posibles tipos de comprobantes a facturar en base a las posiciones fiscales """
         self.ensure_one()
-        category = 'invoice' if self.type in ['in_invoice', 'out_invoice'] else \
-            ('refund' if self.type in ['out_refund', 'in_refund'] else None)
+        category = 'invoice' if self.move_type in ['in_invoice', 'out_invoice'] else \
+            ('refund' if self.move_type in ['out_refund', 'in_refund'] else None)
         issue = self.fiscal_position_id if self.is_purchase_document() else self.company_id.account_position_id
         receipt = self.company_id.account_position_id if self.is_purchase_document() else self.fiscal_position_id
         available_documents = self.env['voucher.type'].get_available_documents(
@@ -111,12 +118,11 @@ class AccountMove(models.Model):
 
     def check_invoice_duplicity(self):
         """ Valida que la factura no esté duplicada. """
-
-        if self.is_invoice():
+        if self.is_invoice() and self.voucher_name:
             domain = [
                 ('voucher_name', 'ilike', self.voucher_name.lstrip("0")),
                 ('voucher_type_id', '=', self.voucher_type_id.id),
-                ('type', '=', self.type),
+                ('move_type', '=', self.move_type),
                 ('state', 'not in', ['draft', 'cancel']),
                 ('id', '!=', self.id),
                 ('company_id', '=', self.company_id.id)
@@ -125,7 +131,7 @@ class AccountMove(models.Model):
                 domain.append(('partner_id', '=', self.partner_id.id))
             
             duplicate_invoices = self.search(domain)
-            
+
             # En caso de que la factura tenga un número de comprobante del estilo XXXX-XXXXXXXX, reviso entre las
             # facturas encontradas y descarto aquellas que tengan un número de punto de venta distinto (ya que el ilike
             # del search puede traer números que no corresponden)
@@ -145,92 +151,35 @@ class AccountMove(models.Model):
                     )
                 )
 
-    def post(self):
+    def _post(self, soft=False):
+        res = super(AccountMove, self)._post(soft)
         for invoice in self.filtered(lambda x: x.voucher_type_id):
             if not invoice.amount_total:
                 raise ValidationError('No pueden validarse documentos con monto total igual a cero.')
 
-            # Obtenemos el proximo numero o validamos su estructura
-            if not invoice.is_purchase_document() and invoice.pos_ar_id:
-                document_book = invoice.validate_document_book()
-                # Llamamos a la funcion a ejecutarse desde el tipo de talonario,
-                # de esta forma, hará lo correspondiente
-                # para distintos casos (preimpreso, electronica, fiscal, etc.)
-                getattr(invoice, document_book.book_type_id.foo)(document_book)
-
-            elif invoice.is_purchase_document():
+            if invoice.is_purchase_document():
                 invoice._validate_supplier_invoice_number()
-            
-            if invoice.is_sale_document() and invoice.voucher_type_id and not invoice.pos_ar_id:
-                raise ValidationError("El diario {} sobre el que intenta facturar no posee punto de venta.".format(invoice.journal_id.name))
+                invoice.set_voucher_name()
 
-            invoice.set_voucher_name()
             invoice.check_invoice_duplicity()
-        for invoice in self.filtered(lambda x: not x.voucher_type_id and x.type in ['in_invoice', 'in_refund']):
-            invoice.set_in_voucher_name()
-        return super(AccountMove, self).post()
+            invoice.set_line_name_on_voucher_name()
+        return res
 
-    def set_in_voucher_name(self):
-        """ Asigna el nombre del documento segun el nombre del documento"""
-        self.ensure_one()
-        self.name = '{}'.format(
-            self.voucher_name
-        )
+    def action_preprint(self):
+        self.set_voucher_name()
 
     def set_voucher_name(self):
-        """ Asigna el nombre del documento segun el tipo de documento y el punto de venta """
         self.ensure_one()
         if not self.voucher_name and self.pos_ar_id:
             self.voucher_name = '{}-{}'.format(
                 self.pos_ar_id.name.zfill(self.pos_ar_id.prefix_quantity or 0),
                 self.pos_ar_id.next_number(self.voucher_type_id)
             )
-        self.name = '{}{}'.format(
-            self.voucher_type_id.prefix + ' ' if self.voucher_type_id.prefix else '',
-            self.voucher_name or ''
-        )
-
-    def validate_document_book(self):
-        self.ensure_one()
-        if not self.voucher_type_id:
-            raise ValidationError("Por favor, asignar tipo de comprobante")
-        document_book = self.get_document_book()
-        if not document_book:
-            raise ValidationError(
-                'No existe talonario configurado para el punto de venta {} y el tipo de comprobante {}'.format(
-                    self.pos_ar_id.name_get()[0][1], self.voucher_type_id.name
-                ))
-        return document_book
-
-    def get_document_book(self):
-        """
-        Busca el talonario obtenido del punto de venta y tipo de comprobante.
-        :return: Talonario a utilizar
-        """
-        self.ensure_one()
-        document_book = self.env['document.book']
-        if self.voucher_type_id and self.pos_ar_id:
-            domain = [
-                ('voucher_type_id', '=', self.voucher_type_id.id),
-                ('pos_ar_id', '=', self.pos_ar_id.id),
-            ]
-            document_book = document_book.search(domain, limit=1)
-        return document_book
-
-    @api.depends('voucher_type_id', 'pos_ar_id')
-    def get_document_book_type(self):
-        for inv in self:
-            inv.document_book_type = inv.get_document_book().book_type_id.type
-
-    def action_preprint(self, document_book):
-        """ Funcion para ejecutarse al validar una factura con talonario preimpreso """
-        return
-
-    @api.depends('voucher_type_id', 'pos_ar_id')
-    def compute_document_book_type(self):
-        for inv in self:
-            book_type = inv.get_document_book().book_type_id.type if inv.voucher_type_id and inv.pos_ar_id else None
-            inv.document_book_type = book_type
+    
+    def set_line_name_on_voucher_name(self):
+        self.line_ids.filtered(lambda l: l.account_id.account_type in ('asset_receivable', 'liability_payable')).write({
+            'name': self.full_voucher_name
+        })
 
     def _validate_supplier_invoice_number(self):
         """

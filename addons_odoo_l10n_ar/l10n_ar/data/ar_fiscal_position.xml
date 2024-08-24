@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id='ar_fiscal_position_ivari' model='ar.fiscal.position'>
+            <field name='name'>IVA Responsable Inscripto</field>
+        </record>	
+
+        <record id='ar_fiscal_position_ivari_m' model='ar.fiscal.position'>
+            <field name='name'>IVA Responsable Inscripto - Factura M</field>
+        </record>
+    	
+        <record id='ar_fiscal_position_ivarni' model='ar.fiscal.position'>
+            <field name='name'>IVA Responsable no Inscripto</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_ivanor' model='ar.fiscal.position'>
+            <field name='name'>IVA no Responsable</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_ex' model='ar.fiscal.position'>
+            <field name='name'>IVA Exento</field>
+        </record>   
+                
+        <record id='ar_fiscal_position_cf' model='ar.fiscal.position'>
+            <field name='name'>Consumidor Final</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_mon' model='ar.fiscal.position'>
+            <field name='name'>Responsable Monotributo</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_no_categ' model='ar.fiscal.position'>
+            <field name='name'>Sujeto no Categorizado</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_prov_ext' model='ar.fiscal.position'>
+            <field name='name'>Proveedor del Exterior</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_cliente_ext' model='ar.fiscal.position'>
+            <field name='name'>Cliente del Exterior</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_ivalib' model='ar.fiscal.position'>
+            <field name='name'>IVA Liberado</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_ivari_perception' model='ar.fiscal.position'>
+            <field name='name'>IVA Responsable Inscripto – Agente de Percepción</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_peq_contr' model='ar.fiscal.position'>
+            <field name='name'>Pequeño Contribuyente Eventual</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_mono_social' model='ar.fiscal.position'>
+            <field name='name'>Monotributista Social</field>
+        </record>   
+        
+        <record id='ar_fiscal_position_peq_contr_social' model='ar.fiscal.position'>
+            <field name='name'>Pequeño Contribuyente Eventual Social</field>
+        </record>
+
+        <record id='ar_fiscal_position_iva_no_alc' model='ar.fiscal.position'>
+            <field name='name'>IVA No Alcanzado</field>
+        </record>
+
+        <record id='ar_fiscal_position_other' model='ar.fiscal.position'>
+            <field name='name'>Otro</field>
+        </record>
+
+        <record id='ar_fiscal_position_aduana' model='ar.fiscal.position'>
+            <field name='name'>Aduana</field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

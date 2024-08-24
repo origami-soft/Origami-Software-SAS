@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="ar_fiscal_position_form">
+            <field name="name">Ar fiscal position form</field>
+            <field name="model">ar.fiscal.position</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <h1>
+                            <field name="name" placeholder="Nombre..."/>
+                        </h1>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+      <record model="ir.ui.view" id="ar_fiscal_position_tree">
+            <field name="name">Ar fiscal position tree</field>
+            <field name="model">ar.fiscal.position</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_ar_fiscal_position_view" model="ir.actions.act_window">
+            <field name="name">Posiciones fiscales (AR)</field>
+            <field name="res_model">ar.fiscal.position</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            id="menu_ar_fiscal_position"
+            name="Posiciones fiscales (AR)"
+            action="action_ar_fiscal_position_view"
+            parent="account.account_account_menu"
+            groups="base.group_system"
+            sequence="6"
+        />
+
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

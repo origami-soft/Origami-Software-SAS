@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
 
@@ -29,12 +15,6 @@
             <field name="name_model">res.currency</field>
             <field name="id_model" ref="base.USD"/>
             <field name="code">DOL</field>
-        </record>
-        <record id="codes_models_afip_res_currency_liras_italianas" model="codes.models.relation">
-            <field name="name">Afip</field>
-            <field name="name_model">res.currency</field>
-            <field name="id_model" ref="base.ITL"/>
-            <field name="code">004</field>
         </record>
         <record id="codes_models_afip_res_currency_francos_suizos" model="codes.models.relation">
             <field name="name">Afip</field>
@@ -149,12 +129,6 @@
             <field name="name_model">res.currency</field>
             <field name="id_model" ref="base.PEN"/>
             <field name="code">035</field>
-        </record>
-        <record id="codes_models_afip_res_currency_sucre_ecuatoriano" model="codes.models.relation">
-            <field name="name">Afip</field>
-            <field name="name_model">res.currency</field>
-            <field name="id_model" ref="base.ECS"/>
-            <field name="code">036</field>
         </record>
         <record id="codes_models_afip_res_currency_lei_rumano" model="codes.models.relation">
             <field name="name">Afip</field>

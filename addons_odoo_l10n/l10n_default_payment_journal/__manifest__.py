@@ -20,7 +20,7 @@
 
     'name': 'l10n Default Payment Journal',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'category': '',
 
@@ -38,7 +38,7 @@
 
     'data': [
 
-        'views/res_company.xml',
+        # 'views/res_company.xml',
 
     ],
 

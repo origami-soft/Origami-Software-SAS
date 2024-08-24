@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -27,6 +11,13 @@ class AccountOwnCheck(models.Model):
         'account.move',
         'Asiento de cobro',
         help="Asiento donde se registró el cobro de cheque",
+        track_visibility='onchange',
+        ondelete='restrict',
+    )
+    collect_check_move_id = fields.Many2one(
+        'account.move',
+        'Asiento del cheque',
+        help="Asiento donde se registró el débito de la cuenta del cheque",
         track_visibility='onchange',
         ondelete='restrict',
     )
@@ -94,11 +85,18 @@ class AccountOwnCheck(models.Model):
         if any(check.state != 'collect' for check in self):
             raise ValidationError("Los cheques propios deben estar en estado cobrado para revertir el cobro")
         self.cancel_state('collect')
-        move_id = self.collect_move_id
-        self.write({'collect_move_id': False, 'collect_date': False})
-        move_id.button_draft()
-        move_id.with_context(force_delete=True).unlink()
-    
+        collect_move_id = self.collect_move_id
+        collect_check_move_id = self.collect_check_move_id
+        self.write({
+            'collect_move_id': False,
+            'collect_check_move_id': False,
+            'collect_date': False
+        })
+        collect_move_id.button_draft()
+        collect_move_id.with_context(force_delete=True).unlink()
+        collect_check_move_id.button_draft()
+        collect_check_move_id.with_context(force_delete=True).unlink()
+
     def _cancel_reconcile_state(self):
         if self.collect_move_id:
             self.cancel_state('reconciled_collect')

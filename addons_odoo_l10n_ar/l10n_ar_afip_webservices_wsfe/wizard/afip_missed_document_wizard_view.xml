@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
     <data>
@@ -24,13 +10,14 @@
                 <form>
                     <group col="2">
                         <field name="company_id" groups="base.group_multi_company"/>
+                        <field name="company_id" invisible="True" groups="!base.group_multi_company"/>
                         <field name="pos_ar_id" domain="[('company_id', '=', company_id)]"/>
                         <field name="available_voucher_type_ids" invisible="1"/>
                         <field name="voucher_type_id" domain="[('id', 'in', available_voucher_type_ids)]"/>
                         <field name="document_number"/>
                     </group>
                     <notebook>
-                        <page string="Respuesta" attrs="{'invisible': [('response', '=', False)]}">
+                        <page string="Respuesta" invisible="not response">
                             <field name="response" readonly="1"/>
                             <group string="Documento a asignar">
                                 <field
@@ -38,7 +25,7 @@
                                     domain="[
                                         ('voucher_type_id', '=', voucher_type_id),
                                         ('pos_ar_id', '=', pos_ar_id),
-                                        ('type', 'in', ['out_invoice', 'out_refund'])
+                                        ('move_type', 'in', ['out_invoice', 'out_refund'])
                                    ]"
                                 />
                             </group>
@@ -48,7 +35,7 @@
                         <button
                             type="object"
                             name="fill_data"
-                            attrs="{'invisible': ['|', ('move_id', '=', False), ('response', '=', False)]}"
+                            invisible="not move_id or not response"
                             class="btn-primary"
                             string="Completar documento"
                         />
@@ -75,12 +62,11 @@
             id="menu_afip_missed_document_wizard"
             name="Recuperar comprobantes"
             action="action_afip_missed_document_wizard_view"
-            parent="l10n_ar_point_of_sale.document_books_main_menu"
+            parent="l10n_point_of_sale.document_books_main_menu"
             sequence="20"
         />
             
     </data>
 </odoo>
 
-<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
--->
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,34 +1,20 @@
-# -*- coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+# -*- encoding: utf-8 -*-
 
 {
 
     'name': 'Payment imputation',
 
-    'version': '1.0.3',
+    'version': '1.0.1',
 
     'category': 'Accounting',
 
     'summary': 'Multiple payments imputation',
 
-    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT',
+    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT (www.nexit.com.uy)',
 
     'website': 'https://www.blueorange.com.ar',
+
+    'license': 'OPL-1',
 
     'depends': [
         'account'
@@ -37,19 +23,20 @@
     'data': [
         'views/account_payment.xml',
         'wizard/account_payment_imputation_wizard_view.xml',
-        'static/xml/create_payment_asset.xml',
         'security/ir.model.access.csv'
     ],
 
-    'qweb': [
-        'static/xml/create_payment.xml',
-    ],
+    'assets': {
+        'web.assets_backend': [
+            'payment_imputation/static/src/views/list/list_controller.js',
+        ],
+    },
 
     'installable': True,
 
     'auto_install': False,
 
-    'application': True,
+    'application': False,
 
     'description': 'Multiple payments imputation',
 

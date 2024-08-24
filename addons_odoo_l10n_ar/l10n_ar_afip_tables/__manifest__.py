@@ -1,37 +1,24 @@
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
+
 {
 
     'name': 'l10n_ar_afip_tables',
 
-    'version': '1.3',
+    'version': '1.2',
 
     'summary': 'Datas of tables of afip V.0 25082010-5',
 
     'description': """ Datas of tables of afip V.0 25082010-5,
-mapped with models using l10n_ar_codes application
+mapped with models using base_codes application
 """,
 
     'author': 'BLUEORANGE GROUP S.R.L.',
 
-    'website': 'http://www.blueorange.com.ar',
+    'website': 'https://www.blueorange.com.ar',
 
     'category': 'base',
+
+    'license': 'OPL-1',
 
     'depends': [
         'l10n_ar',
@@ -40,30 +27,32 @@ mapped with models using l10n_ar_codes application
     ],
 
     'data': [
-        'views/account_denomination_view.xml',
-        'views/account_fiscal_position.xml',
-        'views/afip_tables_configuration.xml',
-        'views/voucher_type.xml',
-        'views/account_move.xml',
-        'data/res_country_state.xml',
-        'data/res_country.xml',
-        'data/product_uom.xml',
-        'data/res_currency.xml',
-        'data/account_denomination.xml',
-        'data/voucher_type.xml',
-        'data/partner_document_type.xml',
-        'data/account_fiscal_position.xml',
-        'data/afip_concept.xml',
-        'data/denomination_fiscal_position.xml',
-        'data/codes_models_relation.xml',
+        # 'views/account_denomination.xml',
+        # 'views/ar_fiscal_position.xml',
+        # 'views/afip_tables_configuration.xml',
+        # 'views/voucher_type.xml',
+        # 'views/account_move.xml',
+        # 'data/res_country_state.xml',
+        # 'data/res_country.xml',
+        # 'data/product_uom.xml',
+        # 'data/res_currency.xml',
+        # 'data/account_denomination.xml',
+        # 'data/voucher_type.xml',
+        # 'data/partner_document_type.xml',
+        # 'data/ar_fiscal_position.xml',
+        # 'data/afip_concept.xml',
+        # 'data/denomination_fiscal_position.xml',
         'security/ir.model.access.csv',
     ],
+
+    # 'post_init_hook': 'post_init_hook',
+    #
+    # 'uninstall_hook': 'uninstall_hook',
 
     'active': False,
 
     'installable': True,
 
 }
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,27 +1,10 @@
 # -*- coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published
-#    by the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-
 
 {
 
     'name': 'l10n_ar_account_check_sale',
 
-    'version': '1.0.2',
+    'version': '1.0.1',
 
     'summary': 'Venta de cheques de terceros',
 
@@ -33,9 +16,11 @@ Cheques
 
     'author': 'BLUEORANGE GROUP S.R.L.',
 
-    'website': 'http://www.blueorange.com.ar',
+    'website': 'https://www.blueorange.com.ar',
 
     'category': 'Accounting',
+
+    'license': 'OPL-1',
 
     'depends': [
         'l10n_reject_checks',
@@ -52,7 +37,7 @@ Cheques
 
     'active': False,
 
-    'application': True,
+    'application': False,
 
     'installable': True,
 

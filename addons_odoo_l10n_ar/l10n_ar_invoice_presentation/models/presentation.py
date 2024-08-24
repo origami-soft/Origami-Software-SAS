@@ -1,20 +1,4 @@
 # - coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 import abc
 from .presentation_tools import PresentationTools
@@ -92,7 +76,8 @@ class Presentation:
         """
         codigo_documento = self.data.codes_model_proxy.get_code(
             "partner.document.type",
-            invoice.partner_id.partner_document_type_id.id
+            invoice.partner_id.partner_document_type_id.id,
+            'Afip'
         )
         return codigo_documento
 
@@ -104,8 +89,8 @@ class Presentation:
         """
         vat = invoice.partner_id.vat
         if invoice.partner_id.property_account_position_id in [
-            invoice.env.ref('l10n_ar_afip_tables.account_fiscal_position_cliente_ext'),
-            invoice.env.ref('l10n_ar_afip_tables.account_fiscal_position_prov_ext')
+            invoice.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
+            invoice.env.ref('l10n_ar.ar_fiscal_position_prov_ext')
         ] and invoice.partner_id.country_id != invoice.env.ref('base.ar'):
             vat = invoice.partner_id.country_id.vat
         return vat
@@ -168,20 +153,12 @@ class Presentation:
         :param invoice: record.
         :return: string, monto ej: 23.00-> '2300'
         """
-        perception_perception_proxy = invoice.env['perception.perception']
-        tax_group_perception = perception_perception_proxy.get_perception_groups(invoice.company_id)
         importe_precepciones = 0
         for ml in invoice.line_ids.filtered(
             lambda t: abs(t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat
+            and t.tax_line_id.perception_id and t.tax_line_id.perception_id.type in type
         ):
-            if ml.tax_line_id.tax_group_id in tax_group_perception:
-                perception = perception_perception_proxy.search([
-                    ('tax_id', '=', ml.tax_line_id.id),
-                    ('type', 'in', type)],
-                    limit=1
-                )
-                if perception:
-                    importe_precepciones += abs(ml.amount_currency or ml.balance)
+            importe_precepciones += abs(ml.amount_currency or ml.balance)
 
         return self.helper.format_amount(importe_precepciones)
 
@@ -192,21 +169,12 @@ class Presentation:
         :param invoice: record.
         :return: string, monto ej: '4500'
         """
-        perception_perception_proxy = invoice.env['perception.perception']
-        tax_group_perception = perception_perception_proxy.get_perception_groups(invoice.company_id)
         importe_precepciones = 0
         for ml in invoice.line_ids.filtered(
-                lambda t: abs(
-                    t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat
+            lambda t: abs(t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat
+            and t.tax_line_id.perception_id and t.tax_line_id.perception_id.jurisdiction in jurisdiction
         ):
-            if ml.tax_line_id.tax_group_id in tax_group_perception:
-                perception = perception_perception_proxy.search([
-                    ('tax_id', '=', ml.tax_line_id.id),
-                    ('jurisdiction', 'in', jurisdiction)],
-                    limit=1
-                )
-                if perception:
-                    importe_precepciones += abs(ml.amount_currency or ml.balance)
+            importe_precepciones += abs(ml.amount_currency or ml.balance)
 
         return self.helper.format_amount(importe_precepciones)
 
@@ -218,7 +186,7 @@ class Presentation:
         """
         importe_internos = 0
         for ml in invoice.line_ids.filtered(lambda t: abs(t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat):
-            if ml.tax_line_id == self.data.tax_group_internal:
+            if ml.tax_line_id.tax_group_id == self.data.tax_group_internal:
                 importe_internos += abs(ml.amount_currency or ml.balance)
 
         return self.helper.format_amount(importe_internos)
@@ -228,7 +196,7 @@ class Presentation:
         Obtiene el codigo de moneda de acuerdo a los mapeados en las tablas de AFIP
         Ejemplo: Las monedas Pesos y USD se mapean a PES y DOL.
         """
-        return self.data.codes_model_proxy.get_code("res.currency", invoice.currency_id.id)
+        return self.data.codes_model_proxy.get_code("res.currency", invoice.currency_id.id, 'Afip')
 
     def get_tipoCambio(self):
         """
@@ -264,7 +232,8 @@ class Presentation:
         """
         tax_code = self.data.codes_model_proxy.get_code(
             'account.tax',
-            tax.tax_line_id.id
+            tax.tax_line_id.id,
+            'Afip'
         )
 
         return tax_code
@@ -326,11 +295,9 @@ class Presentation:
 
     def get_invoice_other_taxes(self, invoice):
 
-        tax_group_ids = self.data.tax_group_internal | self.data.tax_group_perception
-
         return [
             tax for tax in invoice.line_ids
-            if tax.tax_line_id.tax_group_id in tax_group_ids
+            if tax.tax_line_id.tax_group_id == self.data.tax_group_internal or tax.tax_line_id.perception_id
         ]
 
     def get_otrosTrib(self, invoice):
@@ -341,11 +308,11 @@ class Presentation:
         :return: string, monto formateado. ej: '223455'
         """
         otrosTrib = 0.00
-        tax_group_ids = self.data.tax_group_internal | self.data.tax_group_perception
+        tax_group_ids = self.data.tax_group_internal
         for tax in invoice.line_ids.filtered(
-                lambda x: not x.tax_line_id.is_vat and x.tax_line_id and x.tax_line_id.tax_group_id not in tax_group_ids
+            lambda x: not x.tax_line_id.is_vat and x.tax_line_id and x.tax_line_id.tax_group_id not in tax_group_ids and not x.tax_line_id.perception_id
         ):
-            otrosTrib += abs(tax.amount_currency or tax.balance) if tax.tax_line_id.tax_group_id not in tax_group_ids else 0
+            otrosTrib += abs(tax.amount_currency or tax.balance) if tax.tax_line_id.tax_group_id not in tax_group_ids and not tax.tax_line_id.perception_id else 0
         return self.helper.format_amount(otrosTrib)
 
     @staticmethod
@@ -384,7 +351,7 @@ class PurchasePresentation(Presentation):
                 raise ValidationError(
                     'El documento {} no posee número de despacho.'.format(invoice.name))
             raise ValidationError('El documento {} no posee número de despacho, y su tipo de comprobante no admite despachos.\n'.format(invoice.name) +
-                                  'Active el tilde de "Despacho" en el tipo de comprobante".')
+                                  'Active el tilde de "Despacho" en el tipo de comprobante.')
 
     def get_despachoImportacion(self, invoice):
         """
@@ -399,9 +366,7 @@ class PurchasePresentation(Presentation):
         """
         if invoice.voucher_type_id.denomination_id != self.data.type_d:
             return ''
-
         self._check_invoice_importation_data(invoice)
-
         if invoice.voucher_name:
             return invoice.voucher_name
         elif invoice.importation_forward_number:

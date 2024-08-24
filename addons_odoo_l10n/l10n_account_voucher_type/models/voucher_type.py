@@ -1,26 +1,9 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class VoucherType(models.Model):
-
     _inherit = 'voucher.type'
 
     category = fields.Selection(
@@ -29,11 +12,30 @@ class VoucherType(models.Model):
             ('refund', 'Nota de crédito'),
             ('payment_out', 'Pago'),
             ('payment_in', 'Cobro')
-        ]
+        ],
+        ondelete={'invoice': 'cascade', 
+        'refund': 'cascade', 
+        'payment_out': 'cascade', 
+        'payment_in': 'cascade',}
     )
-    refund_voucher_type_id = fields.Many2one('voucher.type', 'Documento de devolución')
+    refund_voucher_type_id = fields.Many2one(
+        comodel_name='voucher.type', 
+        string='Documento de devolución'
+    )
 
-    def name_get(self):
-        return [(rec.id, '({}) {}'.format(rec.prefix, rec.name) if rec.prefix else rec.name) for rec in self]
+    @api.depends('prefix', 'name')
+    def _compute_display_name(self):
+        for r in self:
+            r.display_name = '({}) {}'.format(r.prefix, r.name) if r.prefix else r.name
+    
+    def get_domain_available_voucher_types(self, params):
+        domain = [('category', '=', params.get('category'))]
+        if 'denomination_ids' in params:
+            domain.append(('denomination_id', 'in', params.get('denomination_ids')))
+        return domain
+    
+    def get_available_voucher_types(self, params):
+        domain = self.get_domain_available_voucher_types(params)
+        return self.sudo().search(domain)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
     <data>
@@ -40,7 +26,7 @@
                             </group>
                         </group>
                         <group>
-                            <field name="generation_time" readonly="1" attrs="{'invisible':[('generation_time', '=', False)]}"/>
+                            <field name="generation_time" readonly="1" invisible="not generation_time"/>
                             <field name="reginfo_zip_file" filename="reginfo_zip_filename"/>
                             <field name="reginfo_zip_filename" invisible="True"/>
                             <button name="generate_files"
@@ -97,7 +83,8 @@
             id="account_invoice_presentation_menu"
             name="Presentacion ventas/compras"
             action="action_account_invoice_presentation_view"
-            parent="account.menu_finance_reports"
+            parent="l10n_ar.reports_ar_main_menu"
+            sequence="100"
         />
 
     </data>
