@@ -1,58 +1,41 @@
 # - coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 {
 
-    'name': 'l10n_ar_retentions_sicore',
+    'name': 'Retentions SICORE',
 
-    'version': '1.0.2',
+    'version': '1.0',
 
     'category': '',
 
-    'summary': 'l10n_ar_retentions_sicore',
+    'summary': 'Retenciones SICORE',
 
     'author': 'BLUEORANGE GROUP S.R.L',
 
     'website': 'https://www.blueorange.com.ar',
 
+    'license': 'OPL-1',
+
     'depends': [
-
         'l10n_ar_retentions',
-
+        'l10n_ar_txt_reports',
+        'l10n_account_voucher_type',
+        'l10n_ar_point_of_sale',
     ],
 
     'data': [
-
-        'views/retention_sicore_view.xml',
+        'views/retention_sicore.xml',
         'security/ir.model.access.csv',
         'security/ir_rule.xml',
-
     ],
 
     'installable': True,
 
     'auto_install': False,
 
-    'application': True,
+    'application': False,
 
-    'description': """
-Generacion de archivo para la presentacion de retenciones en aplicativo SICORE
-""",
+    'description': "Generación de archivo para la presentación de retenciones en aplicativo SICORE",
 
 }
 

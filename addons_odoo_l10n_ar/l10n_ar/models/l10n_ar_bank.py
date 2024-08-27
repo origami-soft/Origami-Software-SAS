@@ -1,28 +1,11 @@
 # - coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, api
-from odoo.exceptions import Warning
+from odoo.exceptions import ValidationError
 from l10n_ar_api.padron import banks
 
 
 class Bank(models.Model):
-
     _inherit = 'res.bank'
 
     @api.model
@@ -35,11 +18,12 @@ class Bank(models.Model):
     def update_banks(self):
         """ Actualiza o crea los bancos de argentina segun los registros de AFIP """
         banks_class = banks.Banks
-        #try:
-        data_get = banks_class.get_values(banks_class.get_banks_list())
-        #except:
-            #raise Warning("ERROR\nSe ha producido un error al intentar descargar los "
-                          #"bancos desde el servidor de AFIP. Inténtelo más tarde")
+        try:
+            data_get = banks_class.get_values(banks_class.get_banks_list())
+        except:
+            raise ValidationError(
+                "Se ha producido un error al intentar descargar los bancos desde AFIP. Inténtelo más tarde"
+            )
 
         afip_banks = {element.get('code'): element.get('name') for element in data_get}
 

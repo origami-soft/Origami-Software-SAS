@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo.tests.common import TransactionCase
 from ...l10n_payment_line.exceptions.exceptions import NotEqualAmountsError
@@ -30,7 +14,7 @@ class TestAccountPayment(TransactionCase):
         usd = self.env.ref('base.USD')
         ars = self.env.ref('base.ARS')
         rate = self.env['res.currency.rate'].create({'currency_id': usd.id, 'rate': 0.1, 'company_id': company.id})
-        payment = self.env['account.payment'].new({'payment_date': rate.name, 'company_id': company, 'currency_id': ars})
+        payment = self.env['account.payment'].new({'date': rate.name, 'company_id': company, 'currency_id': ars})
         line = self.env['account.payment.type.line'].new({'currency_id': usd, 'amount': 100, 'payment_id': payment})
         payment.onchange_update_rates()
         assert round(line.rate, 6) == 0.1

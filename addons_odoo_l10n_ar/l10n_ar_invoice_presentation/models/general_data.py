@@ -1,21 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
-
 
 class GeneralData:
     def __init__(self, proxy=None, company_id=None):
@@ -27,20 +10,18 @@ class GeneralData:
         """
         Obtiene valores predeterminados de la localizacion
         """
-        company = company_id or self.proxy.env.user.company_id
+        company = company_id or self.proxy.env.company
+        tax_group_internal = self.proxy.env['account.tax'].get_internal_tax_group(company)
+        vat_no_gravado_compras = self.proxy.env['account.tax'].get_tax_by_company_and_name(company, 'Compras No gravado')
+        vat_no_gravado_ventas = self.proxy.env['account.tax'].get_tax_by_company_and_name(company, 'Ventas No gravado')
         self.type_b = self.proxy.env.ref('l10n_ar_afip_tables.account_denomination_b')
         self.type_c = self.proxy.env.ref('l10n_ar_afip_tables.account_denomination_c')
         self.type_d = self.proxy.env.ref('l10n_ar_afip_tables.account_denomination_d')
         self.type_i = self.proxy.env.ref('l10n_ar_afip_tables.account_denomination_i')
-        self.tax_group_internal = self.proxy.env.ref('l10n_ar.tax_group_internal')
-        self.tax_group_perception = self.proxy.env['perception.perception'].get_perception_groups(company)
-        self.tax_purchase_ng = self.proxy.env.ref('l10n_ar.{}_vat_no_gravado_compras'.format(
-            self.proxy.env.user.company_id.id)
-        )
-        self.tax_sale_ng = self.proxy.env.ref('l10n_ar.{}_vat_no_gravado_ventas'.format(
-            self.proxy.env.user.company_id.id)
-        )
+        self.tax_group_internal = tax_group_internal
+        self.tax_purchase_ng = vat_no_gravado_compras
+        self.tax_sale_ng = vat_no_gravado_ventas
         self.codes_model_proxy = self.proxy.env['codes.models.relation']
-        self.fiscal_position_nc = self.proxy.env.ref("l10n_ar_afip_tables.account_fiscal_position_no_categ")
+        self.fiscal_position_nc = self.proxy.env.ref("l10n_ar.ar_fiscal_position_no_categ")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

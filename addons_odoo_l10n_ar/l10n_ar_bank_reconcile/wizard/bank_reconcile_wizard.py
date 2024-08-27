@@ -1,20 +1,4 @@
 # - coding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
@@ -91,7 +75,9 @@ class BankReconcileWizard(models.TransientModel):
                     'bank_reconcile_line_id': reconcile_line.id,
                     'move_line_id': move_line.id,
                 })
-        move_lines.write({'bank_reconciled': True})
+        # Uso el flag para evitar la sincronización entre datos de asiento y pago, ya que solamente los estoy marcando
+        # como conciliados
+        move_lines.with_context(skip_account_move_synchronization=True).write({'bank_reconciled': True})
 
     def _validate_conciliation(self, move_lines):
         """

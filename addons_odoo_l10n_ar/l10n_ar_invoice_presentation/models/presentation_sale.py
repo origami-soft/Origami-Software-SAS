@@ -1,16 +1,5 @@
 # coding: utf-8
-##############################################################################
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-##############################################################################
+
 from .presentation import SalePresentation
 
 
@@ -24,7 +13,7 @@ class SaleInvoicePresentation(SalePresentation):
         :return: recordset, Las facturas de compras.
         """
         return invoices.filtered(
-            lambda i: i.type in ["out_invoice", "out_refund"]
+            lambda i: i.move_type in ["out_invoice", "out_refund"]
         )
 
     def create_line(self, invoice):
@@ -58,7 +47,7 @@ class SaleInvoicePresentation(SalePresentation):
 
     # ----------------CAMPOS VENTAS----------------
     def fill_perceptions(self, invoice, line):
-        if invoice.partner_id.property_account_position_id == self.data.fiscal_position_nc:
+        if invoice.partner_id.property_account_position_id.ar_fiscal_position_id == self.data.fiscal_position_nc:
             line.percepcionNC = self.get_percepcion_nc(invoice)
         else:
             line.percepcionNC = 0
@@ -72,12 +61,11 @@ class SaleInvoicePresentation(SalePresentation):
         :param invoice: record.
         :return: string, importe percepcion nc, ej: '2134'
         """
-        tax_group_perception = invoice.env['perception.perception'].get_perception_groups(invoice.company_id)
         importe_precepciones = 0
         for ml in invoice.filtered(
-            lambda x: x.partner_id.property_account_position_id == self.data.fiscal_position_nc
+            lambda x: x.partner_id.property_account_position_id.ar_fiscal_position_id == self.data.fiscal_position_nc
         ).filtered(lambda t: abs(t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat):
-            if ml.tax_line_id.tax_group_id in tax_group_perception:
+            if ml.tax_line_id.perception_id:
                 importe_precepciones += abs(ml.amount_currency or ml.balance)
 
         return self.helper.format_amount(importe_precepciones)

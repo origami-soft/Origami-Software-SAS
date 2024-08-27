@@ -25,7 +25,7 @@ class AccountTaxArTemplate(models.AbstractModel):
     _description = 'Template de impuesto de Argentina'
 
     name = fields.Char('Nombre', required=True)
-    tax_template_id = fields.Many2one('account.tax.template', string='Impuesto', required=True)
+    tax_template_id = fields.Integer(string='Impuesto')
     type = fields.Selection(
         [
             ('vat', 'Iva'),

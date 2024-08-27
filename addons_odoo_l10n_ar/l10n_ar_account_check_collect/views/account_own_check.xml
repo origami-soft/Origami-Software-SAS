@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
     <data>
@@ -27,8 +13,8 @@
                         name="%(account_check_collect_wizard_action)d"
                         string="Cobrar"
                         class="oe_highlight"
-                        states="draft"
-                        groups="l10n_account_check.group_account_treasury_manager"
+                        invisible="state != 'draft'"
+                        groups="l10n_treasury.group_account_treasury_manager"
                         type="action"
                         context="{
                             'default_issue_date': issue_date,
@@ -43,18 +29,22 @@
                         type="object"
                         string="Revertir Cobro"
                         confirm="¿Está seguro?"
-                        states="collect"
-                        groups="l10n_account_check.group_account_treasury_manager"
+                        invisible="state != 'collect'"
+                        groups="l10n_treasury.group_account_treasury_manager"
                     />
                 </header>
                 <xpath expr="//field[@name='bank_id']/.." position="after">
-                    <group name="collect" string="Cobro" attrs="{'invisible': [('collect_move_id', '=', False)]}">
+                    <group name="collect" string="Cobro" invisible="not collect_move_id">
+                        <field
+                            name="collect_date"
+                            readonly="1"
+                        />
                         <field
                             name="collect_move_id"
                             readonly="1"
                         />
                         <field
-                            name="collect_date"
+                            name="collect_check_move_id"
                             readonly="1"
                         />
                     </group>

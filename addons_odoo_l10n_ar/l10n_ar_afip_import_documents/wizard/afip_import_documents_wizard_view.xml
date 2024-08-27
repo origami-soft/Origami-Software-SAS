@@ -1,18 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as published
-    by the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
--->
 
 <odoo>
     <data>
@@ -23,7 +9,7 @@
             <field name="arch" type="xml">
                 <form>
                     <div class="alert alert-info" role="alert">
-                        El archivo a subir es el archivo descargado desde "Mis Comprobantes" en AFIP, en formato XLSX o CSV.<br/>
+                        El archivo a subir es el archivo descargado desde "Mis Comprobantes" en AFIP, en formato XLSX.<br/>
                         Debido a que la información de las facturas de exportación no es suficiente para ser cargada en el sistema,
                         no se podrán crear facturas de exportación automáticamente.
                     </div>
@@ -31,8 +17,6 @@
                         <group>
                             <field name="file" filename="filename"/>
                             <field name="filename" invisible="1"/>
-                            <field name="available_account_ids" invisible="1"/>
-                            <field name="account_id"/>
                         </group>
                         <group>
                             <field name="type"/>
@@ -41,6 +25,7 @@
                     </group>
                     <footer>
                         <button name="validate_documents" class="oe_highlight" string="Validar documentos" type="object"/>
+                        o
                         <button string="Cancelar" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
@@ -52,8 +37,8 @@
             <field name="model">afip.import.documents.wizard</field>
             <field name="arch" type="xml">
                 <form>
-                    <group string="Documentos no encontrados" attrs="{'invisible': [('document_line_ids', '=', [])]}">
-                        <field name="document_line_ids" nolabel="1" readonly="1">
+                    <group string="Documentos no encontrados" invisible="not document_line_ids">
+                        <field name="document_line_ids" nolabel="1" colspan="2" readonly="1">
                             <tree editable="bottom">
                                 <field name="date"/>
                                 <field name="voucher_type"/>
@@ -73,7 +58,7 @@
                             </tree>
                         </field>
                     </group>
-                    <div class="alert alert-success" role="alert" attrs="{'invisible': [('document_line_ids', '!=', [])]}">
+                    <div class="alert alert-success" role="alert"  invisible="document_line_ids">
                       No hay facturas que importar!
                     </div>
                     <footer>
@@ -82,13 +67,14 @@
                             class="oe_highlight"
                             string="Crear facturas"
                             type="object"
-                            attrs="{'invisible': [('document_line_ids', '=', [])]}"
+                            invisible="not document_line_ids"
                         />
                         <button
                             class="oe_highlight"
                             string="Finalizar"
-                            attrs="{'invisible': [('document_line_ids', '!=', [])]}"
+                            invisible="document_line_ids"
                         />
+                        o
                         <button string="Cancelar" class="oe_link" special="cancel"/>
                     </footer>
                 </form>

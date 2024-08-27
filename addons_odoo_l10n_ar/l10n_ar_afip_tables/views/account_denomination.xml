@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_denomination_form">
+            <field name="name">Denominacion</field>
+            <field name="model">account.denomination</field>
+            <field name="inherit_id" ref="l10n_point_of_sale.account_denomination_form"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="validate_supplier"/>
+                </field>
+                <field name="description" position="after">
+                    <field name="vat_discriminated"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_denomination_tree">
+            <field name="name">Denominaciones</field>
+            <field name="model">account.denomination</field>
+            <field name="inherit_id" ref="l10n_point_of_sale.account_denomination_tree"/>
+            <field name="arch" type="xml">
+                 <field name="description" position="after">
+                    <field name="validate_supplier"/>
+                    <field name="vat_discriminated"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -20,7 +20,7 @@
 
     'name': 'Payment imputation default journal',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'category': 'Accounting',
 
@@ -41,7 +41,7 @@
 
     'installable': True,
 
-    'auto_install': True,
+    'auto_install': False,
 
     'application': True,
 

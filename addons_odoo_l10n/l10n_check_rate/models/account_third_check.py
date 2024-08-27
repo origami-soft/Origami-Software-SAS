@@ -1,23 +1,7 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
-from ..exceptions.exceptions import InvalidNaturalSentRateError
+from ..exceptions import exceptions
 
 
 class AccountThirdCheck(models.Model):
@@ -28,19 +12,25 @@ class AccountThirdCheck(models.Model):
 
     def validate_natural_sent_rate(self):
         return all(not r.destination_payment_id or r.natural_sent_rate >= 1 for r in self)
+    
+    def get_destination_payment(self):
+        return self.destination_payment_id or (self.payment_register_ids[0] if self.payment_register_ids else fields.Date.today())
+    
+    def get_destination_date(self):
+        return self.destination_payment_id.date or (self.payment_register_ids[0].payment_date if self.payment_register_ids else False)
 
     @api.constrains('natural_sent_rate')
     def check_natural_sent_rate(self):
         if not self.validate_natural_sent_rate():
-            raise InvalidNaturalSentRateError("La cotización de la línea debe ser mayor o igual a 1.")
+            exceptions.invalid_natural_sent_rate()
 
     def update_natural_sent_rate(self):
         if not (self.sent_rate and self.currency_id):
             self.natural_sent_rate = 0
             return
-        payment = self.destination_payment_id
+        payment = self.get_destination_payment()
         real_rate = self.env['res.currency']._get_conversion_rate(
-            payment.currency_id, self.currency_id, payment.company_id, payment.payment_date or fields.Date.today())
+            payment.currency_id, self.currency_id, payment.company_id, self.get_destination_date())
         self.natural_sent_rate = self.sent_rate if real_rate >= 1 else 1 / self.sent_rate
 
     @api.onchange('natural_sent_rate')
@@ -48,9 +38,9 @@ class AccountThirdCheck(models.Model):
         if not (self.natural_sent_rate and self.currency_id):
             self.sent_rate = 0
             return
-        payment = self.destination_payment_id
+        payment = self.get_destination_payment()
         real_rate = self.env['res.currency']._get_conversion_rate(
-            payment.currency_id, self.currency_id, payment.company_id, payment.payment_date or fields.Date.today())
+            payment.currency_id, self.currency_id, payment.company_id, self.get_destination_date())
         self.sent_rate = self.natural_sent_rate if real_rate >= 1 else 1 / self.natural_sent_rate
 
     @api.onchange('sent_rate')

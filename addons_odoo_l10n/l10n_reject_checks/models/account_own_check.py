@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models
 from odoo.exceptions import ValidationError
@@ -37,26 +21,30 @@ class AccountOwnCheck(models.Model):
 
     def reject_check(self):
         """ Lo que deberia pasar con el cheque cuando se rechaza """
-        if any(check.state != 'handed' for check in self):
+        if any(check.state not in ('handed', 'reconciled') for check in self):
             raise ValidationError("No se puede rechazar un cheque que no está entregado.")
-        self.next_state('handed')
+        for check in self:    
+            check.next_state(f'{check.state}_rejected')
 
     def revert_reject(self):
         """ Lo que deberia pasar con el cheque cuando se revierte un rechazo """
         if any(check.state != 'rejected' for check in self):
             raise ValidationError("No se puede revertir el rechazo de un cheque que no está rechazado.")
-        self.cancel_state('rejected')
+        for check in self:
+            self.cancel_state('rejected_reconciled' if check.reconcile_move_ids else 'rejected_handed')
 
     def get_cancel_states(self):
         res = super(AccountOwnCheck, self).get_cancel_states()
         res['canceled'] = 'draft'
-        res['rejected'] = 'handed'
+        res['rejected_reconciled'] = 'reconciled'
+        res['rejected_handed'] = 'handed'
         return res
 
     def get_next_states(self):
         res = super(AccountOwnCheck, self).get_next_states()
         res['draft_canceled'] = 'canceled'
-        res['handed'] = 'rejected'
+        res['handed_rejected'] = 'rejected'
+        res['reconciled_rejected'] = 'rejected'
         return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

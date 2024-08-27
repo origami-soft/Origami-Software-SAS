@@ -1,20 +1,4 @@
 # -*- encoding: utf-8 -*-
-##############################################################################
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -71,7 +55,12 @@ class AccountSoldCheck(models.Model):
     )
     move_id = fields.Many2one(
         'account.move',
-        'Asiento contable',
+        'Asiento venta',
+        readonly=True
+    )
+    check_move_id = fields.Many2one(
+        'account.move',
+        'Asiento cheque',
         readonly=True
     )
     state = fields.Selection([
@@ -100,16 +89,17 @@ class AccountSoldCheck(models.Model):
 
     @api.onchange('company_id')
     def onchange_company_id(self):
-        self.update({'interest_account_id':False,
-            'journal_id':False,
-            'commission_account_id':False,
-            'bank_account_id':False,
-            'account_third_check_ids':False
+        self.update({
+            'interest_account_id': False,
+            'journal_id': False,
+            'commission_account_id': False,
+            'bank_account_id': False,
+            'account_third_check_ids': False
         })
 
-    @api.constrains('interests', 'commission','amount')
+    @api.constrains('interests', 'commission')
     def constrain_amount(self):
-        if self.interests < 0 or self.commission < 0 or self.amount < 0:
+        if self.interests < 0 or self.commission < 0:
             raise ValidationError("Los importes no pueden ser negativos")
 
     @api.model
@@ -140,7 +130,9 @@ class AccountSoldCheck(models.Model):
                 'state': 'sold'
             })
             move = sold_check._create_move(sold_check.name)
+            check_move = sold_check._create_check_move(sold_check.name)
             sold_check.move_id = move.id
+            sold_check.check_move_id = check_move.id
             sold_check.account_third_check_ids.post_sold_check()
 
     def draft(self):
@@ -152,9 +144,11 @@ class AccountSoldCheck(models.Model):
         """ Cancela la venta de cheques y elimina el asiento """
 
         self.ensure_one()
-        # Cancelamos y borramos el asiento
+        # Cancelamos y borramos los asientos
         self.move_id.button_draft()
         self.move_id.with_context(force_delete=True).unlink()
+        self.check_move_id.button_draft()
+        self.check_move_id.with_context(force_delete=True).unlink()
 
         # Revertimos el estado de los cheques
         self.account_third_check_ids.cancel_sold_check()
@@ -174,11 +168,12 @@ class AccountSoldCheck(models.Model):
             'journal_id': journal.id,
         }
         move = self.env['account.move'].create(vals)
-        account = journal.default_debit_account_id
-        if not account:
-            raise ValidationError("El Diario o Cuenta bancaria de la venta no tiene cuentas contables configuradas.\n"
+        account = journal._get_journal_inbound_outstanding_payment_accounts()
+        if account:
+            account = account[0]
+        else:   
+            raise ValidationError("El Diario o Cuenta bancaria de la venta no tiene cuentas contables o pagos configurados.\n"
                                   "Por favor, configurarla en el diario correspondiente.")
-
 
         # Creamos las lineas del debe, puede haber hasta 3 (si tiene comision e intereses)
         if self.amount:
@@ -194,15 +189,60 @@ class AccountSoldCheck(models.Model):
             self._create_move_lines(move, amount_currency, self.interest_account_id, debit=interests)
 
         # Creamos la linea del haber
+        total_amount = 0
+        total_amount_currency = 0
         for check in self.account_third_check_ids:
             amount, amount_currency = self._get_multicurrency_values(check.amount)
-            self._create_move_lines(move, -amount_currency, check.journal_id.default_credit_account_id, credit=amount)
+            total_amount += amount
+            total_amount_currency += amount_currency
 
-        move.post()
+        self._create_move_lines(
+            move,
+            -total_amount_currency,
+            self.company_id.transfer_account_id,
+            credit=total_amount
+        )
+
+        move.action_post()
 
         return move
 
-    def _create_move_lines(self, move, amount_currency, account, debit=0.0, credit=0.0):
+    def _create_check_move(self, name):
+        vals = {
+            'date': self.date,
+            'ref': 'Venta de cheques: {}'.format(name),
+        }
+        if not self.company_id.transfer_account_id:
+            raise ValidationError("Por favor, configurar la cuenta contable de transferencias en la empresa.")
+
+        journal = self.account_third_check_ids.mapped('journal_id')
+        if len(journal) > 1:
+            raise ValidationError("Los cheques a vender tienen distintos diarios.")
+        move = self.env['account.move'].with_context(default_journal_id=journal.id).create(vals)
+
+        total_amount = 0
+        total_amount_currency = 0
+        for check in self.account_third_check_ids:
+            amount, amount_currency = self._get_multicurrency_values(check.amount)
+            total_amount += amount
+            total_amount_currency += amount_currency
+            self._create_move_lines(
+                move,
+                -amount_currency,
+                check.journal_id._get_journal_inbound_outstanding_payment_accounts()[0],
+                credit=amount,
+                move_line_name="{}, Cheque {}".format(move.ref, check.name)
+            )
+
+        self._create_move_lines(
+            move, total_amount_currency, self.company_id.transfer_account_id, debit=total_amount
+        )
+
+        move.action_post()
+
+        return move
+
+    def _create_move_lines(self, move, amount_currency, account, debit=0.0, credit=0.0, move_line_name=''):
         """
         Crea una move line de la venta de cheques y las asocia al move
         :param move: account.move - Asiento a relacionar las move_lines creadas
@@ -223,10 +263,10 @@ class AccountSoldCheck(models.Model):
             'debit': debit,
             'credit': credit,
             'amount_currency': amount_currency,
-            'name': move.ref,
+            'name': move_line_name or move.ref,
             'account_id': account.id,
             'journal_id': journal.id,
-            'currency_id': self.currency_id != company_currency and self.currency_id.id or False,
+            'currency_id': self.currency_id.id,
             'ref': move.ref
         }
         return self.env['account.move.line'].with_context(check_move_validity=False).create(move_line_vals)

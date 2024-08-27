@@ -117,11 +117,6 @@ msgstr "<b>CONDICION FRENTE AL IVA: </b>"
 
 #. module: l10n_ar_electronic_invoice_report
 #: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_header
-msgid "<b>OPERATION SUBJECTED TO RETENTION</b>"
-msgstr "<b>OPERACIÓN SUJETA A RETENCIÓN</b>"
-
-#. module: l10n_ar_electronic_invoice_report
-#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_header
 msgid "COD."
 msgstr ""
 
@@ -134,6 +129,16 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
 msgid "DESCRIPTION"
 msgstr "DESCRIPCION"
+
+#. module: l10n_ar_electronic_invoice_report
+#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
+msgid "ASSOCIATED DOCUMENT"
+msgstr "DOCUMENTO ASOCIADO"
+
+#. module: l10n_ar_electronic_invoice_report
+#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
+msgid "DATE"
+msgstr "FECHA"
 
 #. module: l10n_ar_electronic_invoice_report
 #: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
@@ -252,3 +257,8 @@ msgstr "IMPUESTO INTERNO "
 #, python-format
 msgid "VAT "
 msgstr "IVA "
+
+#. module: account
+#: model_terms:ir.ui.view,arch_db:account.tax_groups_totals
+msgid "on"
+msgstr "de"

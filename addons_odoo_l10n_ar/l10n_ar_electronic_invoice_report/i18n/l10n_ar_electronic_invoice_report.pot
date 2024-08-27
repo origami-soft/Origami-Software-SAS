@@ -117,11 +117,6 @@ msgstr ""
 
 #. module: l10n_ar_electronic_invoice_report
 #: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_header
-msgid "<b>OPERATION SUBJECTED TO RETENTION</b>"
-msgstr "<b>OPERACIÓN SUJETA A RETENCIÓN</b>"
-
-#. module: l10n_ar_electronic_invoice_report
-#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_header
 msgid "COD."
 msgstr ""
 
@@ -133,6 +128,16 @@ msgstr ""
 #. module: l10n_ar_electronic_invoice_report
 #: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
 msgid "DESCRIPTION"
+msgstr ""
+
+#. module: l10n_ar_electronic_invoice_report
+#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
+msgid "ASSOCIATED DOCUMENT"
+msgstr ""
+
+#. module: l10n_ar_electronic_invoice_report
+#: model_terms:ir.ui.view,arch_db:l10n_ar_electronic_invoice_report.report_electronic_invoice_body
+msgid "DATE"
 msgstr ""
 
 #. module: l10n_ar_electronic_invoice_report
@@ -251,4 +256,11 @@ msgstr ""
 #: code:addons/l10n_ar_electronic_invoice_report/models/account_tax.py:29
 #, python-format
 msgid "VAT "
+msgstr ""
+
+#. module: account
+#: model_terms:ir.ui.view,arch_db:account.document_tax_totals_company_currency_template
+#: model_terms:ir.ui.view,arch_db:account.tax_groups_totals
+#: model_terms:ir.ui.view,arch_db:account.view_payment_term_form
+msgid "on"
 msgstr ""
