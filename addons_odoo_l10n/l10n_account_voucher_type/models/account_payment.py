@@ -13,8 +13,7 @@ class AccountPayment(models.Model):
         compute='_compute_voucher_type_id',
         readonly=False,
         store=True,
-        # ondelete='restrict',
-        ondelete='cascade',
+        ondelete='restrict',
         copy=True,
     )
 
