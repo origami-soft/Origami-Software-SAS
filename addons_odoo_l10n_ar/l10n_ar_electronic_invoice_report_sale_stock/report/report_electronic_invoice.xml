@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
     <data>
@@ -8,23 +22,23 @@
                 <t t-set="lot_values" t-value="o._get_invoiced_lot_values()"/>
                 <t t-if="lot_values">
                     <br/>
-                    <table groups="stock_account.group_lot_on_invoice" class="table table-sm table-borderless" style="width: 50%;" name="invoice_snln_table">
+                    <table groups="sale_stock.group_lot_on_invoice" class="table table-sm" style="width: 50%;" name="invoice_snln_table">
                         <thead>
                             <tr>
                                 <th><span>Product</span></th>
-                                <th class="text-end"><span>Quantity</span></th>
-                                <th class="text-end"><span>SN/LN</span></th>
+                                <th class="text-right"><span>Quantity</span></th>
+                                <th class="text-right"><span>SN/LN</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="lot_values" t-as="snln_line">
                                 <tr>
                                     <td><t t-esc="snln_line['product_name']"/></td>
-                                    <td class="text-end">
+                                    <td class="text-right">
                                         <t t-esc="snln_line['quantity']"/>
                                         <t t-esc="snln_line['uom_name']" groups="uom.group_uom"/>
                                     </td>
-                                    <td class="text-end"><t t-esc="snln_line['lot_name']"/></td>
+                                    <td class="text-right"><t t-esc="snln_line['lot_name']"/></td>
                                 </tr>
                             </t>
                         </tbody>

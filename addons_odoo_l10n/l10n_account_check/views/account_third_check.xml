@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
 
@@ -9,59 +23,54 @@
             <form delete="false" create="false">
                 <header>
                     <button name="open_correct_wizard" type="object" string="Corregir"
-                            groups="l10n_treasury.group_account_treasury_manager"
-                            invisible="state == 'draft'"/>
+                            groups="l10n_account_check.group_account_treasury_manager"
+                            attrs="{'invisible': [('state', '=', 'draft')]}"/>
                     <field name="state" widget="statusbar" nolabel="1" statusbar_visible="draft,handed"/>
                 </header>
                 <sheet>
                     <h1>
                         <span>CHEQUE N° </span>
-                        <field name="name" class="oe_inline" readonly="state != 'draft'"/>
+                        <field name="name" class="oe_inline" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </h1>
                     <h1 class="mt0">
                         <span>IMPORTE: </span>
                         <field name="currency_id" invisible="1"/>
-                        <field name="amount" readonly="1"/>
+                        <field name="amount" readonly="1" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                     </h1>
                     <group>
                         <group>
-                            <field name="journal_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
-                            <field name="issue_date" readonly="state != 'draft'"/>
-                            <field name="check_type" readonly="state != 'draft'"/>
-                            <field name="not_to_order" readonly="state not in ['draft', 'wallet']"/>
+                            <field name="journal_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="issue_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="check_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="not_to_order"
+                                   attrs="{'readonly': [('state', 'not in', ['draft', 'wallet'])]}"/>
                         </group>
                         <group>
-                            <field name="bank_id" readonly="state != 'draft'"/>
-                            <field name="payment_date" readonly="state != 'draft' or check_type == 'common'" force_save="1"/>
-                            <field name="issue_name" readonly="state != 'draft'"/>
-                            <field name="company_id" readonly="state != 'draft'" groups="base.group_multi_company"/>
+                            <field name="bank_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="payment_date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="issue_name" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="company_id" attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                   groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <group>
-                        <group string="Pago origen" invisible="not payment_id">
+                        <group string="Pago origen" attrs="{'invisible': [('payment_id', '=', False)]}">
                             <field name="payment_id" readonly="1" string="Referencia"/>
                             <field name="partner_id"/>
-                            <field name="payment_currency_amount" readonly="state != 'draft'"/>
-                            <field name="rate" invisible="same_currency_as_payment and state != 'draft'"/>
+                            <field name="payment_currency_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"
+                                                                  widget="monetary" options="{'currency_field': 'payment_currency_id'}"/>
+                            <field name="rate"
+                                   attrs="{'invisible': [('same_currency_as_payment', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="payment_currency_id" invisible="1"/>
                             <field name="same_currency_as_payment" invisible="1"/>
                         </group>
-                        <group string="Pago destino" invisible="not destination_payment_id">
-                            <field name="destination_payment_id" readonly="True" string="Referencia"/>
+                        <group string="Pago destino" attrs="{'invisible': [('destination_payment_id', '=', False)]}">
+                            <field name="destination_payment_id" readonly="1" string="Referencia"/>
                             <field name="destination_partner_id"/>
-                            <field
-                                name="sent_payment_currency_amount"
-                                readonly="True"
-                                string="Monto en moneda de pago"
-                                widget="monetary"
-                                options="{'currency_field': 'sent_payment_currency_id'}"
-                            />
-                            <field
-                                name="sent_rate"
-                                readonly="True"
-                                string="Cotización"
-                                invisible="same_currency_as_sent_payment"
-                            />
+                            <field name="sent_payment_currency_amount" readonly="1" string="Monto en moneda de pago"
+                                                                       widget="monetary" options="{'currency_field': 'sent_payment_currency_id'}"/>
+                            <field name="sent_rate" readonly="1" string="Cotización"
+                                   attrs="{'invisible': [('same_currency_as_sent_payment', '=', True)]}"/>
                             <field name="sent_payment_currency_id" invisible="1"/>
                             <field name="same_currency_as_sent_payment" invisible="1"/>
                         </group>
@@ -94,7 +103,7 @@
                 <field name="bank_id"/>
                 <field name="check_type"/>
                 <field name="not_to_order"/>
-                <field name="currency_id" column_invisible="True"/>
+                <field name="currency_id" invisible="1"/>
                 <field name="amount" sum='Total' widget="monetary" options="{'currency_field': 'currency_id'}"/>
                 <field name="state"/>
             </tree>
@@ -119,19 +128,30 @@
                 <templates>
                     <t t-name="kanban-box">
                         <div t-attf-class="oe_kanban_card oe_kanban_global_click">
-                            <div class="o_kanban_record_top mb16">
-                                <div class="o_kanban_record_headings mt4">
-                                    <strong class="o_kanban_record_title"><span><t t-esc="record.name.value"/></span></strong>
+                            <div class="row">
+                                <div class="col-xs-6">
+                                    <strong><span><t t-esc="record.name.value"/></span></strong>
                                 </div>
-                                <strong><field name="amount" widget="monetary"/></strong>
+                                <div class="col-xs-6 pull-right text-right">
+                                    <strong><field name="amount" widget="monetary"/></strong>
+                                </div>
                             </div>
-                            <div class="o_kanban_record_bottom">
-                                <div class="oe_kanban_bottom_left text-muted">
-                                    <span><t t-esc="record.bank_id.value"/> (<t t-esc="record.check_type.value"/>)</span>
+                            <div class="row">
+                                <div class="col-xs-6 text-muted">
+                                    <span><t t-esc="record.bank_id.value"/> <t t-esc="record.check_type.value"/></span>
                                 </div>
-                                <div class="oe_kanban_bottom_right">
-                                    <field name="state" widget="label_selection"
-                                           options="{'classes': {'draft': 'info', 'canceled': 'danger', 'handed': 'success', 'deposited': 'success'}}"/>
+                                <div class="col-xs-6">
+                                    <span class="pull-right text-right">
+                                        <field name="state" widget="kanban_label_selection"
+                                               options="{'classes':
+                                            {
+                                                'draft': 'info',
+                                                'canceled': 'danger',
+                                                'handed': 'success',
+                                                'deposited': 'success'
+                                            }
+                                        }"/>
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -162,7 +182,7 @@
         <field name="name">Account third check calendar</field>
         <field name="model">account.third.check</field>
         <field name="arch" type="xml">
-            <calendar string="Cheques" color="bank_id" date_start="payment_date" mode="month" quick_create="false">
+            <calendar string="Cheques" color="bank_id" date_start="payment_date" mode="month" quick_add="false">
                 <field name="name"/>
                 <field name="bank_id"/>
                 <field name="amount"/>
@@ -178,4 +198,5 @@
 
 </odoo>
 
-<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+-->

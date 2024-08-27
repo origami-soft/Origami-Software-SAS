@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
 
@@ -10,15 +24,8 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet/group" position="after">
                 <field name="show_payment_lines" invisible="1"/>
-                <field name="available_journal_ids" invisible="1"/>
-                <notebook name="payment_lines" invisible="not show_payment_lines"/>
+                <notebook name="payment_lines" attrs="{'invisible': [('show_payment_lines', '=', False)]}"/>
             </xpath>
-            <button name="button_open_journal_entry" position="replace">
-                <button name="button_open_journal_entry" type="object" class="oe_stat_button" icon="fa-bars">Ver asientos</button>
-            </button>
-            <field name="journal_id" position="attributes">
-                <attribute name='domain'>[('id', 'in', available_journal_ids)]</attribute>
-            </field>
         </field>
     </record>
 

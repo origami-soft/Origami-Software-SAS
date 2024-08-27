@@ -1,2 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-l10n_ar_account_check_collect_account_check_collect_wizard_user,l10n_ar_account_check_collect.account_check_collect_wizard.user,model_account_check_collect_wizard,l10n_treasury.group_account_treasury_manager,1,1,1,1

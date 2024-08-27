@@ -1,16 +1,30 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
-from odoo import models, fields
+from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-import xlrd
-import base64
 from datetime import datetime
 from itertools import groupby
 from dateutil import relativedelta
+import base64, xlrd, csv
 
 
 class AfipImportDocumentsWizard(models.TransientModel):
-
     _name = 'afip.import.documents.wizard'
 
     file = fields.Binary(
@@ -26,6 +40,16 @@ class AfipImportDocumentsWizard(models.TransientModel):
         selection=[('sent', 'Emitidos'), ('received', 'Recibidos')],
         required=True
     )
+    account_id = fields.Many2one(
+        comodel_name='account.account',
+        string="Cuenta contable",
+        required=True,
+        domain="[('id', 'in', available_account_ids)]"
+    )
+    available_account_ids = fields.Many2many(
+        comodel_name='account.account',
+        compute='get_available_accounts'
+    )
     company_id = fields.Many2one(
         comodel_name='res.company',
         string='Empresa',
@@ -38,6 +62,18 @@ class AfipImportDocumentsWizard(models.TransientModel):
         string='Comprobantes'
     )
 
+    @api.onchange('type', 'company_id')
+    def onchange_clear_account(self):
+        self.account_id = False
+
+    @api.depends('type', 'company_id')
+    def get_available_accounts(self):
+        for r in self:
+            r.available_account_ids = r.env['account.account'].search([
+                ('company_id', '=', r.company_id.id), ('deprecated', '=', False), ('internal_type', '=', 'other'),
+                ('internal_group', '=', 'income' if r.type == 'sent' else 'expense')
+            ])
+
     def validate_documents(self):
         self.document_line_ids.search([]).unlink()
         if self.type == 'sent':
@@ -46,7 +82,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             return self.validate_received_documents()
 
     def validate_sent_documents(self):
-        vals = self.get_xls_values()
+        vals = self.get_file_values()
         non_found_documents = self.document_line_ids
         documents = self.document_line_ids = self.document_line_ids.create(vals)
         if documents:
@@ -55,7 +91,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             grouped_documents = groupby(sorted_documents, key=lambda x: (x.voucher_type, x.point_of_sale))
             for (voucher_type, point_of_sale), grouped_document in grouped_documents:
                 filtered_invoices = invoices.filtered(
-                    lambda x: x.voucher_type_id.code == int(voucher_type.split(' ')[0]) and
+                    lambda x: x.voucher_type_id.code == int(voucher_type) and
                     x.pos_ar_id.name.lstrip("0") == point_of_sale.lstrip("0")
                 )
 
@@ -77,7 +113,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
         return self.get_create_invoice_view()
 
     def validate_received_documents(self):
-        vals = self.get_xls_values()
+        vals = self.get_file_values()
         non_found_documents = self.document_line_ids
         documents = self.document_line_ids = self.document_line_ids.create(vals)
         if documents:
@@ -98,9 +134,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
         invoices = []
 
         # Para optimizar, nos armamos listas valores únicos con lo que hay que mapear con odoo
-        voucher_types = list(set(
-            voucher_type.split(' ')[0] for voucher_type in set(self.document_line_ids.mapped('voucher_type'))
-        ))
+        voucher_types = list(set(self.document_line_ids.mapped('voucher_type')))
         vat_numbers = list(set(self.document_line_ids.mapped('document_number')))
         currencies = list(set(self.document_line_ids.mapped('currency')))
         partners = self.env['res.partner'].search([('vat', 'in', vat_numbers)])
@@ -121,7 +155,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
         non_found_partners = [partner for partner in vat_numbers if partner not in list(set(partners.mapped('vat')))]
 
         if non_found_partners:
-            raise ValidationError("No se encontraron partners para los numeros de documentos:\n {}".format(
+            raise ValidationError("No se encontraron partners para los siguientes números de documento:\n{}".format(
                 '\n'.join(non_found_partners))
             )
 
@@ -138,8 +172,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             try:
                 odoo_currency = self.env['codes.models.relation'].get_record_from_code(
                     'res.currency',
-                    odoo_currency,
-                    'Afip'
+                    odoo_currency
                 )
             except Exception:
                 raise ValidationError('No se encontró moneda con código {}'.format(currency))
@@ -147,13 +180,11 @@ class AfipImportDocumentsWizard(models.TransientModel):
 
         for document in self.document_line_ids:
             lines = document.get_invoice_lines()
-            voucher_type = int(document.voucher_type.split(' ')[0])
+            voucher_type = int(document.voucher_type)
             invoice_voucher_type = voucher_types.filtered(lambda x: x.code == voucher_type)
-            partner = partners.filtered(lambda x: x.vat == document.document_number)[0]
             vals = {
                 'voucher_type_id': invoice_voucher_type.id,
-                'partner_id': partner.id,
-                'fiscal_position_id': partner.property_account_position_id.id,
+                'partner_id': partners.filtered(lambda x: x.vat == document.document_number)[0].id,
                 'invoice_date': document.date,
                 'date': document.date,
                 'currency_id': odoo_currencies[document.currency].id,
@@ -164,32 +195,25 @@ class AfipImportDocumentsWizard(models.TransientModel):
                 journal = journals_with_pos.filtered(
                     lambda x: x.pos_ar_id.name.lstrip("0") == document.point_of_sale.lstrip("0")
                 )[0]
-                document_book = journal.pos_ar_id.document_book_ids.filtered(
-                    lambda x: x.voucher_type_id == invoice_voucher_type
-                )
                 vals.update({
-                    'voucher_name': "{:0>{prefix_qty}}-{:0>8}".format(
+                    'voucher_name': "{}-{}".format(
                         document.point_of_sale,
-                        document.voucher_name,
-                        prefix_qty=journal.pos_ar_id.prefix_quantity or 0,
+                        document.voucher_name
                     ),
                     'journal_id': journal.id,
-                    'move_type': 'out_refund' if invoice_voucher_type.category == 'refund' else 'out_invoice',
+                    'type': 'out_refund' if invoice_voucher_type.category == 'refund' else 'out_invoice',
                     'cae': document.cae,
                     'cae_due_date': document.date + relativedelta.relativedelta(days=10),
-                    'document_book_id': document_book and document_book[0].id
                 })
             else:
                 vals.update({
                     'voucher_name': "{}-{}".format(document.point_of_sale, document.voucher_name),
-                    'move_type': 'in_refund' if invoice_voucher_type.category == 'refund' else 'in_invoice'
+                    'type': 'in_refund' if invoice_voucher_type.category == 'refund' else 'in_invoice'
                 })
             invoices.append(vals)
 
         if invoices:
             invoices = self.env['account.move'].create(invoices)
-            for invoice in invoices.filtered(lambda x: x.move_type in ['out_invoice', 'out_refund']):
-                invoice.set_voucher_name()
             return {
                 'type': 'ir.actions.act_window',
                 'name': 'Factura creadas',
@@ -199,6 +223,37 @@ class AfipImportDocumentsWizard(models.TransientModel):
                 'context': {'default_type': 'in_invoice'}
             }
 
+    def get_file_values(self):
+        return self.get_csv_values() if self.filename.endswith('.csv') else self.get_xls_values()
+    
+    def get_csv_values(self):
+        try:
+            book = csv.reader(base64.b64decode(self.file).decode("utf-8").splitlines(), delimiter=";")
+            vals = []
+            next(book, None)  # Ignoro el header
+            for x in book:
+                vals.append({
+                    'date': datetime.strptime(x[0], '%Y-%m-%d'),
+                    'voucher_type': x[1],
+                    'point_of_sale': str(int(x[2])),
+                    'voucher_name': str(int(x[3])),
+                    'cae': str(int(x[5])),
+                    'document_type': x[6],
+                    'document_number': str(int(x[7])),
+                    'name': x[8],
+                    'currency_value': x[9].replace(',', '.'),
+                    'currency': x[10],
+                    'amount_untaxed': x[11].replace(',', '.'),
+                    'amount_not_taxed': x[12].replace(',', '.'),
+                    'amount_exempt': x[13].replace(',', '.'),
+                    'amount_other_tributes': x[14].replace(',', '.'),
+                    'amount_vat': x[15].replace(',', '.'),
+                    'amount_total': x[16].replace(',', '.'),
+                })
+        except Exception:
+            raise ValidationError("Hubo un error al intentar leer el archivo.")
+        return vals
+    
     def get_xls_values(self):
         try:
             book = xlrd.open_workbook(file_contents=base64.b64decode(self.file))
@@ -207,7 +262,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             for x in range(2, sheet.nrows):
                 vals.append({
                     'date': datetime.strptime(sheet.cell(x, 0).value, '%d/%m/%Y'),
-                    'voucher_type': sheet.cell(x, 1).value,
+                    'voucher_type': sheet.cell(x, 1).value.split()[0],
                     'point_of_sale': str(int(sheet.cell(x, 2).value)),
                     'voucher_name': str(int(sheet.cell(x, 3).value)),
                     'cae': str(int(sheet.cell(x, 5).value)),
@@ -247,7 +302,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             ('company_id', '=', self.company_id.id),
             ('date', '>=', date_from),
             ('date', '<=', date_to),
-            ('move_type', 'in', ['in_invoice', 'in_refund'] if self.type == 'received' else ['out_invoice', 'out_refund']),
+            ('type', 'in', ['in_invoice', 'in_refund'] if self.type == 'received' else ['out_invoice', 'out_refund']),
             ('voucher_name', 'like', '-'),
         ])
 

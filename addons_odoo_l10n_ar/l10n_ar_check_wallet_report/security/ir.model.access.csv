@@ -1,2 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-check_wallet_report_wizard_user,check_wallet_report_wizard_user,model_check_wallet_report_wizard,l10n_treasury.group_account_treasury_user,1,1,1,1

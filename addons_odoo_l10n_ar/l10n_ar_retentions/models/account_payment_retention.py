@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
 import math
@@ -6,7 +22,7 @@ import math
 
 class AccountPaymentRetention(models.Model):
     """
-    Retenciones cargadas en pagos. Tener en cuenta que hay datos necesarios que se deberian tomar desde
+    Retenciones cargadas en pagos. Tener en cuenta que hay datos necesarios que se deberian desde
     el pago: Cuit, Moneda, Fecha, Tipo (Proveedor/Cliente)
     """
 
@@ -22,7 +38,7 @@ class AccountPaymentRetention(models.Model):
     )
     payment_date = fields.Date(
         string='Fecha',
-        related='payment_id.date',
+        related='payment_id.payment_date',
         readonly=True
     )
     date = fields.Date(
@@ -67,15 +83,13 @@ class AccountPaymentRetention(models.Model):
         string='Jurisdiccion',
         required=True,
     )
-    journal_id = fields.Many2one(
-        domain="[('company_id', '=', company_id), ('type', 'in', ['cash', 'bank']), \
-                     ('payment_usage', '=', 'retention')]"
-    )
 
     def get_date_field(self):
+        super(AccountPaymentRetention, self).get_date_field()
         return 'date'
     
     def get_observation(self):
+        super(AccountPaymentRetention, self).get_observation()
         return 'certificate_no'
     
     def round_half_up(self, amount, decimal_places):
@@ -109,40 +123,27 @@ class AccountPaymentRetention(models.Model):
         self.activity_id = None
 
     def get_first_move_line_debit_account(self):
-        taxes = self.retention_id.get_taxes(self.company_id)
-        account_line = taxes.invoice_repartition_line_ids.filtered(lambda x: x.account_id)
+        account_line = self.retention_id.tax_id.invoice_repartition_line_ids.filtered(lambda x: x.account_id)
         if account_line:
             return account_line[0].account_id.id
         else:
             return super(AccountPaymentRetention, self).get_first_move_line_debit_account()
 
     def get_first_move_line_credit_account(self):
-        taxes = self.retention_id.get_taxes(self.company_id)
-        account_line = taxes.refund_repartition_line_ids.filtered(lambda x: x.account_id)
+        account_line = self.retention_id.tax_id.refund_repartition_line_ids.filtered(lambda x: x.account_id)
         if account_line:
             return account_line[0].account_id.id
         else:
-            return super(AccountPaymentRetention, self).get_first_move_line_credit_account()
+            return super(AccountPaymentRetention, self).get_first_move_line_debit_account()
 
     def validate_journal_accounts(self):
-        """ Piso el método para que se verifique si el diario de retenciones tiene las cuentas cargadas """
-        for r in self.filtered(lambda l: l.journal_id):
-            line_type = 'inbound' if r.payment_id.payment_type == 'inbound' else 'outbound'
-            lines = getattr(r.journal_id, f'{line_type}_payment_method_line_ids')
-            if not lines or any(not l.payment_account_id for l in lines):
-                return False
+        """ En retenciones las cuentas contables se obtienen del impuesto """
         return True
 
     def get_move_vals(self, payment):
-        """ En retenciones la fecha del asiento contable debe ser la fecha de la retención, y se verifica que el diario
-        tenga las cuentas cargadas
-        """
-        self.check_journal_id()
+        """ En retenciones la fecha del asiento contable debe ser la fecha de la retención """
         vals = super().get_move_vals(payment)
         vals['date'] = self.date
         return vals
-
-    def get_line_error_description(self):
-        return "Retención de {} {}".format(dict(self._fields['type'].selection).get(self.type), self.jurisdiction)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

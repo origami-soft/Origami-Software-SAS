@@ -1,4 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-l10n_ar_perception_iva_user,l10n_ar_perceptions_iva.user,model_perception_iva,base.group_user,1,0,0,0
-l10n_ar_perception_iva_manager,l10n_ar_perceptions_iva.manager,model_perception_iva,account.group_account_invoice,1,1,1,1
-l10n_ar_perception_iva_readonly,l10n_ar_perceptions_iva.readonly,model_perception_iva,account.group_account_readonly,1,0,0,0

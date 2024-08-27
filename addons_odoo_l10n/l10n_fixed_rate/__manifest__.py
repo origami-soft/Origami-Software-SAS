@@ -1,34 +1,50 @@
-# -*- encoding: utf-8 -*-
-# Part of BrowseInfo. See LICENSE file for full copyright and licensing details.
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 {
 
     'name': 'l10n Fixed Rate',
 
-    'version': '1.0.0',
+    'version': '1.0',
 
     'category': '',
 
     'summary': 'l10n Fixed Rate',
 
-    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT (www.nexit.com.uy)',
+    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT',
 
-    'website': 'https://www.blueorange.com.ar',
-
-    'license': 'OPL-1',
+    'website': 'blueorange.com.ar',
 
     'depends': [
+
         'base',
+
     ],
 
     'data': [
+
     ],
 
     'installable': True,
 
     'auto_install': False,
 
-    'application': False,
+    'application': True,
 
     'description': 'Permitir devolución de cotizaciones fijas',
 

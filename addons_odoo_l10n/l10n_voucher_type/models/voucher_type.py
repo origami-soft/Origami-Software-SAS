@@ -1,28 +1,34 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 
 
 class VoucherType(models.Model):
+
     _name = 'voucher.type'
     _description = 'Tipos de comprobantes'
     _order = 'code asc'
 
-    name = fields.Char(
-        string='Nombre', 
-        required=True
-    )
-    prefix = fields.Char(string='Prefijo')
-    category = fields.Selection(
-        selection=[('none', 'Ninguna')], 
-        string='Categoría', 
-        required=True
-    )
-    code = fields.Integer(string='Código')
-    active = fields.Boolean(
-        string='Activo', 
-        default=True
-    )
-    is_debit_note = fields.Boolean(string='Nota de débito')
+    name = fields.Char('Nombre', required=True)
+    prefix = fields.Char('Prefijo')
+    category = fields.Selection([('none', 'Ninguna')], 'Categoría', required=True)
+    code = fields.Integer('Código')
+    active = fields.Boolean('Activo', default=True)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,5 +1,20 @@
 # - coding: utf-8 -*-
-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 from .presentation import PurchasePresentation
 
 
@@ -14,7 +29,7 @@ class PurchaseInvoicePresentation(PurchasePresentation):
         :return: recordset, Las facturas de compras.
         """
         return invoices.filtered(
-            lambda i: i.move_type in ['in_invoice', 'in_refund']
+            lambda i: i.type in ['in_invoice', 'in_refund']
                       and i.voucher_type_id.denomination_id not in [
                 self.data.type_d,
                 self.data.type_i
@@ -52,8 +67,8 @@ class PurchaseInvoicePresentation(PurchasePresentation):
         line.codigoOperacion = self.get_codigoOperacion(invoice)
         line.credFiscComp = self.get_credFiscComp(invoice)
         line.otrosTrib = self.get_otrosTrib(invoice)
-        line.cuitEmisor = self.get_purchase_cuitEmisor()
-        line.denominacionEmisor = self.get_purchase_denominacionEmisor()
+        line.cuitEmisor = self.get_purchase_cuitEmisor(invoice)
+        line.denominacionEmisor = self.get_purchase_denominacionEmisor(invoice)
         line.ivaComision = self.get_purchase_ivaComision()
 
     # ----------------CAMPOS COMPRAS----------------
@@ -88,9 +103,8 @@ class PurchaseInvoicePresentation(PurchasePresentation):
         :return: string, ej: '0023'
         """
         # Si la cantidad de alicuotas es igual a 0, se devuelve 0
-        if self.get_cantidadAlicIva(invoice) == 0:
+        if self.get_cantidadAlicIva(invoice) is 0:
             return self.helper.format_amount(0)
-
         # Sino se devuelve el monto de los impuestos de iva
         else:
             lines = invoice.line_ids.filtered(
@@ -100,12 +114,20 @@ class PurchaseInvoicePresentation(PurchasePresentation):
             return self.helper.format_amount(vat_tax_amount)
 
     # No implementado
+
+
+    # ----------------IMPLEMENTADO----------------------------------
     @staticmethod
-    def get_purchase_cuitEmisor():
+    def get_purchase_cuitEmisor(invoice):
+        if invoice.voucher_type_id.code in (60,61):
+            return invoice.company_id.vat
         return 0
 
+    # ----------------IMPLEMENTADO----------------------------------
     @staticmethod
-    def get_purchase_denominacionEmisor():
+    def get_purchase_denominacionEmisor(invoice):
+        if invoice.voucher_type_id.code in (60,61):
+            return invoice.company_id.name
         return ''
 
     @staticmethod

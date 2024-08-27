@@ -1,6 +1,23 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
-from odoo import models, fields
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError, Warning
 from datetime import datetime
 from l10n_ar_api.presentations import presentation
 from .general_data import GeneralData
@@ -12,13 +29,41 @@ from .presentation_sale_iva import SaleVatInvoicePresentation
 
 
 class AccountInvoicePresentation(models.Model):
-
     _name = 'account.invoice.presentation'
     _inherit = 'invoice.afip.presentation'
     _description = 'Presentación ventas/compras'
 
     def generate_header_file(self):
         raise NotImplementedError
+
+    def generate_presentations(self, data):
+        purchase_builder = presentation.Presentation('ventasCompras', 'comprasCbte')
+        purchase_iva_builder = presentation.Presentation('ventasCompras', 'comprasAlicuotas')
+        purchase_import_builder = presentation.Presentation('ventasCompras', 'comprasImportaciones')
+        sale_builder = presentation.Presentation('ventasCompras', 'ventasCbte')
+        sale_iva_builder = presentation.Presentation('ventasCompras', 'ventasAlicuotas')
+
+        self.purchase_presentation = PurchaseInvoicePresentation(
+            data=data,
+            builder=purchase_builder,
+            with_prorate=self.with_prorate
+        )
+        self.purchase_iva_presentation = PurchaseIvaPresentation(
+            data=data,
+            builder=purchase_iva_builder
+        )
+        self.purchase_import_presentation = PurchaseImportationPresentation(
+            data=data,
+            builder=purchase_import_builder
+        )
+        self.sale_presentation = SaleInvoicePresentation(
+            data=data,
+            builder=sale_builder
+        )
+        self.sale_iva_presentation = SaleVatInvoicePresentation(
+            data=data,
+            builder=sale_iva_builder
+        )
 
     def generate_files(self):
         """
@@ -31,37 +76,11 @@ class AccountInvoicePresentation(models.Model):
         data = GeneralData(invoice_proxy)
 
         # Traemos y validamos todas las facturas del periodo seleccionado
-        self.invoice_ids = self.get_invoices()
+        self.invoices = self.get_invoices()
         self.validate_invoices(data)
 
         # Instanciamos presentaciones
-        purchase_builder = presentation.Presentation('ventasCompras', 'comprasCbte')
-        purchase_iva_builder = presentation.Presentation('ventasCompras', 'comprasAlicuotas')
-        purchase_import_builder = presentation.Presentation('ventasCompras', 'comprasImportaciones')
-        sale_builder = presentation.Presentation('ventasCompras', 'ventasCbte')
-        sale_iva_builder = presentation.Presentation('ventasCompras', 'ventasAlicuotas')
-
-        purchase_presentation = PurchaseInvoicePresentation(
-            data=data,
-            builder=purchase_builder,
-            with_prorate=self.with_prorate
-        )
-        purchase_iva_presentation = PurchaseIvaPresentation(
-            data=data,
-            builder=purchase_iva_builder
-        )
-        purchase_import_presentation = PurchaseImportationPresentation(
-            data=data,
-            builder=purchase_import_builder
-        )
-        sale_presentation = SaleInvoicePresentation(
-            data=data,
-            builder=sale_builder
-        )
-        sale_iva_presentation = SaleVatInvoicePresentation(
-            data=data,
-            builder=sale_iva_builder
-        )
+        self.generate_presentations(data)
 
         # Creamos nombre base para los archivos
         base_name = "REGINFO_CV_{}" + self.get_period() + ".{}"
@@ -69,19 +88,19 @@ class AccountInvoicePresentation(models.Model):
         header_file = self.generate_header_file()
         header_file.file_name = base_name.format("CABECERA_", "txt")
 
-        sale_file = sale_presentation.generate(self.invoice_ids)
+        sale_file = self.sale_presentation.generate(self.invoices)
         sale_file.file_name = base_name.format("VENTAS_CBTE_", "txt")
 
-        sale_vat_file = sale_iva_presentation.generate(self.invoice_ids)
+        sale_vat_file = self.sale_iva_presentation.generate(self.invoices)
         sale_vat_file.file_name = base_name.format("VENTAS_ALICUOTAS_", "txt")
 
-        purchase_file = purchase_presentation.generate(self.invoice_ids)
+        purchase_file = self.purchase_presentation.generate(self.invoices)
         purchase_file.file_name = base_name.format("COMPRAS_CBTE_", "txt")
 
-        purchase_vat_file = purchase_iva_presentation.generate(self.invoice_ids)
+        purchase_vat_file = self.purchase_iva_presentation.generate(self.invoices)
         purchase_vat_file.file_name = base_name.format("COMPRAS_ALICUOTAS_", "txt")
 
-        purchase_imports_file = purchase_import_presentation.generate(self.invoice_ids)
+        purchase_imports_file = self.purchase_import_presentation.generate(self.invoices)
         purchase_imports_file.file_name = base_name.format("COMPRAS_IMPORTACION_", "txt")
 
         fiscal_credit_service_import_file = self.generate_fiscal_credit_service_import_file()
@@ -102,22 +121,30 @@ class AccountInvoicePresentation(models.Model):
         # Se escriben en la presentacion los datos generados
         self.write({
             'generation_time': datetime.now(),
-            'header_file': header_file.get_encoded_string(),
+
             'header_filename': header_file.file_name,
-            'sale_file': sale_file.get_encoded_string(),
+            'header_file': header_file.get_encoded_string(),
+
             'sale_filename': sale_file.file_name,
-            'sale_vat_file': sale_vat_file.get_encoded_string(),
+            'sale_file': sale_file.get_encoded_string(),
+
             'sale_vat_filename': sale_vat_file.file_name,
-            'purchase_file': purchase_file.get_encoded_string(),
+            'sale_vat_file': sale_vat_file.get_encoded_string(),
+
             'purchase_filename': purchase_file.file_name,
-            'purchase_vat_file': purchase_vat_file.get_encoded_string(),
+            'purchase_file': purchase_file.get_encoded_string(),
+
             'purchase_vat_filename': purchase_vat_file.file_name,
-            'purchase_imports_file': purchase_imports_file.get_encoded_string(),
+            'purchase_vat_file': purchase_vat_file.get_encoded_string(),
+
             'purchase_imports_filename': purchase_imports_file.file_name,
-            'fiscal_credit_service_import_file': fiscal_credit_service_import_file.get_encoded_string(),
+            'purchase_imports_file': purchase_imports_file.get_encoded_string(),
+
             'fiscal_credit_service_import_filename': fiscal_credit_service_import_file.file_name,
-            'reginfo_zip_file': reginfo_zip_file,
+            'fiscal_credit_service_import_file': fiscal_credit_service_import_file.get_encoded_string(),
+
             'reginfo_zip_filename': base_name.format("", "zip"),
+            'reginfo_zip_file': reginfo_zip_file,
         })
 
     name = fields.Char(
@@ -152,6 +179,7 @@ class AccountInvoicePresentation(models.Model):
 
     header_file = fields.Binary(
         string="Cabecera",
+        filename="header_filename",
     )
 
     header_filename = fields.Char(
@@ -160,6 +188,7 @@ class AccountInvoicePresentation(models.Model):
 
     sale_file = fields.Binary(
         string="Ventas",
+        filename="sale_filename",
     )
 
     sale_filename = fields.Char(
@@ -168,6 +197,7 @@ class AccountInvoicePresentation(models.Model):
 
     sale_vat_file = fields.Binary(
         string="Ventas alicuotas",
+        filename="sale_vat_filename",
     )
 
     sale_vat_filename = fields.Char(
@@ -176,6 +206,7 @@ class AccountInvoicePresentation(models.Model):
 
     purchase_file = fields.Binary(
         string="Compras",
+        filename="purchase_filename",
     )
 
     purchase_filename = fields.Char(
@@ -184,6 +215,7 @@ class AccountInvoicePresentation(models.Model):
 
     purchase_vat_file = fields.Binary(
         string="Compras alicuotas",
+        filename="purchase_vat_filename",
     )
 
     purchase_vat_filename = fields.Char(
@@ -192,6 +224,7 @@ class AccountInvoicePresentation(models.Model):
 
     purchase_imports_file = fields.Binary(
         string="Compras importaciones",
+        filename="purchase_imports_filename",
     )
 
     purchase_imports_filename = fields.Char(
@@ -200,6 +233,7 @@ class AccountInvoicePresentation(models.Model):
 
     fiscal_credit_service_import_file = fields.Binary(
         string="Credito fiscal de importacion de servicios",
+        filename="fiscal_credit_service_import_filename",
     )
 
     fiscal_credit_service_import_filename = fields.Char(
@@ -208,6 +242,7 @@ class AccountInvoicePresentation(models.Model):
 
     reginfo_zip_file = fields.Binary(
         string="ZIP de regimen de informacion",
+        filename="reginfo_zip_filename",
     )
 
     reginfo_zip_filename = fields.Char(

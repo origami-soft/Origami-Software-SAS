@@ -1,8 +1,24 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-from ..exceptions import exceptions
+from ..exceptions.exceptions import DifferentCurrenciesDepositError, NoChecksInDepositError, NoChecksInWalletError
 
 
 class AccountDepositSlip(models.Model):
@@ -19,32 +35,32 @@ class AccountDepositSlip(models.Model):
     name = fields.Char(
         string='Boleta de depósito',
         readonly=True,
-        tracking=True
+        track_visibility='onchange'
     )
     reference = fields.Char(
         string='Referencia',
-        tracking=True
+        track_visibility='onchange'
     )
     date = fields.Date(
         'Fecha',
         required=True,
-        tracking=True
+        track_visibility='onchange'
     )
     journal_id = fields.Many2one(
         'account.journal',
         'Cuenta Bancaria',
         required=True,
-        tracking=True
+        track_visibility='onchange'
     )
     amount = fields.Monetary(
         'Importe total',
         compute='_get_checks_total',
-        tracking=True
+        track_visibility='onchange'
     )
     currency_id = fields.Many2one(
         'res.currency',
         'Moneda',
-        tracking=True
+        track_visibility='onchange'
     )
     check_ids = fields.Many2many(
         'account.third.check',
@@ -59,7 +75,7 @@ class AccountDepositSlip(models.Model):
          ('deposited', 'Depositada')],
         string='Estado',
         default='draft',
-        tracking=True
+        track_visibility='onchange'
     )
     move_ids = fields.One2many(
         'account.move',
@@ -73,7 +89,7 @@ class AccountDepositSlip(models.Model):
         default=lambda self: self.env.company,
     )
 
-    _sql_constraints = [('name_uniq', 'unique(name, company_id)', 'Ya existe una boleta de depósito con ese nombre.')]
+    _sql_constraints = [('name_uniq', 'unique(name)', 'El nombre de la boleta de deposito debe ser unico')]
 
     _order = "date desc, name desc"
 
@@ -83,17 +99,19 @@ class AccountDepositSlip(models.Model):
         for r in self:
             journal_currency = r.journal_id.currency_id or r.journal_id.company_id.currency_id
             if r.check_ids and journal_currency != r.check_ids.mapped('currency_id'):
-                exceptions.different_currency_deposit()
+                raise DifferentCurrenciesDepositError("La moneda de los cheques es distinta"
+                                                      " a la de la cuenta bancaria de la boleta.")
 
-            r.check_ids.deposit_slip_constraints()
+            r.check_ids.deposit_slip_contraints()
 
     def post(self):
         """ Confirma la boleta de deposito cambiando el estado de los cheques y crea el asiento correspondiente """
         for deposit_slip in self:
             if not deposit_slip.check_ids:
-                exceptions.no_checks_in_deposit()
+                raise NoChecksInDepositError("No se puede validar una boleta sin cheques.")
             if any(check.state != 'wallet' for check in self.check_ids):
-                exceptions.no_checks_in_wallet()
+                raise NoChecksInWalletError("Existen cheques en la boleta que no se encuentran en estado 'En cartera'."\
+                                            "Elimínelos para poder validar la boleta.")
 
             deposit_slip.write({
                 # Ya validamos en el constraint que la moneda es unica
@@ -111,9 +129,9 @@ class AccountDepositSlip(models.Model):
 
     def cancel_deposit_slip(self):
         """ Cancela la boleta de deposito y elimina el asiento """
+
         self.ensure_one()
         # Cancelamos y borramos el asiento
-        self.move_ids.button_draft()
         self.move_ids.button_cancel()
         self.move_ids.with_context(force_delete=True).unlink()
 
@@ -126,44 +144,6 @@ class AccountDepositSlip(models.Model):
     def create(self, values):
         values['name'] = self.env['ir.sequence'].next_by_code('account.deposit.slip.sequence')
         return super(AccountDepositSlip, self).create(values)
-    
-    def _create_check_move(self, check):
-        vals = {
-            'date': self.date,
-            'ref': 'Boleta de depósito {}{}: {}'.format(
-                self.name, " ({})".format(self.reference) if self.reference else '', check.name),
-        }
-        move = self.env['account.move'].with_context(default_journal_id=check.journal_id.id).create(vals)
-        # Hacemos el cómputo multimoneda
-        company = self.env.company
-        company_currency = company.currency_id
-        # Creamos las líneas de los asientos
-        # Se calcula el debe del apunte con cuenta a debitar sumando los importes parciales que se van obteniendo de la
-        # conversión de los montos de los cheques, así se evitan errores de redondeo
-        company_currency_amount = self.currency_id._convert(check.amount, company_currency, company, self.date)
-        amount_currency = check.amount
-        self._create_move_line(move, self.company_id.transfer_account_id, check, amount_currency, debit=company_currency_amount)
-        self._create_move_line(move, check.journal_id._get_journal_inbound_outstanding_payment_accounts()[0], check, -amount_currency, credit=company_currency_amount)
-        return move
-    
-    def _create_deposit_move(self, check):
-        vals = {
-            'date': self.date,
-            'ref': 'Boleta de depósito {}{}: {}'.format(
-                self.name, " ({})".format(self.reference) if self.reference else '', check.name),
-        }
-        move = self.env['account.move'].with_context(default_journal_id=self.journal_id.id).create(vals)
-        # Hacemos el cómputo multimoneda
-        company = self.env.company
-        company_currency = company.currency_id
-        # Creamos las líneas de los asientos
-        # Se calcula el debe del apunte con cuenta a debitar sumando los importes parciales que se van obteniendo de la
-        # conversión de los montos de los cheques, así se evitan errores de redondeo
-        company_currency_amount = self.currency_id._convert(check.amount, company_currency, company, self.date)
-        amount_currency = check.amount
-        self._create_move_line(move, self.journal_id._get_journal_inbound_outstanding_payment_accounts()[0], check, amount_currency, debit=company_currency_amount)
-        self._create_move_line(move, self.company_id.transfer_account_id, check, -amount_currency, credit=company_currency_amount)
-        return move
 
     def _create_move(self, check):
         """
@@ -172,41 +152,46 @@ class AccountDepositSlip(models.Model):
         :return: account.move creado
         """
 
-        moves = self.env['account.move']
-        
-        move = self._create_check_move(check)
-        move.action_post()
-        moves |= move
+        vals = {
+            'date': self.date,
+            'ref': 'Boleta de depósito {}{}: {}'.format(
+                self.name, " ({})".format(self.reference) if self.reference else '', check.name),
+        }
+        move = self.env['account.move'].with_context(default_journal_id=self.journal_id.id).create(vals)
 
-        move = self._create_deposit_move(check)
-        move.action_post()
-        moves |= move
+        # Hacemos el computo multimoneda
+        company = self.env.company
+        company_currency = company.currency_id
 
-        # Concilio las cuentas puente del asiento del cheque y del asiento de la boleta de depósito
-        moves.line_ids.filtered(
-            lambda l: l.account_id == self.company_id.transfer_account_id and not l.reconciled
-        ).reconcile()
-        
-        return moves
+        # Creamos las lineas de los asientos
+        # Se calcula el debe del apunte con cuenta a debitar
+        # sumando los importes parciales que se van obteniendo
+        # de la conversión de los montos de los cheques, así se
+        # evitan errores de redondeo
+        company_currency_amount = self.currency_id._convert(check.amount, company_currency, company, self.date)
+        amount_currency = check.amount if self.currency_id != company_currency else 0
+        self._create_move_line(move, check, -amount_currency, credit=company_currency_amount)
+        self._create_move_line(move, check, amount_currency, debit=company_currency_amount)
+        move.post()
+        return move
 
     def get_move_line_vals(self, move, account, company_currency, amount_currency, debit, credit, check):
         """Método auxiliar para estructurar en un dict los datos
         de los apuntes y hacer más extensible para herencia"""
         return {
-            'partner_id': check.partner_id.id,
+            'partner_id': check.partner_id.id if check.partner_id and credit else False,
             'move_id': move.id,
             'debit': debit,
             'credit': credit,
             'amount_currency': amount_currency,
-            'name': check.get_move_line_label_with_number(),
+            'name': move.ref if debit else "Depósito de cheque Nº " + check.name,
             'account_id': account.id,
             'journal_id': self.journal_id.id,
-            'currency_id': check.currency_id != company_currency and check.currency_id.id
-            or check.company_id.currency_id.id,
+            'currency_id': check.currency_id != company_currency and check.currency_id.id or False,
             'ref': move.ref
         }
 
-    def _create_move_line(self, move, account, check, amount_currency, debit=0.0, credit=0.0):
+    def _create_move_line(self, move, check, amount_currency, debit=0.0, credit=0.0):
         """
         Crea una move line de la boleta de deposito y las asocia al move
         :param move: account.move - Asiento a relacionar las move_lines creadas
@@ -215,6 +200,7 @@ class AccountDepositSlip(models.Model):
         :return: account.move.line creada
         """
 
+        account = self.journal_id.default_debit_account_id if debit else check.journal_id.default_credit_account_id
         company_currency = self.env.company.currency_id
 
         if not account:
@@ -226,19 +212,12 @@ class AccountDepositSlip(models.Model):
 
     def view_moves(self):
         self.ensure_one()
-        res = {
+        return {
+            'name': "Asientos de {}".format(self.name),
             'type': 'ir.actions.act_window',
-            'views': [[False, 'form']],
+            'views': [[False, 'list'], [False, 'form']],
             'res_model': 'account.move',
+            'domain': [('deposit_slip_id', '=', self.id)],
         }
-        domain = [('deposit_slip_id', '=', self.id)]
-        moves = self.env['account.move'].search(domain)
-        if len(moves) == 1:
-            res['res_id'] = moves[0].id
-        else:
-            res['name'] = "Asientos de {}".format(self.name)
-            res['views'].insert(0, [False, 'list'])
-            res['domain'] = domain
-        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
 
@@ -10,18 +24,17 @@
         <field name="arch" type="xml">
             <notebook position="inside">
                 <page name="payment_type_lines" string="Métodos de pago">
-                    <field name="show_date_in_payment_type_line" invisible="True"/>
                     <field name="payment_type_line_ids" nolabel="1" context="{'default_payment_id': id}"
-                           readonly="state != 'draft'">
+                           attrs="{'readonly': [('state', '!=', 'draft')]}">
                         <tree editable="bottom">
-                            <field name="company_id" column_invisible="True"/>
-                            <field name="payment_id" column_invisible="True"/>
-                            <field name="payment_currency_id" column_invisible="True"/>
+                            <field name="company_id" invisible="1"/>
+                            <field name="payment_id" invisible="1"/>
+                            <field name="payment_currency_id" invisible="1"/>
                             <field name="journal_id"/>
-                            <field name="date" column_invisible="not parent.show_date_in_payment_type_line"/>
+                            <field name="date"/>
                             <field name="currency_id"/>
-                            <field name="same_currency_as_payment" column_invisible="True"/>
-                            <field name="rate" invisible="same_currency_as_payment"/>
+                            <field name="same_currency_as_payment" invisible="1"/>
+                            <field name="rate" attrs="{'invisible': [('same_currency_as_payment', '=', True)]}"/>
                             <field name="amount"/>
                             <field name="payment_currency_amount" sum="Total"/>
                             <field name="name"/>

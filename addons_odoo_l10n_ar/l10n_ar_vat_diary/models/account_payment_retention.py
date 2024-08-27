@@ -1,7 +1,22 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models
-from odoo.exceptions import ValidationError
 
 
 class AccountPaymentRetention(models.Model):
@@ -24,13 +39,9 @@ class AccountPaymentRetention(models.Model):
         :param size_header: Tamaño del encabezado genérico del subdiario
         :type size_header: int
         """
-
         rate = self._get_retention_currency_rate()
-        tax_id = self.retention_id.get_taxes(self.company_id)
-        try:
-            vals[taxes_position[tax_id] + size_header] = round(self.amount * rate, 2)
-        except Exception:
-            raise ValidationError('No se encontro impuesto para la retencion {}'.format(self.retention_id.display_name))
+        tax_id = self.retention_id.tax_id
+        vals[taxes_position[tax_id] + size_header] = round(self.amount * rate, 2)
 
     def get_vat_diary_total(self):
         self.ensure_one()
@@ -59,9 +70,9 @@ class AccountPaymentRetention(models.Model):
             'partner': self.partner_id.name or '',
             'vat': self.partner_id.vat or '',
             'fiscal_position': self.partner_id.property_account_position_id.name or '',
-            'voucher_type': 'Retención',
+            'voucher_type': 'RETENCION',
             'voucher': self.get_vat_diary_name(),
-            'jurisdiction': dict(self._fields['jurisdiction'].selection).get(self.jurisdiction, ''),
+            'jurisdiction': self.jurisdiction or '',
             'retention': self.retention_id.name,
             'retention_id': self.retention_id.id,
             'total': self.get_vat_diary_total(),

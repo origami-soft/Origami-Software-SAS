@@ -21,11 +21,11 @@ from odoo import models, fields
 
 class AccountTaxTemplate(models.Model):
 
-    _name = 'account.tax.template'
+    _inherit = 'account.tax.template'
 
     is_exempt = fields.Boolean('Es exento?')
     is_vat = fields.Boolean('Es iva?')
-    amount_type = fields.Selection([('group', 'Group of Taxes'), ('fixed', 'Fixed'), ('percent', 'Percentage of Price'), ('division', 'Percentage of Price Tax Included'), ('perception', 'Percepcion')], default='perception')
+    amount_type = fields.Selection(selection_add=[('perception', 'Percepcion')])
 
     def _get_tax_vals(self, company, tax_template):
         val = super(AccountTaxTemplate, self)._get_tax_vals(company, tax_template)

@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 
@@ -7,26 +23,10 @@ class DocumentBookType(models.Model):
 
     _inherit = 'document.book.type'
 
-    type = fields.Selection(
-        selection_add=[
-            ('electronic', 'Electronico'),
-            ('electronic_exportation', 'Electronico exp.'),
-            ('fiscal_electronic_bond', 'Bono Fiscal Electrónico')
-        ],
-        ondelete={
-            'electronic': lambda recs: recs.write({'type': 'preprint'}),
-            'electronic_exportation': lambda recs: recs.write({'type': 'preprint'}),
-            'fiscal_electronic_bond': lambda recs: recs.write({'type': 'preprint'}),
-        }
-    )
-
-    def get_electronic_types(self):
-        return ['electronic', 'electronic_exportation', 'fiscal_electronic_bond']
-
-    def is_electronic(self):
-        if not self:
-            return False
-        electronic_types = self.get_electronic_types()
-        return all(l.type in electronic_types for l in self)
+    type = fields.Selection(selection_add=[
+        ('electronic', 'Electronico'),
+        ('electronic_exportation', 'Electronico exp.'),
+        ('fiscal_electronic_bond', 'Bono Fiscal Electrónico')
+    ])
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

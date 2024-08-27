@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
@@ -10,7 +26,7 @@ class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
     @api.depends('payment_imputation_ids', 'payment_imputation_ids.full_reconcile',
-                 'amount', 'date', 'currency_id', 'payment_type')
+                 'amount', 'payment_date', 'currency_id', 'payment_type')
     def _compute_payment_difference(self):
         draft_payments = self.filtered(lambda p: p.state == 'draft')
         for pay in draft_payments:
@@ -22,31 +38,12 @@ class AccountPayment(models.Model):
         (self - draft_payments).payment_difference = 0
 
     payment_difference = fields.Monetary(compute='_compute_payment_difference', readonly=True)
-    writeoff_account_id = fields.Many2one(
-        'account.account',
-        string="Cuenta de ajuste",
-        copy=False,
-        domain="[('deprecated', '=', False), ('company_id', '=', company_id)]",
-        check_company=True
-    )
-    writeoff_label = fields.Char(
-        string='Etiqueta de ajuste',
-        default='Ajuste',
-        help='Es la etiqueta de la linea del asiento del ajuste'
-    )
-    payment_difference_handling = fields.Selection([
-        ('open', 'Mantener abierto'),
-        ('reconcile', 'Marcar como pagado'),
-    ], default='open', string="Diferencia en pago")
 
-    @api.depends('is_internal_transfer', 'payment_imputation_ids', 'amount', 'advance_amount')
+    @api.depends('payment_imputation_ids', 'amount', 'advance_amount')
     def _compute_payment_imputation_difference(self):
         for payment in self:
-            if not payment.is_internal_transfer and payment.payment_imputation_ids:
-                total_imputation = sum(payment.payment_imputation_ids.mapped('amount'))
-                payment.payment_imputation_difference = payment.amount - payment.advance_amount - total_imputation
-            else:
-                payment.payment_imputation_difference = 0
+            total_imputation = sum(payment.payment_imputation_ids.mapped('amount'))
+            payment.payment_imputation_difference = payment.amount - payment.advance_amount - total_imputation
 
     payment_imputation_ids = fields.One2many(
         'payment.imputation.line',
@@ -81,9 +78,7 @@ class AccountPayment(models.Model):
         if not active_ids or active_model != 'account.move':
             return rec
         lines = self.env['account.move'].browse(active_ids).mapped('line_ids').filtered(
-            lambda r: not r.reconciled and r.account_id.account_type in (
-                'liability_payable', 'asset_receivable'
-            )
+            lambda r: not r.reconciled and r.account_id.internal_type in ('payable', 'receivable')
         )
         debit_lines = [(0, 0, {
             'move_line_id': line.id,
@@ -95,71 +90,22 @@ class AccountPayment(models.Model):
 
         return rec
 
-    def action_post(self):
-        self.check_difference()
+    def post(self):
         if self.payment_imputation_ids:
-            self.reconciled_invoice_ids = None
-        self._create_writeoff_line()
-        res = super(AccountPayment, self).action_post()
+            self.invoice_ids = None
+        res = super(AccountPayment, self).post()
         self.create_imputation()
         return res
-    
-    def check_difference(self):
-        for r in self:
-            if r.payment_imputation_difference:
-                raise ValidationError("Hay $ {} de diferencia sin asignar.".format('%.2f' % abs(r.payment_imputation_difference)))
-
-    def _create_writeoff_line(self):
-        for payment_id in self:
-            if payment_id.payment_difference_handling == 'reconcile':
-                # Tengo que pasar por contexto que no se valide nada del asiento, porque voy a agregar y eliminar apuntes
-                # Lo cual podría dar errores de validación antes de que se llegue a balancear el asiento
-                payment_id = payment_id.with_context(check_move_validity=False)
-                write_off_vals = payment_id._get_writeoff_line_vals()
-                # Contemplo el caso de haber cancelado el pago y volverlo a validar,
-                # en tal caso debo regenerar la línea de write-off
-                write_off_line = payment_id.line_ids.filtered(
-                    lambda l: l.account_id == payment_id.writeoff_account_id
-                )
-                if write_off_line:
-                    write_off_line.unlink()
-                # Creo la línea de write-off para el asiento del pago
-                payment_id.line_ids = [(0, 0, write_off_vals)]
-                # Sincronizo los valores del pago para que ajuste la contraparte del asiento
-                payment_id._synchronize_to_moves(changed_fields=['amount'])
-
-    def _get_writeoff_line_vals(self):
-        payment_difference_company = self.currency_id._convert(
-            self.payment_difference,
-            self.company_id.currency_id,
-            self.company_id,
-            self.date,
-        )
-        return {
-            'name': self.writeoff_label,
-            'amount_currency': self.payment_difference,
-            'currency_id': self.currency_id.id,
-            'debit': payment_difference_company if payment_difference_company > 0.0 else 0.0,
-            'credit': -payment_difference_company if payment_difference_company < 0.0 else 0.0,
-            'partner_id': self.partner_id.id,
-            'account_id': self.writeoff_account_id.id,
-            'move_id': self.move_id.id,
-        }
 
     def _get_payment_date(self):
         self.ensure_one()
-        return self.date or fields.Date.today()
+        return self.payment_date or fields.Date.today()
 
     @api.constrains('advance_amount')
     def check_advance_amount(self):
         if any(payment.advance_amount < 0 for payment in self):
             raise ValidationError('El importe a cuenta no puede ser negativo.')
 
-    @api.onchange('is_internal_transfer')
-    def onchange_reset_advance_amount(self):
-        if self.is_internal_transfer:
-            self.advance_amount = 0
-    
     @api.onchange('partner_id')
     def onchange_partner_imputation(self):
         # Si por contexto hay facturas, se crean desde default_get()
@@ -175,7 +121,7 @@ class AccountPayment(models.Model):
         self.payment_imputation_ids.filtered(lambda x: not (x.amount or x.full_reconcile)).unlink()
 
         # Asignamos las facturas al pago
-        self.reconciled_invoice_ids = self.payment_imputation_ids.mapped('move_line_id').mapped('move_id').filtered(
+        self.invoice_ids = self.payment_imputation_ids.mapped('move_line_id').mapped('move_id').filtered(
             lambda x: x.is_invoice()
         )
 
@@ -183,8 +129,7 @@ class AccountPayment(models.Model):
         imp_total = sum(i.amount for i in self.payment_imputation_ids)
         if round(self.amount - self.advance_amount - imp_total, ROUND_PRECISION) != 0:
             raise ValidationError(
-                "La cantidad a pagar debe ser igual a la suma de los totales a imputar y el importe a cuenta"
-            )
+                "La cantidad a pagar debe ser igual a la suma de los totales a imputar y el importe a cuenta")
 
         lines_to_reconcile = move_line
 
@@ -195,7 +140,8 @@ class AccountPayment(models.Model):
         ):
 
             amount_currency = False
-            imputation_move = imputation.move_line_id.move_id
+            currency = False
+
             # Validamos que no haya importes o move lines erróneas
             imputation.validate(imputation.move_line_id)
             # Si se imputó el restante de factura, ajustamos el valor para ajustar las imprecisiones de usar 2 decimales
@@ -208,45 +154,42 @@ class AccountPayment(models.Model):
             else:
                 imputation_amount = min(abs(imputation.amount_residual_in_payment_currency), abs(imputation.amount))
 
-            imputation_date = imputation_move.invoice_date or imputation_move.date or fields.date.today()
             amount = self.currency_id._convert(
-                imputation_amount,
-                imputation.company_currency_id,
-                self.company_id,
-                imputation_move._get_accounting_date(imputation_date, False),
+                imputation_amount, imputation.company_currency_id, self.company_id, self._get_payment_date(),
                 round=False
             )
             # Caso de multimoneda
             if imputation.move_line_id.currency_id:
+                currency = imputation.move_line_id.currency_id
                 amount_currency = self.currency_id._convert(
-                    imputation_amount,
-                    imputation.move_line_id.currency_id,
-                    self.company_id,
-                    imputation_move._get_accounting_date(imputation_date, False),
+                    imputation_amount, imputation.move_line_id.currency_id, self.company_id, self._get_payment_date(),
                     round=False
                 )
 
             debit_move = move_line if move_line.debit > 0 else imputation.move_line_id
             credit_move = move_line if move_line.credit > 0 else imputation.move_line_id
 
+            # Si no se imputó el total de la factura ni se definió una cuenta destino, creamos una conciliación parcial
             if not (full or imputation.full_reconcile) or self.advance_amount:
-                # Para casos parciales aprovechamos los compute storeados
-                imputation.move_line_id.update({
-                    'amount_residual': amount if self.payment_type == 'inbound' else -amount,
-                    'amount_residual_currency': amount_currency if self.payment_type == 'inbound' else -amount_currency
+                self.env['account.partial.reconcile'].create({
+                    'debit_move_id': debit_move.id,
+                    'credit_move_id': credit_move.id,
+                    'amount': amount,
+                    'amount_currency': amount_currency,
+                    'currency_id': currency.id if currency else currency,
                 })
-                (debit_move | credit_move).reconcile()
-                imputation.move_line_id._compute_amount_residual()
 
+            # Si no se imputó el total de la factura no nos interesa hacer esta conciliación,
+            # con el partial reconcile alcanza
             if full or imputation.full_reconcile:
                 lines_to_reconcile |= imputation.move_line_id
 
         lines_to_reconcile.filtered(lambda l: not l.reconciled).reconcile()
 
     def _get_imputation_move_lines(self):
-        account_type = 'asset_receivable' if self.payment_type == 'inbound' else 'liability_payable'
+        account_type = 'receivable' if self.payment_type == 'inbound' else 'payable'
         search_domain = [
-            ('account_id.account_type', '=', account_type),
+            ('account_id.user_type_id.type', '=', account_type),
             ('partner_id', '=', self.partner_id.id),
             ('reconciled', '=', False),
             ('amount_residual', '!=', 0.0),
@@ -254,10 +197,11 @@ class AccountPayment(models.Model):
         ]
         lines = self.env['account.move.line'].search(search_domain) if self.partner_id else \
             self.env['account.move.line']
-        return lines.filtered(lambda x: x.debit > 0 if account_type == 'asset_receivable' else x.credit > 0)
+        return lines.filtered(lambda x: x.debit > 0 if account_type == 'receivable' else x.credit > 0)
 
     @api.onchange('currency_id')
     def _onchange_currency(self):
+        super(AccountPayment, self)._onchange_currency()
         for line in self.payment_imputation_ids:
             line.onchange_concile()
 
@@ -268,26 +212,22 @@ class AccountPayment(models.Model):
                 raise ValidationError("Solo se pueden pagar documentos en estado abierto!.")
             if payment.payment_imputation_ids:
                 payment.reconcile_imputations(
-                    payment.move_id.line_ids.filtered(lambda x: x.account_id == payment.destination_account_id)
+                    payment.move_line_ids.filtered(lambda x: x.account_id == payment.destination_account_id)
                 )
-
-    @api.depends('move_id.line_ids.matched_debit_ids', 'move_id.line_ids.matched_credit_ids')
+    
+    @api.depends('move_line_ids.matched_debit_ids', 'move_line_ids.matched_credit_ids')
     def _compute_payment_imputation_move_ids(self):
         for record in self:
-            """Llamo al método _compute_stat_buttons_from_reconciliation para que deje 
+            """Llamo al método _compute_reconciled_invoice_ids para que deje 
             en el record del payment el campo reconciled_invoice_ids calculado"""
-            record._compute_stat_buttons_from_reconciliation()
+            record._compute_reconciled_invoice_ids()
             record.payment_imputation_move_ids.unlink()
-            res = []
             if record.reconciled_invoice_ids:
-                res.extend(
-                    [(0, 0, {'move_id': move.id, 'payment_id': record.id}) for move in record.reconciled_invoice_ids])
-            if record.reconciled_bill_ids:
-                res.extend(
-                    [(0, 0, {'move_id': move.id, 'payment_id': record.id}) for move in record.reconciled_bill_ids])
-            record.payment_imputation_move_ids = res
+                record.payment_imputation_move_ids = [(0,0,{'move_id': move.id,
+                                                            'payment_id': record.id}) 
+                                                     for move in record.reconciled_invoice_ids]
 
-    @api.depends('reconciled_invoice_ids', 'payment_type', 'partner_type', 'partner_id', 'payment_imputation_ids')
+    @api.depends('invoice_ids', 'payment_type', 'partner_type', 'partner_id', 'payment_imputation_ids')
     def _compute_destination_account_id(self):
         """ Heredo el método para mantener la funcionalidad estándar 
         de utilizar la cuenta deudora o acreedora de las facturas 
@@ -296,6 +236,6 @@ class AccountPayment(models.Model):
         for payment in self:
             if payment.payment_imputation_ids:
                 payment.destination_account_id = payment.payment_imputation_ids.mapped('move_line_id.account_id').filtered(
-                                                 lambda account: account.account_type in ('asset_receivable', 'liability_payable'))[0]
+                                                 lambda account: account.user_type_id.type in ('receivable', 'payable'))[0]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

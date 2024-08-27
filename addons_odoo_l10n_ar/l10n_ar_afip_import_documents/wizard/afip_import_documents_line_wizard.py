@@ -1,11 +1,26 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
 
 
 class AfipImportDocumentsLineWizard(models.TransientModel):
-
     _name = 'afip.import.documents.line.wizard'
 
     date = fields.Date(
@@ -18,7 +33,7 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         string='Punto de venta'
     )
     voucher_name = fields.Char(
-        string='Numero'
+        string='Número'
     )
     cae = fields.Char(
         sring='CAE'
@@ -27,7 +42,7 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         string='Tipo de documento'
     )
     document_number = fields.Char(
-        string='Numero de documento'
+        string='Número de documento'
     )
     name = fields.Char(
         string='Denominación'
@@ -65,7 +80,7 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         self.ensure_one()
         lines = []
         base_vals = {
-            'account_id': self._get_invoice_account(),
+            'account_id': self.wizard_id.account_id.id,
             'quantity': 1,
         }
         # En caso de que AFIP informe un neto gravado, agrego una línea para el mismo
@@ -112,15 +127,6 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
 
         return lines
 
-    def _get_invoice_account(self):
-        property_name = 'property_account_expense_id' if self.wizard_id.type == 'received'\
-            else 'property_account_income_id'
-        property_val = self.env['ir.property'].with_company(self.wizard_id.company_id)._get_default_property(
-            property_name,
-            'product.template'
-        )  # Devuelve una tupla ('many2one', ('account.account', ID))
-        return property_val[1][1] if property_val and property_val[1] and property_val[1][1] else None
-    
     def _get_vat_tax(self, percentage):
         if not percentage:
             return False
@@ -136,7 +142,7 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
     def _get_not_taxed_tax(self):
         tax = self.env['account.tax'].sudo().search([
             ('company_id', '=', self.wizard_id.company_id.id),
-            ('is_exempt', '=', True),
+            ('is_exempt', '=', False),
             ('is_vat', '=', False),
             ('amount', '=', 0.0),
             ('amount_type', '=', 'fixed'),
@@ -155,6 +161,7 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         ], limit=1)
         if not tax:
             raise ValidationError("No se encontró impuesto para Iva Exento")
+
         return tax
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

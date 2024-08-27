@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import exceptions
 from odoo.addons.sale_stock.controllers.portal import SaleStockPortal
@@ -20,7 +36,7 @@ class SaleStockSelfprintPortal(SaleStockPortal):
         # Obtengo la acción correspondiente del reporte a imprimir
         ext_id = picking_sudo._get_report_action()
         # print report as sudo, since it require access to product, taxes, payment term etc.. and portal does not have those access rights.
-        pdf = request.env['ir.actions.report'].sudo()._render_qweb_pdf(ext_id, [picking_sudo.id])[0]
+        pdf = request.env.ref(ext_id).sudo().render_qweb_pdf([picking_sudo.id])[0]
         pdfhttpheaders = [
             ('Content-Type', 'application/pdf'),
             ('Content-Length', len(pdf)),

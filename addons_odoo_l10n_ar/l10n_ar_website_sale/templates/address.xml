@@ -1,48 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
 
-    <template id="address" inherit_id="website_sale.address">
-        <t t-if="website._display_partner_b2b_fields()" position="replace">
-            <t t-if="website._display_partner_b2b_fields()">
+    <template id="address_b2b" inherit_id="website_sale.address_b2b">
+        <t t-if="mode == ('new', 'billing') or (mode == ('edit', 'billing') and (can_edit_vat or 'vat' in checkout and checkout['vat']))" position="replace">
+            <t t-if="mode == ('new', 'billing') or (mode == ('edit', 'billing') and (can_edit_vat or 'vat' in checkout and checkout['vat']))">
+                <div t-attf-class="form-group #{error.get('partner_document_type_id') and 'o_has_error' or ''} col-lg-6" id="div_doc_type">
+                    <label class="col-form-label label-optional" for="partner_document_type_id">Tipo de documento</label>
+                    <select id="partner_document_type_id" name="partner_document_type_id" t-attf-class="form-control #{error.get('partner_document_type_id') and 'is-invalid' or ''}">
+                        <option value="">Tipo de documento...</option>
+                        <t t-foreach="document_types" t-as="dt">
+                            <option t-att-value="dt.id" t-att-selected="dt.id == ('partner_document_type_id' in checkout and checkout['partner_document_type_id'] != '' and int(checkout['partner_document_type_id']))">
+                                <t t-esc="dt.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div t-attf-class="form-group #{error.get('vat') and 'o_has_error' or ''} col-lg-6 div_vat">
+                    <label class="col-form-label font-weight-normal label-optional" for="vat">Número de documento</label>
+                    <t t-set="vat_not_editable_message">No se permite cambiar el número de documento una vez que se han emitido los documentos de su cuenta. Póngase en contacto con nosotros directamente para esta operación.</t>
+                    <input type="text" name="vat" t-attf-class="form-control #{error.get('vat') and 'is-invalid' or ''}" t-att-value="'vat' in checkout and checkout['vat']" t-att-readonly="'1' if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None" t-att-title="vat_not_editable_message if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None"/>
+                </div>
                 <div class="w-100"/>
-                <t t-set='vat_warning' t-value="'vat' in checkout and checkout['vat'] and not can_edit_vat" />
-                <t t-if="mode == ('new', 'billing') or (mode == ('edit', 'billing') and (can_edit_vat or 'vat' in checkout and checkout['vat']))">
-                    <div t-attf-class="form-group #{error.get('partner_document_type_id') and 'o_has_error' or ''} col-lg-6" id="div_doc_type">
-                        <label class="col-form-label label-optional" for="partner_document_type_id">Tipo de documento</label>
-                        <select id="partner_document_type_id" name="partner_document_type_id" t-attf-class="form-control #{error.get('partner_document_type_id') and 'is-invalid' or ''}">
-                            <option value="">Tipo de documento...</option>
-                            <t t-foreach="document_types" t-as="dt">
-                                <option t-att-value="dt.id" t-att-selected="dt.id == ('partner_document_type_id' in checkout and checkout['partner_document_type_id'] != '' and int(checkout['partner_document_type_id']))">
-                                    <t t-esc="dt.name"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div t-attf-class="form-group #{error.get('vat') and 'o_has_error' or ''} col-lg-6 div_vat">
-                        <label class="col-form-label font-weight-normal label-optional" for="vat">Número de documento</label>
-                        <t t-set="vat_not_editable_message">No se permite cambiar el número de documento una vez que se han emitido los documentos de su cuenta. Póngase en contacto con nosotros directamente para esta operación.</t>
-                        <input type="text" name="vat" t-attf-class="form-control #{error.get('vat') and 'is-invalid' or ''}" t-att-value="'vat' in checkout and checkout['vat']" t-att-readonly="'1' if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None" t-att-title="vat_not_editable_message if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None"/>
-                    </div>
-                    <div class="w-100"/>
-                    <div t-attf-class="form-group #{error.get('property_account_position_id') and 'o_has_error' or ''} col-lg-12" id="div_fiscal_pos">
-                        <label class="col-form-label label-optional" for="property_account_position_id">Posición fiscal</label>
-                        <select id="property_account_position_id" name="property_account_position_id" t-attf-class="form-control #{error.get('property_account_position_id') and 'is-invalid' or ''}">
-                            <option value="">Posición fiscal...</option>
-                            <t t-foreach="fiscal_positions" t-as="fp">
-                                <option t-att-value="fp.id" t-att-selected="fp.id == ('property_account_position_id' in checkout and checkout['property_account_position_id'] != '' and int(checkout['property_account_position_id']))">
-                                    <t t-esc="fp.name"/>
-                                </option>
-                            </t>
-                        </select>
-                    </div>
-                    <div class="w-100"/>
-                    <div t-attf-class="form-group #{error.get('company_name') and 'o_has_error' or ''} col-lg-12">
-                        <label class="col-form-label font-weight-normal label-optional" for="company_name">Nombre de la compañía</label>
-                        <t t-set="company_name_not_editable_message">No se permite cambiar el nombre de la empresa una vez que se han emitido documentos para su cuenta. Póngase en contacto con nosotros directamente para esta operación.</t>
-                        <input type="text" name="company_name" t-attf-class="form-control #{error.get('company_name') and 'is-invalid' or ''}" t-att-value="'commercial_company_name' in checkout and checkout['commercial_company_name'] or 'company_name' in checkout and checkout['company_name']" t-att-readonly="'1' if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None" t-att-title="company_name_not_editable_message if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None"/>
-                    </div>
-                </t>
+                <div t-attf-class="form-group #{error.get('property_account_position_id') and 'o_has_error' or ''} col-lg-12" id="div_fiscal_pos">
+                    <label class="col-form-label label-optional" for="property_account_position_id">Posición fiscal</label>
+                    <select id="property_account_position_id" name="property_account_position_id" t-attf-class="form-control #{error.get('property_account_position_id') and 'is-invalid' or ''}">
+                        <option value="">Posición fiscal...</option>
+                        <t t-foreach="fiscal_positions" t-as="fp">
+                            <option t-att-value="fp.id" t-att-selected="fp.id == ('property_account_position_id' in checkout and checkout['property_account_position_id'] != '' and int(checkout['property_account_position_id']))">
+                                <t t-esc="fp.name"/>
+                            </option>
+                        </t>
+                    </select>
+                </div>
+                <div class="w-100"/>
+                <div t-attf-class="form-group #{error.get('company_name') and 'o_has_error' or ''} col-lg-12">
+                    <label class="col-form-label font-weight-normal label-optional" for="company_name">Nombre de la compañía</label>
+                    <t t-set="company_name_not_editable_message">No se permite cambiar el nombre de la empresa una vez que se han emitido documentos para su cuenta. Póngase en contacto con nosotros directamente para esta operación.</t>
+                    <input type="text" name="company_name" t-attf-class="form-control #{error.get('company_name') and 'is-invalid' or ''}" t-att-value="'commercial_company_name' in checkout and checkout['commercial_company_name'] or 'company_name' in checkout and checkout['company_name']" t-att-readonly="'1' if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None" t-att-title="company_name_not_editable_message if 'vat' in checkout and checkout['vat'] and not can_edit_vat else None"/>
+                </div>
             </t>
         </t>
     </template>

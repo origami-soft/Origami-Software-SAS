@@ -1,31 +1,44 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 
 {
 
-    'name': 'Rechazo de cheques',
+    'name': 'l10n reject checks',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'summary': 'Rechazo de cheques de terceros',
 
     'description': """
 Cheques
 ==================================
-    Rechazo de cheques
+    Rechazo de cheques de terceros
     """,
 
-    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT (www.nexit.com.uy)',
+    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT',
 
-    'license': 'OPL-1',
-
-    'website': 'https://www.blueorange.com.ar',
+    'website': 'blueorange.com.ar',
 
     'category': 'Accounting',
 
     'depends': [
         'l10n_deposit_slip',
-        'l10n_own_check_reconcile',
     ],
 
     'data': [

@@ -1,2 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-l10n_ar_general_ledger_wizard_general_ledger_excel_user,l10n_ar_general_ledger.wizard_general_ledger_excel.user,model_wizard_general_ledger_excel,account.group_account_user,1,1,1,1

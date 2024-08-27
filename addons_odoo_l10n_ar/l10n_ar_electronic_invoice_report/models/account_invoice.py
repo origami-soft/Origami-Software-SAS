@@ -1,4 +1,20 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo import models, fields, _
 from odoo.exceptions import ValidationError
@@ -13,15 +29,15 @@ from io import BytesIO
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    def action_invoice_print(self):
+    def invoice_print(self):
         """
         En el caso de que la factura tenga un talonario del tipo electronico
         se imprime el reporte de factura electronica.
         """
-        res = super(AccountMove, self).action_invoice_print()
+        res = super(AccountMove, self).invoice_print()
         self.ensure_one()
 
-        if self.document_book_id.book_type_id.is_electronic():
+        if self.document_book_type == 'electronic':
             res = self.env.ref('l10n_ar_electronic_invoice_report.action_electronic_invoice').report_action(self)
 
         return res
@@ -77,25 +93,28 @@ class AccountMove(models.Model):
             "importe": float(round(self.amount_total, 2)),
             "moneda": str(self.env['codes.models.relation'].get_code(
                 'res.currency',
-                self.currency_id.id,
-                'Afip'
+                self.currency_id.id
             )),
-            "ctz": float(self.currency_rate or self.current_currency_rate if self.need_rate else 1),
+            "ctz": float(self.currency_rate or self.convert_currency(
+                from_currency=self.currency_id,
+                to_currency=self.company_id.currency_id,
+                d=self.invoice_date or fields.Date.context_today(self)
+                ) if self.need_rate else 1
+                ),
             # “E” para comprobante autorizado por CAE
             'tipoCodAut': "E",
             "codAut": int(self.cae)
         }
         cuit = self.env['codes.models.relation'].get_code(
             'partner.document.type',
-            self.partner_id.partner_document_type_id.id,
-            'Afip'
+            self.partner_id.partner_document_type_id.id
         )
 
         foreign_fiscal_positions = [
-            self.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
-            self.env.ref('l10n_ar.ar_fiscal_position_prov_ext'),
+            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_cliente_ext'),
+            self.env.ref('l10n_ar_afip_tables.account_fiscal_position_prov_ext'),
         ]
-        is_foreign = self.partner_id.property_account_position_id.ar_fiscal_position_id in foreign_fiscal_positions
+        is_foreign = self.partner_id.property_account_position_id in foreign_fiscal_positions
         vat = self.partner_id.country_id.vat if is_foreign and self.partner_id.country_id != self.env.ref('base.ar') else self.partner_id.vat
         if cuit and vat:
             data['nroDocRec'] = int(vat)
@@ -188,18 +207,11 @@ class AccountMove(models.Model):
             raise ValidationError("No se puede imprimir un documento en estado borrador o cancelado")
 
     def get_invoice_total_as_numbers(self):
-        lang = self.partner_id.lang
-        if not lang.startswith == 'es_':
-            lang = 'es_AR'
-        # La conversión de importes con moneda directamente mediante num2words es irregular (puede forzar euros como
-        # moneda o convertir decenas como unidades -ej.: 40 -> cuatro según el lang utilizado), así que separo la parte
-        # entera y decimal del total, las convierto a texto por separado y las uno al final
-        amount_total_integer = int(self.amount_total)
-        amount_total_cents = round((self.amount_total - amount_total_integer) * 100)
-        amount_in_words = num2words.num2words(amount_total_integer, lang=lang).upper()
-        if amount_total_cents:
-            amount_in_words += " CON " + num2words.num2words(amount_total_cents, lang=lang).upper() + " CENTAVOS"
-        return 'SON {} {}'.format(self.currency_id.name, amount_in_words)
+        lang = 'us'
+        if self.partner_id.lang == 'es_AR':
+            lang = 'es_CO'
+        amount_in_words = num2words.num2words(self.amount_total, lang=lang, to='currency')
+        return 'SON {} {}'.format(self.currency_id.name, amount_in_words.upper())
 
     def get_sales_client_order_ref(self):
         sales_client_order_ref_list = self.mapped('invoice_line_ids.sale_line_ids.order_id').filtered(

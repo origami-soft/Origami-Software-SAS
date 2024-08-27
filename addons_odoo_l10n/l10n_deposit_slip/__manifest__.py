@@ -1,25 +1,39 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 
 {
 
-    'name': 'Boletas de depósito',
+    'name': 'l10n deposit slip',
 
-    'version': '1.0',
+    'version': '1.2.1',
 
-    'summary': 'Depósito de cheques de terceros',
+    'summary': 'Deposito de cheques de terceros',
 
     'description': """
 Cheques
 ==================================
-    Depósito de cheques de terceros.
+    Deposito de cheques de terceros.
     """,
 
-    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT (www.nexit.com.uy)',
+    'author': 'BLUEORANGE GROUP S.R.L. / NEXIT',
 
-    'license': 'OPL-1',
-
-    'website': 'https://www.blueorange.com.ar',
+    'website': 'blueorange.com.ar',
 
     'category': 'Accounting',
 
@@ -28,6 +42,7 @@ Cheques
     ],
 
     'data': [
+        'data/deposit_slip_data.xml',
         'views/deposit_slip_view.xml',
         'views/account_check_view.xml',
         'wizard/wizard_deposit_slip_view.xml',
@@ -35,11 +50,9 @@ Cheques
         'data/security.xml',
     ],
 
-    'post_init_hook': 'post_init_hook',
-
     'active': False,
 
-    'application': False,
+    'application': True,
 
     'installable': True,
 

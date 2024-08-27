@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
     <data>
@@ -21,12 +35,12 @@
             <field name="inherit_id" ref="l10n_account_check.account_third_check_form"/>
             <field name="arch" type="xml">
                 <field name="not_to_order" position="before">
-                    <field name="sold_check_id" invisible="not sold_check_id"/>
+                    <field name="sold_check_id" attrs="{'invisible': [('sold_check_id', '=', False)]}"/>
                 </field>
                 <field name="payment_date" position="after">
-                    <field name="sold_date" invisible="not sold_date"/>
-                    <field name="sold_bank_id" invisible="not sold_bank_id"/>
-                    <field name="sold_partner_id" invisible="not sold_partner_id"/>
+                    <field name="sold_date" attrs="{'invisible': [('sold_date', '=', False)]}"/>
+                    <field name="sold_bank_id" attrs="{'invisible': [('sold_bank_id', '=', False)]}"/>
+                    <field name="sold_partner_id" attrs="{'invisible': [('sold_partner_id', '=', False)]}"/>
                 </field>
             </field>
         </record>

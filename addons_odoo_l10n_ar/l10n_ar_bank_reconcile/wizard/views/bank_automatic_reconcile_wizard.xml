@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 
 <odoo>
     <data>
@@ -75,14 +89,22 @@
         </record>
 
         <record id="action_bank_automatic_reconcile_view" model="ir.actions.act_window">
-            <field name="name">Conciliar con extracto</field>
+            <field name="name">Action bank automatic reconcile view</field>
             <field name="res_model">bank.automatic.reconcile.wizard</field>
             <field name="view_mode">form</field>
-            <field name="view_id" ref="l10n_ar_bank_reconcile.bank_automatic_reconcile_wizard_form"/>
             <field name="target">new</field>
-            <field name="binding_model_id" ref="model_account_bank_reconcile"/>
-            <field name="binding_view_types">form</field>
         </record>
+
+        <act_window
+            id="action_bank_automatic_reconcile_view"
+            name="Conciliar con extracto"
+            res_model="bank.automatic.reconcile.wizard"
+            binding_model="account.bank.reconcile"
+            binding_views="form"
+            view_id="bank_automatic_reconcile_wizard_form"
+            view_mode="form"
+            target="new"
+        />
 
     </data>
 </odoo>

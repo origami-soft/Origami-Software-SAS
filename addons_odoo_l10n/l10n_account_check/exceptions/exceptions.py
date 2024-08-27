@@ -1,51 +1,111 @@
 # -*- encoding: utf-8 -*-
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
 
 from odoo.exceptions import ValidationError
 
 
-def post_payment_non_draft_check():
-    raise ValidationError("Los cheques propios a utilizar deben estar en borrador.")
+class PostPaymentNonDraftCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def non_numeric_check():
-    raise ValidationError("El número del cheque solamente puede contener números.")
 
-def invalid_check_dates():
-    raise ValidationError("La fecha de pago del cheque no puede ser anterior a la fecha de emisión.")
+class InvalidCheckCurrencyError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def non_equal_check_dates():
-    raise ValidationError("Las fechas de pago y emisión de un cheque común deben ser iguales.")
 
-def delete_non_draft_check():
-    raise ValidationError("Solamente se pueden borrar cheques en borrador.")
+class CheckInOtherPaymentError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def post_receipt_non_draft_check():
-    raise ValidationError("Los cheques de terceros recibidos deben estar en borrador.")
 
-def post_payment_non_wallet_check():
-    raise ValidationError("Los cheques de terceros entregados deben estar en cartera.")
+class NonNumericCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def post_payment_not_to_order_check():
-    raise ValidationError('No se puede validar un pago con cheques que son "no a la orden".')
 
-def cancel_receipt_non_wallet_check():
-    raise ValidationError("Los cheques de terceros deberian estar en cartera para poder cancelar el pago.")
+class InvalidCheckAmountError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def cancel_payment_non_handed_check():
-    raise ValidationError("Los cheques deben estar entregados para cancelar el pago.")
 
-def invalid_check_cancel_state():
-    raise ValidationError("No se puede cancelar el cheque en el estado actual.")
+class InvalidCheckDatesError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def invalid_check_next_state():
-    raise ValidationError("No se puede avanzar el cheque en el estado actual.")
 
-def wrong_checks_outbound_payment():
-    raise ValidationError("No puede haber cheques de terceros en este tipo de pago")
+class NotEqualCheckDatesError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
-def wrong_checks_inbound_payment():
-    raise ValidationError("No puede haber cheques propios o endosados en este tipo de pago")
 
-def invalid_sent_rate():
-    raise ValidationError("La cotización de la línea debe ser positiva.")
+class DeleteNonDraftCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class PostReceiptNonDraftCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class PostPaymentNonWalletCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class PostPaymentNotToOrderCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class CancelReceiptNonWalletCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class CancelPaymentNonHandedCheckError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class InvalidCheckCancelStateError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class InvalidCheckNextStateError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class WrongChecksInOutboundPaymentError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class WrongChecksInInboundPaymentError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
+
+
+class InvalidSentRateError(ValidationError):
+    def __init__(self, msg):
+        super(ValidationError, self).__init__(msg)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
