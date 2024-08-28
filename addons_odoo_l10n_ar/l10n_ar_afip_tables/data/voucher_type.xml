@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
 
         <!--TIPOS DE DOCUMENTO DE AFIP Y SUS RELACIONES CON DENOMINACIONES Y TIPOS DE DOCUMENTO-->
 

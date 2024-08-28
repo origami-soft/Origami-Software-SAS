@@ -43,7 +43,7 @@ class DocumentBookType(models.Model):
         help="Los comprobantes que usen este tipo de talonario se considerarán para calcular una secuencia automática",
         default=False
     )
-    active = fields.Boolean(default=False)
+    active = fields.Boolean(default=True)
 
     # _sql_constraints = [(
     #     'unique_type_categ',
@@ -56,4 +56,5 @@ class DocumentBookType(models.Model):
         for record in self:
             record.active = False
         return True
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
