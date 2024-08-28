@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class DocumentBookType(models.Model):
@@ -51,4 +51,9 @@ class DocumentBookType(models.Model):
     #     'Ya existe ese tipo de talonario para esa categoría'
     # )]
 
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
