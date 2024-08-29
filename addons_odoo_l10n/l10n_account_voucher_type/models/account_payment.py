@@ -10,7 +10,7 @@ class AccountPayment(models.Model):
     voucher_type_id = fields.Many2one(
         comodel_name='voucher.type',
         string='Tipo de comprobante',
-        compute='_compute_voucher_type_id',
+        # compute='_compute_voucher_type_id',
         readonly=False,
         store=True,
         ondelete='restrict',

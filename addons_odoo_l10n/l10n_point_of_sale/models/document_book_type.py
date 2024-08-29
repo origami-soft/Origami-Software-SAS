@@ -43,8 +43,7 @@ class DocumentBookType(models.Model):
         help="Los comprobantes que usen este tipo de talonario se considerarán para calcular una secuencia automática",
         default=False
     )
-
-    active = fields.Boolean(string='Activo', default=True)
+    active = fields.Boolean(default=True)
 
     # _sql_constraints = [(
     #     'unique_type_categ',
