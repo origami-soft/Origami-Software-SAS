@@ -44,7 +44,8 @@ class PaymentImputationWizard(models.TransientModel):
     def _get_imputations_ref(self):
         imputations_ref = []
         for imputation in self.debit_imputation_line_ids.filtered(lambda x: x.amount and x.move_line_id.move_id):
-            imputations_ref.append(imputation.move_line_id.full_voucher_name)
+            if imputation.move_line_id.full_voucher_name:
+                imputations_ref.append(imputation.move_line_id.full_voucher_name)
         return imputations_ref
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
