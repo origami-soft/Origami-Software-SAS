@@ -28,6 +28,11 @@ class AccountMove(models.Model):
         'Numero documento',
         copy=False
     )
+    full_voucher_name = fields.Char(
+        "Número completo",
+        compute='compute_full_voucher_name',
+        store=True,
+    )
 
     @api.depends("pos_ar_id", "move_type", "partner_id")  # Se agrega dependencia de partner_id
     def compute_document_book(self):
