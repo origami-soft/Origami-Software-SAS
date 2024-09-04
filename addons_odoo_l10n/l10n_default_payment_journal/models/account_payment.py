@@ -45,9 +45,9 @@ class AccountPayment(models.Model):
         así que, si se da ese caso, limpio el diario nuevamente
         """
         curr_journal = self.journal_id
-        res = super(AccountPayment, self)._onchange_amount()
+        # res = super(AccountPayment, self)._onchange_amount()
         if not (curr_journal or self.env.company.default_payment_journal_id):
             self.journal_id = False
-        return res
+        # return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
