@@ -27,11 +27,11 @@ Modulo encargado de manejar talonarios y puntos de venta.
     ],
 
     'data': [
-        # 'data/document_book_type.xml',
+        'data/document_book_type.xml',
         'security/ir.model.access.csv',
         'security/security.xml',
         'views/account_denomination.xml',
-        # 'views/account_journal.xml',
+        'views/account_journal.xml',
         'views/account_move.xml',
         'views/account_payment.xml',
         'views/document_book.xml',

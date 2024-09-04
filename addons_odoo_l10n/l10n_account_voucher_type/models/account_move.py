@@ -20,8 +20,7 @@ class AccountMove(models.Model):
         readonly=False,
         store=True,
         check_company=True,
-        # ondelete='restrict'
-        ondelete='cascade'
+        ondelete='restrict'
     )
     refund_voucher_type_id = fields.Many2one(
         comodel_name='voucher.type',
