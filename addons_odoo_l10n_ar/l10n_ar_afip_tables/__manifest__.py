@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_afip_tables',
 
-    'version': '1.2',
+    'version': '1.1',
 
     'summary': 'Datas of tables of afip V.0 25082010-5',
 
