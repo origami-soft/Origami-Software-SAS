@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data noupdate="1">
+
+        <record id='document_book_type_selfprint_picking' model='document.book.type'>
+            <field name='type'>selfprint</field>
+            <field name='category'>picking</field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

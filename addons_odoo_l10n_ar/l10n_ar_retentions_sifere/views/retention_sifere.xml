@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="retention_sifere_tree">
+        <field name="name">retention.sifere.tree</field>
+        <field name="model">retention.sifere</field>
+        <field name="arch" type="xml">
+            <tree default_order="date_from desc" editable="top">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="file" filename="filename" widget="binary"/>
+                <field name="filename" column_invisible="1"/>
+                <button name="generate_file" type="object" string="Generar" icon="fa-file"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="retention_sifere_action">
+        <field name="name">SIFERE Retenciones</field>
+        <field name="res_model">retention.sifere</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="retention_sifere_menu_view"
+              name="SIFERE Retenciones"
+              parent="l10n_ar.reports_ar_main_menu"
+              action="retention_sifere_action"
+              sequence="51"/>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

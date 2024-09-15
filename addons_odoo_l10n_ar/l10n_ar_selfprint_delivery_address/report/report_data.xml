@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    
+    <record id="delivery_address_paper_format" model="report.paperformat">
+        <field name="name">Papel remito autoimpresor con transportista</field>        
+        <field name="margin_top">85</field>
+        <field name="orientation">Portrait</field>                      
+        <field name="margin_bottom">70</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_spacing">80</field>
+    </record> 
+
+    <record id="l10n_ar_stock_picking_report.action_selfprint_report" model="ir.actions.report">
+        <field name="paperformat_id" ref="delivery_address_paper_format"/>
+    </record>   
+
+</odoo>
+    
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

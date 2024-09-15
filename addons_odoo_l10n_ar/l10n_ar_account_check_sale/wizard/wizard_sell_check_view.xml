@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record id="wizard_sell_check_form" model="ir.ui.view">
+            <field name="name">Wizard.sell.check.form</field>
+            <field name="model">wizard.sell.check</field>
+            <field name="arch" type="xml">
+                <form string="Vender cheques">
+                    <field name="display_error_mesage" invisible="1"/>
+                    <p invisible="not display_error_mesage" style="text-align: center">Los cheques seleccionados deben ser de la misma compañia.</p>
+                    <div name="check_sale" invisible="display_error_mesage">
+                        <field name="company_id" invisible="1"/>
+                        <field name="initial_amount" invisible="1"/>
+                        <group string="Datos de la operación">
+                            <group>
+                                <field name="bank_account_id" invisible="partner_id" widget="selection"/>
+                                <field name="partner_id" invisible="bank_account_id"/>
+                            </group>
+                            <group>
+                                <field name="journal_id" invisible="not partner_id"
+                                                         required="partner_id"/>
+                                <field name="date"/>
+                            </group>
+                        </group>
+                        <group string="Importes">
+                            <group>
+                                <field name="commission"/>
+                                <field name="interests"/>
+                                <field name="amount"/>
+                            </group>
+                            <group>
+                                <field name="commission_account_id" required="commission"/>
+                                <field name="interest_account_id" required="interests"/>
+                            </group>
+                        </group>
+                        <footer>
+                            <button name="create_sold_check_document" string="Vender" type="object" class="oe_highlight" invisible="display_error_mesage"/>
+                            <button string="Cancelar" class="oe_link" special="cancel" invisiblee="display_error_mesage"/>
+                            <button string="OK" class="oe_highlight" special="cancel" invisible="not display_error_mesage"/>
+                        </footer>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- ACCIÓN  -->
+        <act_window 
+            name="Vender cheques" 
+            res_model="wizard.sell.check" 
+            binding_model="account.third.check" 
+            binding_views="list,form" 
+            view_mode="form" 
+            target="new" 
+            view_id="wizard_sell_check_form" 
+            id="action_sell_checks"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

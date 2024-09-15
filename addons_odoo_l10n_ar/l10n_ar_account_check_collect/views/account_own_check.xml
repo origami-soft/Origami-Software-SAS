@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_own_check_form">
+            <field name="name">Account own check form</field>
+            <field name="model">account.own.check</field>
+            <field name="inherit_id" ref="l10n_account_check.account_own_check_form"/>
+            <field name="arch" type="xml">
+                <header position="inside">
+                    <button
+                        name="%(account_check_collect_wizard_action)d"
+                        string="Cobrar"
+                        class="oe_highlight"
+                        invisible="state != 'draft'"
+                        groups="l10n_treasury.group_account_treasury_manager"
+                        type="action"
+                        context="{
+                            'default_issue_date': issue_date,
+                            'default_payment_date': payment_date,
+                            'default_collect_date': collect_date,
+                            'default_amount': amount,
+                            'default_collect_from_check': True,
+                        }"
+                    />
+                    <button
+                        name="cancel_collect"
+                        type="object"
+                        string="Revertir Cobro"
+                        confirm="¿Está seguro?"
+                        invisible="state != 'collect'"
+                        groups="l10n_treasury.group_account_treasury_manager"
+                    />
+                </header>
+                <xpath expr="//field[@name='bank_id']/.." position="after">
+                    <group name="collect" string="Cobro" invisible="not collect_move_id">
+                        <field
+                            name="collect_date"
+                            readonly="1"
+                        />
+                        <field
+                            name="collect_move_id"
+                            readonly="1"
+                        />
+                        <field
+                            name="collect_check_move_id"
+                            readonly="1"
+                        />
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_own_check_tree">
+            <field name="name">Account own check tree</field>
+            <field name="model">account.own.check</field>
+            <field name="inherit_id" ref="l10n_account_check.account_own_check_tree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//tree" position="attributes">
+                    <attribute name="decoration-success">state in ['handed','collect']</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="l10n_own_check_reconcile.not_reconciled_checks_action">
+            <field name="domain">[('state', 'in', ['handed','collect'])]</field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

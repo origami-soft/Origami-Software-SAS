@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<odoo>
+
+    <record id='l10n_ar_afip_tables.afip_voucher_type_066' model='voucher.type'>
+        <field name='is_importation_forward'>True</field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

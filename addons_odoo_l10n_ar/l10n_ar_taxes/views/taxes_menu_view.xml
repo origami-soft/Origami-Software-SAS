@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <menuitem
+            id="taxes_main_menu"
+            name="Impuestos"
+            parent="account.menu_finance_configuration"
+            sequence="100"
+        />
+
+        <record model="ir.ui.menu" id="account.menu_action_tax_form">
+            <field name="parent_id" ref="l10n_ar_taxes.taxes_main_menu"/>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

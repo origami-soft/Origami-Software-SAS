@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_own_check_reconcile_form">
+        <field name="name">account.own.check.reconcile.form</field>
+        <field name="model">account.own.check</field>
+        <field name="inherit_id" ref="l10n_account_check.account_own_check_form"/>
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="reconcile_move_ids" invisible="1"/>
+                <button name="view_reconcile_moves" string="Ver asientos de débito" type="object"
+                        invisible="not reconcile_move_ids"/>
+                <button name="cancel_reconcile" string="Revertir débito" type="object" confirm="¿Está seguro?"
+                        invisible="not reconcile_move_ids"/>
+            </field>
+            <field name="state" position="attributes">
+                <attribute name="statusbar_visible">draft,handed,reconciled</attribute>
+            </field>
+            <field name="issue_date" position="after">
+                <field name="reconcile_date" readonly="1" invisible="not reconcile_date"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="not_reconciled_checks_action">
+        <field name="name">Pendientes de débito</field>
+        <field name="res_model">account.own.check</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="l10n_account_check.account_own_check_search"/>
+        <field name="domain">[('state', '=', 'handed')]</field>
+    </record>
+
+    <menuitem id="not_reconciled_checks_menu" action="not_reconciled_checks_action" name="Pendientes de débito"
+                parent="l10n_account_check.treasury_own_checks_main_menu" sequence="50"/>
+
+    <record id="own_check_reconcile_open_action" model="ir.actions.act_window">
+        <field name="name">Debitar</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">wizard.own.check.reconcile</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="wizard_own_check_reconcile_form"/>
+        <field name="binding_model_id" ref="model_account_own_check"/>
+        <field name="binding_view_types">list</field>
+        <field name="groups_id" eval="[(4, ref('l10n_treasury.group_account_treasury_manager'))]"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

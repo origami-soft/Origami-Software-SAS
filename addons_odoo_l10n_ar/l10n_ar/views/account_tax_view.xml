@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    	
+    	<record model="ir.ui.view" id="tax_exempt_form">
+            <field name="name">Tax Exempt form</field>
+            <field name="model">account.tax</field>
+            <field name="type">form</field>
+            <field name="inherit_id" ref="account.view_tax_form"/>
+            <field name="arch" type="xml">
+                <field name="active" position="before">
+                    <field name="is_exempt"/>
+                    <field name="is_vat"/>
+                </field>
+                <field name="amount_type" position="after">
+                    <field name="perception_id" required="amount_type == 'perception'" invisible="amount_type != 'perception'"/>
+                    <field name="retention_id" required="amount_type == 'retention'" invisible="amount_type != 'retention'"/>
+                </field>
+            </field>
+        </record>
+    
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

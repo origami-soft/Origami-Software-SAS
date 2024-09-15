@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <!-- VISTA TREE -->
+        <record id="account_sold_check_tree" model="ir.ui.view">
+            <field name="name">account.sold.check.tree</field>
+            <field name="model">account.sold.check</field>
+            <field name="arch" type="xml">
+                <tree string="Cheques vendidos"
+                      decoration-info="state=='draft'"
+                      decoration-muted="state=='canceled'"
+                      decoration-success="state=='sold'"
+                      delete="false"
+                >
+                    <field name="name"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="date"/>
+                    <field name="amount"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- VISTA FORM -->
+        <record id="account_sold_check_form" model="ir.ui.view">
+            <field name="name">account.sold.check.form</field>
+            <field name="model">account.sold.check</field>
+            <field name="arch" type="xml">
+                <form string="Cheques vendidos" delete="false">
+                    <field name="state" invisible="1"/>
+                    <header>
+                        <button name="post" type="object" class="btn btn-primary" string="Validar" invisible="state != 'draft'" groups="l10n_treasury.group_account_treasury_manager"/>
+                        <button name="cancel" type="object" string="Anular Venta" confirm="¿Está seguro?" invisible="state not in ['sold', 'draft']" groups="l10n_treasury.group_account_treasury_manager"/>
+                        <button name="draft" type="object" class="btn btn-primary" string="Volver a borrador" invisible="state != 'canceled'" groups="l10n_treasury.group_account_treasury_manager"/>
+                        <field name="state" widget="statusbar" nolabel="1" statusbar_visible="draft,sold"/>
+                    </header>
+                    <sheet>
+                        <group string="Datos de la operación">
+                            <group>
+                                <field name="name"/>
+                                <field name="date" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="partner_id" invisible="bank_account_id" readonly="state != 'draft'"/>
+                                <field name="journal_id" invisible="not partner_id"
+                                                         required="partner_id"
+                                                         readonly="state != 'draft'"/>
+                                <field name="bank_account_id" invisible="partner_id"
+                                                              readonly="state != 'draft'"/>
+                                <field name="move_id" invisible="not move_id"/>
+                                <field name="check_move_id" invisible="not check_move_id"/>
+                                <field name="company_id" groups="base.group_multi_company" readonly="state != 'draft'"/>
+                                <field name="company_id" groups="!base.group_multi_company" readonly="True"/>
+                                <field name="currency_id" groups="base.group_multi_currency" invisible="state == 'draft'" readonly="True"/>
+                            </group>
+                        </group>
+                        <group string="Importes">
+                            <group>
+                                <field name="commission" readonly="state != 'draft'"/>
+                                <field name="interests" readonly="state != 'draft'"/>
+                                <field name="amount"/>
+                            </group>
+                            <group>
+                                <field name="commission_account_id" required="commission" readonly="state != 'draft'"/>
+                                <field name="interest_account_id" required="interests" readonly="state != 'draft'"/>
+                            </group>
+                        </group>
+                        <group string="Cheques" readonly="state != 'draft'">
+                            <field name="account_third_check_ids" options="{'no_create': True}"
+                                    domain="[('sold_check_ids', '=', False), ('state', '=', 'wallet'),('company_id','=',company_id)]"
+                                    readonly="state != 'draft'" colspan="2" nolabel="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="payment_id"/>
+                                    <field name="issue_name"/>
+                                    <field name="bank_id"/>
+                                    <field name="amount" sum="Total"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- ACCIÓN  -->
+        <record  id="account_sold_check_action" model="ir.actions.act_window">
+            <field name="name">Cheques vendidos</field>
+            <field name="res_model">account.sold.check</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- MENÚ  -->
+        <menuitem
+            id="account_sold_check_menu"
+            action="account_sold_check_action"
+            name="Cheques vendidos"
+            parent="l10n_account_check.treasury_third_checks_main_menu"
+            sequence="30"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data noupdate="1">
+
+        <!-- Configuracion de Retenciones (retention.retention) -->
+
+        <record id="retention_retention_iva_sufrida" model="retention.retention">
+            <field name="name">Retención IVA Sufrida</field>
+            <field name="type">vat</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iva_efectuada" model="retention.retention">
+            <field name="name">Retención IVA Efectuada</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="type">vat</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_iibb_caba_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB CABA Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_c"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_caba_efectuada" model="retention.retention">
+            <field name="name">Retención IIBB CABA Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_c"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_iibb_pba_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB PBA Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_b"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_pba_efectuada" model="retention.retention">
+            <field name="name">Retención IIBB PBA Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_b"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_iibb_tucuman_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Tucuman Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_t"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_tucuman_efectuada" model="retention.retention">
+            <field name="name">Retención IIBB Tucuman Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_t"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_ganancias_sufrida" model="retention.retention">
+            <field name="name">Retención Ganancias Sufrida</field>
+            <field name="type">profit</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_ganancias_efectuada" model="retention.retention">
+            <field name="name">Retención Ganancias Efectuada</field>
+            <field name="type">profit</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_iibb_misiones_efectuada" model="retention.retention">
+            <field name="name">Retención IIBB Misiones Efectuada</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_n"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="retention_retention_iibb_chaco_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Chaco Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_h"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_chubut_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Chubut Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_u"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_corrientes_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Corrientes Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_w"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_cordoba_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Córdoba Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_x"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_entre_rios_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Entre Ríos Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_e"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_jujuy_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Jujuy Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_y"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_la_pampa_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB La Pampa Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_l"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_mendoza_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Mendoza Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_m"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_misiones_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Misiones Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_n"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_neuquen_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Neuquen Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_q"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_rio_negro_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Río Negro Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_r"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_salta_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Salta Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_a"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_san_luis_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB San Luis Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_d"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_santa_fe_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Santa Fe Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_s"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="retention_retention_iibb_tierra_del_fuego_sufrida" model="retention.retention">
+            <field name="name">Retención IIBB Tierra del Fuego Sufrida</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_v"/>
+            <field name="type">gross_income</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+    </data>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

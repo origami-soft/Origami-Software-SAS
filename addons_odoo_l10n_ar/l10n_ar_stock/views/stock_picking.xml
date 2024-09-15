@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="stock_picking_products_value_view">
+        <field name="name">stock.picking.products.value.view</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <field name="move_type" position="after">
+                <field name="internal_number" readonly="1"/>
+                <field name="cai" invisible="not cai" readonly="1"/>
+                <field name="cai_due_date" invisible="not cai" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="l10n_ar_stock_picking_tree">
+        <field name="name">L10n ar stock picking tree</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="internal_number" readonly="1" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_invoice_perception_line_form">
+        <field name="name">Account invoice perception line form</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <group colspan="8" position="inside">
+                <field name="perception_ids" colspan="2" nolabel="1" readonly="state != 'draft'" invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')">
+                    <tree editable="bottom" string="Percepciones">
+                        <field name="currency_id" column_invisible="1"/>
+                        <field name="perception_id"
+                                domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain),'|',('company_id', '=', parent.company_id),('company_id', '=', False)]"/>
+                        <field name="aliquot" widget="percentage"/>
+                        <field name="base"/>
+                        <field name="amount"/>
+                        <field name="name" column_invisible="1"/>
+                        <field name="jurisdiction" column_invisible="1"/>
+                    </tree>
+                </field>
+            </group>
+            <group class="oe_invoice_lines_tab" position="after">
+                <field name="narration" position="move"/>
+            </group>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

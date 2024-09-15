@@ -1,0 +1,8 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+l10n_ar_perception_perception_user,l10n_ar.perception_perception.user,l10n_ar.model_perception_perception,base.group_user,1,0,0,0
+l10n_ar_perception_perception_manager,l10n_ar.perception_perception.manager,l10n_ar.model_perception_perception,account.group_account_manager,1,1,1,1
+l10n_ar_retention_retention_user,l10n_ar.retention_retention.user,l10n_ar.model_retention_retention,base.group_user,1,0,0,0
+l10n_ar_retention_retention_manager,l10n_ar.retention_retention.manager,l10n_ar.model_retention_retention,account.group_account_manager,1,1,1,1
+l10n_ar_ar_fiscal_position_user,l10n_ar.ar_fiscal_position.user,model_ar_fiscal_position,base.group_user,1,0,0,0
+l10n_ar_ar_fiscal_position_system,l10n_ar.ar_fiscal_position.system,model_ar_fiscal_position,base.group_system,1,1,1,1
+l10n_ar_update_banks_wizard_user,l10n_ar.update_banks_wizard.user,model_update_banks_wizard,base.group_user,1,1,1,1

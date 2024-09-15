@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+        
+        <record model="ir.ui.view" id="voucher_type_account_form">
+            <field name="name">Voucher type account form</field>
+            <field name="model">voucher.type</field>
+            <field name="inherit_id" ref="l10n_voucher_type.voucher_type_form"/>
+            <field name="arch" type="xml">
+                <field name="code" position="after">
+                    <field name="refund_voucher_type_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="voucher_type_action" model="ir.actions.act_window">
+            <field name="name">Tipos de comprobante</field>
+            <field name="res_model">voucher.type</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem
+            id="voucher_type_menu"
+            name="Tipos de comprobante"
+            action="voucher_type_action"
+            sequence="20"
+            parent="account.account_account_menu"
+        />
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

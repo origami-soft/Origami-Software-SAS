@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="check_correct_wizard_form">
+        <field name="name">check.correct.wizard.form</field>
+        <field name="model">check.correct.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="own_check_id" invisible="1"/>
+                        <field name="third_check_id" invisible="1"/>
+                        <field name="check_name"/>
+                    </group>
+                    <group>
+                        <field name="check_issue_date"/>
+                        <field name="common_check" invisible="1"/>
+                        <field name="check_payment_date" readonly="common_check" force_save="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button type="object" name="correct" string="Corregir" class="oe_highlight"/>
+                    <button class="oe_link" special="cancel" string="Cancelar"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

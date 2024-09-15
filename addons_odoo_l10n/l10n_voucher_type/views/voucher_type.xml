@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+   
+        <record model="ir.ui.view" id="voucher_type_tree">
+            <field name="name">Voucher type tree</field>
+            <field name="model">voucher.type</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="code"/>
+                    <field name="name"/>
+                    <field name="category"/>
+                </tree>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="voucher_type_form">
+            <field name="name">Voucher type form</field>
+            <field name="model">voucher.type</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <field name="active" invisible="1"/>
+                        <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="category"/>
+                                <field name="code"/>
+                                <field name="prefix"/>
+                            </group>
+                            <group>
+                                <field name="is_debit_note"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+            
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

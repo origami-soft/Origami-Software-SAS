@@ -1,0 +1,9 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+"access_account_bank_reconcile","account_bank_reconcile","model_account_bank_reconcile","account.group_account_manager",1,1,1,1
+"access_account_bank_reconcile_line","account_bank_reconcile_line","model_account_bank_reconcile_line","account.group_account_manager",1,1,1,1
+"access_account_reconcile_move_line","account_reconcile_move_line","model_account_reconcile_move_line","account.group_account_manager",1,1,1,1
+"access_bank_reconcile_wizard","bank_reconcile_wizard","model_bank_reconcile_wizard","account.group_account_user",1,1,1,1
+"access_bank_automatic_reconcile_wizard","bank_automatic_reconcile_wizard","model_bank_automatic_reconcile_wizard","account.group_account_user",1,1,1,1
+"access_bank_automatic_reconcile_bank_line","bank_automatic_reconcile_bank_line","model_bank_automatic_reconcile_bank_line","account.group_account_user",1,1,1,1
+"access_bank_automatic_reconcile_found_line","bank_automatic_reconcile_found_line","model_bank_automatic_reconcile_found_line","account.group_account_user",1,1,1,1
+"access_bank_automatic_reconcile_not_found_line","bank_automatic_reconcile_not_found_line","model_bank_automatic_reconcile_not_found_line","account.group_account_user",1,1,1,1

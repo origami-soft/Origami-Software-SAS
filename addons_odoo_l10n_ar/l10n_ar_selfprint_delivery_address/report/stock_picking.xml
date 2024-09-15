@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <template id="report_selfprint_body" inherit_id="l10n_ar_stock_picking_report.report_footer">
+        <xpath expr="//t[@t-if='o.sale_id']" position="before">
+            <div style="font-size:12px;padding:5px 0px 0px 0px">
+                <div t-if="o.carrier_id.partner_id" style="border-bottom:1px solid black;!important;padding: 5px 20px 5px 20px">
+                    <table id="reference_table_delivery_report" width="100%">            
+                        <tr>
+                            <td>
+                                <b>Transportista</b><br/>
+                                <span t-raw="o.carrier_id.get_report_address()"/>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

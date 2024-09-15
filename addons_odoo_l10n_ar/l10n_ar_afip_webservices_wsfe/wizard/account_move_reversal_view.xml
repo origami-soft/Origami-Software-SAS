@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_move_reversal_refund_method_sale_form">
+            <field name="name">Account move reversal refund method sale form</field>
+            <field name="model">account.move.reversal</field>
+            <field name="inherit_id" ref="account.view_account_move_reversal"/>
+            <field name="arch" type="xml">
+                <button name="modify_moves" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </button>
+            </field>
+        </record>
+
+    </data>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

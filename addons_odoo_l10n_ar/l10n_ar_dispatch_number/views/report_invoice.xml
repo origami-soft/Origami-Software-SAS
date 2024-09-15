@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <template id="report_invoice_document" inherit_id="account.report_invoice_document">
+
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_dispatch">
+                N° Despacho
+            </th>
+        </xpath>
+        <xpath expr="//td[@name='account_invoice_line_name']" position="after">
+            <td name="dispatch_numbers">
+                <t t-set="lot_values" t-value="o._get_invoiced_lot_values()"/>
+                    <t t-if="lot_values">
+                        <t t-foreach="lot_values" t-as="obj">
+                            <t t-if="obj.get('product_id') == line.product_id.id or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')">
+                                <span t-esc="obj.get('dispatch_number', '')" />
+                            </t>
+                    </t>
+                </t>
+            </td>
+        </xpath>        
+    </template>
+
+    <template id="report_electronic_invoice_body" inherit_id="l10n_ar_electronic_invoice_report.report_electronic_invoice_body">
+
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_dispatch">
+                N° Despacho
+            </th>
+        </xpath>
+        <xpath expr="//t[@t-set='name_lines']/.." position="after">
+            <td name="dispatch_numbers">
+                <t t-set="lot_values" t-value="o._get_invoiced_lot_values()"/>
+                <t t-if="lot_values">
+                    <t t-foreach="lot_values" t-as="obj">
+                        <t t-if="obj.get('product_id') == line.product_id.id or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')">
+                            <span t-esc="obj.get('dispatch_number', '')" />
+                        </t>
+                    </t>
+                </t>
+            </td>
+        </xpath>        
+    </template>
+
+
+</odoo>
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
+-->

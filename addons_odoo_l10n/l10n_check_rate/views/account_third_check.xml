@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="account_third_check_form">
+        <field name="name">account_third_check_form</field>
+        <field name="model">account.third.check</field>
+        <field name="inherit_id" ref="l10n_account_check.account_third_check_form"/>
+        <field name="arch" type="xml">
+            <field name="rate" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="rate" position="before">
+                <field
+                    name="natural_rate"
+                    invisible="same_currency_as_payment"
+                    readonly="state != 'draft'"
+                />
+            </field>
+            <field name="sent_rate" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </field>
+            <field name="sent_rate" position="before">
+                <field name="natural_sent_rate" readonly="1" string="Cotización"
+                        invisible="same_currency_as_sent_payment"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

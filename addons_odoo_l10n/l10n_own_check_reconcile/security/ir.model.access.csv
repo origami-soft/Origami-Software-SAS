@@ -1,0 +1,3 @@
+id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
+own_check_reconcile_manager,own_check_reconcile_manager,model_wizard_own_check_reconcile,l10n_treasury.group_account_treasury_manager,1,1,1,1
+own_check_reconcile_line_manager,own_check_reconcile_line_manager,model_wizard_own_check_reconcile_line,l10n_treasury.group_account_treasury_manager,1,1,1,1
