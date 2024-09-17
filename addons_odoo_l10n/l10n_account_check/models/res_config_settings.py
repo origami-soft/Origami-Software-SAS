@@ -18,11 +18,5 @@ class ResConfigSettings(models.TransientModel):
         readonly=False,
         domain="[('company_id', '=', company_id), ('payment_usage', '=', 'own_check') ]"
     )
-    own_check_bank_id = fields.Many2one(
-        related='company_id.own_check_bank_id',
-        string='Banco por defecto para cheques propios',
-        readonly=False,
-        domain="[('company_id', '=', company_id), ('type', '=', 'bank'), ('bank_id', '!=', False) ]"
-    )
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

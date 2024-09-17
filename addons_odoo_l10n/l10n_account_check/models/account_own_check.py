@@ -27,18 +27,7 @@ class AccountOwnCheck(models.Model):
         string="Banco",
         required=True,
         domain="[('company_id', '=', company_id), ('type', '=', 'bank'), ('bank_id', '!=', False)]",
-        compute='_compute_default_bank_journal_id',
-        store=True,
-        readonly=False
     )
-
-    @api.depends('company_id', 'payment_id')
-    def _compute_default_bank_journal_id(self):
-        for rec in self:
-            if not rec.bank_journal_id and not rec._origin.bank_journal_id:
-                rec.bank_journal_id = rec.company_id.own_check_bank_id
-            else:
-                rec.bank_journal_id = rec.bank_journal_id
 
     @api.onchange('bank_journal_id')
     def onchange_bank_journal_set_bank(self):
@@ -83,8 +72,5 @@ class AccountOwnCheck(models.Model):
         res = super().open_correct_wizard()
         res['context'] = {'default_own_check_id': self.id}
         return res
-
-    def modify_maturity_date(self, payment):
-        return True
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

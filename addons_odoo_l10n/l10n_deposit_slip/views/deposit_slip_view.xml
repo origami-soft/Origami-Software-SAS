@@ -31,15 +31,12 @@
             <form string="Boleta de depósito" delete="false">
                 <header>
                     <button name="post" type="object" string="Validar" invisible="state != 'draft'" groups="l10n_treasury.group_account_treasury_manager"/>
+                    <button name="view_moves" type="object" string="Ver asientos" invisible="state != 'deposited'" groups="account.group_account_user"/>
                     <button name="cancel_deposit_slip" type="object" string="Anular" confirm="¿Está seguro?" invisible="state not in ['deposited','draft']" groups="l10n_treasury.group_account_treasury_manager"/>
                     <button name="cancel_to_draft" type="object" string="Volver a borrador" invisible="state != 'canceled'" groups="l10n_treasury.group_account_treasury_manager"/>
                     <field name="state" widget="statusbar" nolabel="1" statusbar_visible="draft,deposited"/>
                 </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box">
-                        <button name="view_moves" type="object" string="Asientos" icon="fa-pencil-square-o"
-                        invisible="state != 'deposited'"/>
-                    </div>
                     <h1>
                         <field name="name" class="oe_inline"/>
                     </h1>
@@ -95,7 +92,6 @@
         <field name="arch" type="xml">
             <search string="Boletas de depósito">
                 <field name="name" string="Name"/>
-                <field name="reference" string="Referencia"/>
             </search>
         </field>
     </record>

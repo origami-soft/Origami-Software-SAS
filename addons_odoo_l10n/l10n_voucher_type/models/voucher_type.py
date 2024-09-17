@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class VoucherType(models.Model):
@@ -24,5 +24,11 @@ class VoucherType(models.Model):
         default=True
     )
     is_debit_note = fields.Boolean(string='Nota de débito')
+
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

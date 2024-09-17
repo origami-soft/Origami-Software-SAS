@@ -26,14 +26,6 @@
                                 <field name="account_own_check_journal_id" options="{'no_create_edit': True, 'no_open': True}" context="{'active_test': False}"/>
                             </div>
                         </div>
-                        <div class="text-muted mt16">
-                            Banco por defecto al cargar cheques propios
-                        </div>
-                        <div class="content-group">
-                            <div class="row">
-                                <field name="own_check_bank_id" options="{'no_create_edit': True, 'no_open': True}"/>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

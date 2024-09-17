@@ -23,6 +23,17 @@ class VoucherType(models.Model):
         string='Documento de devolución'
     )
 
+    active = fields.Boolean(
+        string='Activo',
+        default=True
+    )
+
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
+
     @api.depends('prefix', 'name')
     def _compute_display_name(self):
         for r in self:
