@@ -27,7 +27,7 @@
         'security/groups.xml',
         'security/ir.model.access.csv',
         'views/account_move.xml',
-        'views/account_payment.xml',
+        # 'views/account_payment.xml',
         'views/voucher_type.xml',
         'wizard/account_move_reversal.xml',
     ],
