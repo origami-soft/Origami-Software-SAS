@@ -27,7 +27,7 @@ class FceAssociatedDocument(models.Model):
 
     @api.onchange('associated_invoice_id')
     def onchange_invoice_id(self):
-        invoice_name = self.associated_invoice_id.name.split('-') if self.associated_invoice_id else ['']
+        invoice_name = self.associated_invoice_id.full_voucher_name.split('-') if self.associated_invoice_id else ['']
         invoice_name = invoice_name[1] if len(invoice_name) > 1 else invoice_name[0]
         point_of_sale = self.associated_invoice_id.pos_ar_id.name.lstrip('0')\
             if self.associated_invoice_id.pos_ar_id else ''

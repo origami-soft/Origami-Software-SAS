@@ -45,9 +45,9 @@ mapped with models using base_codes application
         'security/ir.model.access.csv',
     ],
 
-    # 'post_init_hook': 'post_init_hook',
-    #
-    # 'uninstall_hook': 'uninstall_hook',
+    'post_init_hook': 'post_init_hook',
+
+    'uninstall_hook': 'uninstall_hook',
 
     'active': False,
 

@@ -34,4 +34,16 @@ class PaymentImputationMove(models.Model):
                 'amount_total': move_currency._convert(record.move_id.amount_total, record.currency_id, payment_company, payment_date)
             })
 
+    def open_move(self):
+        view_form = self.env.ref('account.view_move_form').id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Factura',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': self.move_id.id,
+            'view_id': view_form,
+            'context': "{'create': False}",
+            'target': 'current'
+        }
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar',
 
-    'version': '17.0.1.0.2',
+    'version': '1.0.2',
 
     'countries': ['ar'],
 
@@ -42,7 +42,7 @@
         'views/res_partner_bank.xml',
         'views/res_partner_view.xml',
         'views/account_tax_repartition_line.xml',
-        # 'wizard/views/update_banks_wizard.xml',
+        'wizard/views/update_banks_wizard.xml',
         'security/l10n_ar_security.xml',
         'security/ir.model.access.csv',
     ],
