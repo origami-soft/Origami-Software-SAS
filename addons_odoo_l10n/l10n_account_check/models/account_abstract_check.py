@@ -144,13 +144,4 @@ class AccountAbstractCheck(models.AbstractModel):
         move_lines = self.payment_id.move_ids.line_ids.filtered(lambda l: l.name == prev_move_line_name)
         move_lines.write({'name': new_move_line_name})
 
-    def modify_maturity_date(self, payment):
-        raise NotImplementedError("Método no implementado")
-
-    def get_move_vals(self, payment):
-        res = super().get_move_vals(payment=payment)
-        if self.modify_maturity_date(payment):
-            res['line_ids'][0][2]['date_maturity'] = self.payment_date
-        return res
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

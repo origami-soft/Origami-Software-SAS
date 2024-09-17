@@ -7,7 +7,8 @@ class VoucherType(models.Model):
     _inherit = 'voucher.type'
 
     denomination_id = fields.Many2one(
-        comodel_name='account.denomination', 
+        comodel_name='account.denomination',
+        ondelete='restrict',
         string='Denominación'
     )
 

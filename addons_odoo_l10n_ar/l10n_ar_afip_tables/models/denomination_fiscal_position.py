@@ -11,23 +11,26 @@ class DenominationFiscalPosition(models.Model):
     issue_fiscal_position_id = fields.Many2one(
         'ar.fiscal.position',
         'Posicion Fiscal emisora',
+        ondelete='restrict',
         required=True
     )
     receipt_fiscal_position_id = fields.Many2one(
         'ar.fiscal.position',
         'Posicion Fiscal receptora',
+        ondelete='restrict',
         required=True
     )
     account_denomination_id = fields.Many2one(
         'account.denomination',
         'Denominacion',
+        ondelete='restrict',
         required=True
     )
 
-    _sql_constraints = [(
-        'unique',
-        'unique(issue_fiscal_position_id, receipt_fiscal_position_id, account_denomination_id)',
-        'Ya existe esa combinación de posicion fiscal/denominacion'
-    )]
+    # _sql_constraints = [(
+    #     'unique',
+    #     'unique(issue_fiscal_position_id, receipt_fiscal_position_id, account_denomination_id)',
+    #     'Ya existe esa combinación de posicion fiscal/denominacion'
+    # )]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -94,19 +94,4 @@ class AccountOwnCheck(models.Model):
             res['domain'] = [('reconciled_check_id', '=', self.id)]
         return res
 
-    def btn_debit(self):
-        view = self.env.ref('l10n_own_check_reconcile.wizard_own_check_reconcile_form')
-        model = self.env.ref('l10n_own_check_reconcile.model_account_own_check')
-        return {
-            'name': 'Debitar',
-            'type': 'ir.actions.act_window',
-            'res_model': 'wizard.own.check.reconcile',
-            'view_mode': 'form',
-            'view_id': view.id,
-            'binding_model_id': model.id,
-            'binding_view_types':list,
-            'groups_id': [(4, self.env.ref('l10n_treasury.group_account_treasury_manager').id)],
-            'target': 'new',
-        }
-
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -27,7 +27,7 @@ class AccountThirdCheck(models.Model):
         string="Cotización de entrega",
         digits=(12, 6)
     )
-    sent_payment_currency_amount = fields.Monetary(
+    sent_payment_currency_amount = fields.Float(
         string="Monto en moneda de pago en entrega",
         currency_field='sent_payment_currency_id'
     )
@@ -193,11 +193,5 @@ class AccountThirdCheck(models.Model):
         move_lines = self.destination_payment_id.move_ids.line_ids.filtered(lambda l: l.name == prev_move_line_name)
         move_lines.write({'name': new_move_line_name})
         return res
-
-    def modify_maturity_date(self, payment):
-        # en el caso de pagos a proveedor con cheque de terceros, no se usa fecha de pago del cheque
-        if payment.partner_type == 'supplier':
-            return False
-        return True
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

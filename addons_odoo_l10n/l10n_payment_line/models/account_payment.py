@@ -7,10 +7,26 @@ from ..exceptions import exceptions
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
+    journal_id = fields.Many2one(comodel_name='account.journal', compute='_compute_journal_id', store=True, readonly=False, precompute=True,
+        check_company=True,
+        domain="[('id', 'in', available_journal_ids)]")
     show_payment_lines = fields.Boolean(compute='get_show_payment_lines')
     payment_usage = fields.Selection(related='journal_id.payment_usage')
     move_ids = fields.One2many('account.move', 'payment_id')
     available_journal_ids = fields.Many2many('account.journal', compute='get_available_journals')
+
+    @api.depends('available_journal_ids')
+    def _compute_journal_id(self):
+        for wizard in self:
+            if wizard.can_edit_wizard:
+                batch = wizard._get_batches()[0]
+                wizard.journal_id = wizard._get_batch_journal(batch)
+            else:
+                wizard.journal_id = self.env['account.journal'].search([
+                    *self.env['account.journal']._check_company_domain(wizard.company_id),
+                    ('type', 'in', ('bank', 'cash')),
+                    ('id', 'in', self.available_journal_ids.ids)
+                ], limit=1)
 
     @api.depends_context('default_is_internal_transfer')
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')

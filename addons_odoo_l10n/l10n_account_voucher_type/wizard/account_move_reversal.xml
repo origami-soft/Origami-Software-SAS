@@ -9,8 +9,7 @@
             <field name="inherit_id" ref="account.view_account_move_reversal"/>
             <field name="arch" type="xml">
                 <field name="date" position="before">
-                    <field name="available_voucher_type_id" invisible="1"/>
-                    <field name="voucher_type_id" domain="[('id', 'in', available_voucher_type_id), ('category', '=', 'refund')]"/>
+                    <field name="voucher_type_id" domain="[('category', '=', 'refund')]"/>
                 </field>
             </field>
         </record>
@@ -19,5 +18,4 @@
 
 </odoo>
 
-<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
--->
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

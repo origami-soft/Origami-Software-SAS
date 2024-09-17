@@ -34,7 +34,8 @@ class DocumentBook(models.Model):
         required=True
     )
     book_type_id = fields.Many2one(
-        comodel_name='document.book.type', 
+        comodel_name='document.book.type',
+        ondelete='restrict',
         string='Tipo de talonario', 
         required=True
     )
@@ -54,9 +55,9 @@ class DocumentBook(models.Model):
     )
     company_id = fields.Many2one(related='pos_ar_id.company_id')
 
-    _sql_constraints = [
-        ('unique_document_book', 'unique (category, voucher_type_id, book_type_id, pos_ar_id)','El talonario debe ser unico por la combinacion punto de venta/tipo de talonario/categoria/tipo de comprobante')
-    ]
+    # _sql_constraints = [
+    #     ('unique_document_book', 'unique (category, voucher_type_id, book_type_id, pos_ar_id)','El talonario debe ser unico por la combinacion punto de venta/tipo de talonario/categoria/tipo de comprobante')
+    # ]
 
     @api.onchange('category')
     def onchange_category(self):

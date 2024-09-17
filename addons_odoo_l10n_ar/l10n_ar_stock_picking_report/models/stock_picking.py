@@ -22,10 +22,6 @@ class StockPicking(models.Model):
         return document_book.voucher_type_id.code
 
     def validate_selfprint_fields(self):
-        # Se evita realizar las validaciones en caso de acceder desde studio
-        if self.env.context.get('studio', False):
-            return True
-
         company = self.company_id
         if not (company.start_date and company.iibb_number and company.street and company.city):
             raise ValidationError("Antes de imprimir, configurar la fecha de inicio de actividades"

@@ -8,6 +8,7 @@ class AccountFiscalPosition(models.Model):
 
     _inherit = 'ar.fiscal.position'
 
+    denomination_fiscal_position_ids = fields.Many2one('denomination.fiscal.position', ondelete='restrict')
     denomination_fiscal_position_ids = fields.One2many(
         'denomination.fiscal.position',
         'issue_fiscal_position_id',
