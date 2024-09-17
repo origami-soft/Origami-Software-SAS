@@ -28,11 +28,11 @@
     ],
 
     'data': [
-        'data/company_data.xml',
-        'data/ar_fiscal_position.xml',
-        'data/perception_data.xml',
-        'data/retention_data.xml',
-        'data/bank_update.xml',
+        # 'data/company_data.xml',
+        # 'data/ar_fiscal_position.xml',
+        # 'data/perception_data.xml',
+        # 'data/retention_data.xml',
+        # 'data/bank_update.xml',
         'views/ar_fiscal_position.xml',
         'views/account_fiscal_position.xml',
         'views/account_tax_view.xml',
