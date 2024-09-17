@@ -40,7 +40,7 @@
         'views/res_bank.xml',
         'views/res_company_view.xml',
         'views/res_partner_bank.xml',
-        'views/res_partner_view.xml',
+        # 'views/res_partner_view.xml',
         'views/account_tax_repartition_line.xml',
         'wizard/views/update_banks_wizard.xml',
         'security/l10n_ar_security.xml',
