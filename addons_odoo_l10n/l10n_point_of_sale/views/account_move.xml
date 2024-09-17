@@ -13,8 +13,18 @@
                     <field name="document_book_id"
                            invisible="not pos_ar_id"
                            readonly="state != 'draft'"
-                           domain="[('id', 'in', pos_document_book_ids)]"/>
+                           domain="[('id', 'in', pos_document_book_ids)]"
+                           options="{'no_create': True, 'no_create_edit':True}"/>
                     <field name="document_book_type" invisible="1"/>
+                </field>
+                <field name="name" position="before">
+                    <field name="full_voucher_name" 
+                           invisible="full_voucher_name == '/' and not posted_before and not quick_edit_mode or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
+                           readonly="state != 'draft'"
+                           placeholder="Borrador"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="invisible" add="or move_type in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')" separator=" "/>
                 </field>
                 <div name="journal_div" position="after">
                      <field
@@ -31,6 +41,62 @@
                 <div name="journal_div" position="attributes">
                     <attribute name="groups">account.group_account_invoice</attribute>
                 </div>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="invoice_pos_ar_tree">
+            <field name="name">Invoice pos ar tree</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_invoice_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="full_voucher_name" string="Número"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="column_invisible">True</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="move_pos_ar_tree">
+            <field name="name">Move pos ar tree</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_tree"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="full_voucher_name" string="Número"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="column_invisible">True</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="invoice_pos_ar_search">
+            <field name="name">Invoice pos ar search</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="full_voucher_name" string="Facturas" filter_domain="['|', '|' , '|', '|', ('full_voucher_name', 'ilike', self), ('invoice_origin', 'ilike', self), ('ref', 'ilike', self), ('payment_reference', 'ilike', self), ('partner_id', 'child_of', self)]"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="move_pos_ar_search">
+            <field name="name">Move pos ar search</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_move_filter"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="full_voucher_name" string="Asiento contable" filter_domain="['|', '|', ('full_voucher_name', 'ilike', self), ('ref', 'ilike', self), ('partner_id', 'ilike', self)]"/>
+                </field>
+                <field name="name" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
             </field>
         </record>
 

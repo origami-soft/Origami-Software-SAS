@@ -27,7 +27,7 @@ class AccountMove(models.Model):
 
     @api.onchange('currency_id')
     def onchange_currency_currency_rate(self):
-        self.currency_rate = 0
+        self.currency_rate = self.current_currency_rate if self.need_rate else 0
 
     @api.depends('currency_id', 'company_currency_id', 'invoice_date')
     def compute_current_currency_rate(self):
@@ -50,5 +50,13 @@ class AccountMove(models.Model):
                 fixed_to_currency=self.company_id.currency_id
             )
         return super(AccountMove, self)._recompute_dynamic_lines(recompute_all_taxes, recompute_tax_base_amount)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super().create(vals_list)
+        for invoice in res:
+            if invoice.need_rate and not invoice.currency_rate:
+                invoice.currency_rate = invoice.current_currency_rate
+        return res
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

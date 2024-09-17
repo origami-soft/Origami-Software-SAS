@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class DocumentBookType(models.Model):
@@ -44,18 +44,10 @@ class DocumentBookType(models.Model):
         default=False
     )
 
-    active = fields.Boolean(string='Activo', default=True)
-
-    # _sql_constraints = [(
-    #     'unique_type_categ',
-    #     'unique(type, category)',
-    #     'Ya existe ese tipo de talonario para esa categoría'
-    # )]
-
-    @api.model
-    def unlink(self):
-        for record in self:
-            record.active = False
-        return True
+    _sql_constraints = [(
+        'unique_type_categ',
+        'unique(type, category)',
+        'Ya existe ese tipo de talonario para esa categoría'
+    )]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

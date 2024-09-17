@@ -3,6 +3,7 @@
 from . import account_denomination
 from . import account_journal
 from . import account_move
+from . import account_move_line
 from . import account_payment
 from . import document_book_type
 from . import document_book

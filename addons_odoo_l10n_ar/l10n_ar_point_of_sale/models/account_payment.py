@@ -12,16 +12,6 @@ class AccountPayment(models.Model):
         copy=False
     )
 
-    can_edit_wizard = fields.Boolean(string="Can Edit Wizard", compute='_compute_can_edit_wizard')
-
-    def _compute_can_edit_wizard(self):
-        for record in self:
-            record.can_edit_wizard = False
-
-    def _get_batches(self):
-        pass
-
-
     def action_post(self):
         for payment in self.filtered(lambda x: x.journal_id.pos_ar_id):
             if not payment.voucher_name:
