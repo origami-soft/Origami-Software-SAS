@@ -24,7 +24,7 @@
     ],
 
     'data': [
-        'views/retention_sifere.xml',
+        # 'views/retention_sifere.xml',
         'security/ir.model.access.csv',
         'security/ir_rule.xml',
     ],
