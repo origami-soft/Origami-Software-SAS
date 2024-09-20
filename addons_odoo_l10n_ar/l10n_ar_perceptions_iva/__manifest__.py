@@ -23,7 +23,7 @@
     ],
 
     'data': [
-        'views/perception_iva.xml',
+        # 'views/perception_iva.xml',
         'security/ir.model.access.csv',
         'data/security.xml',
     ],
