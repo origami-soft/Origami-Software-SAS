@@ -34,7 +34,7 @@
         'data/document_book_type.xml',
         'data/ncm_types.xml',
         'wizard/account_move_reversal_view.xml',
-        'wizard/afip_missed_document_wizard_view.xml',
+        # 'wizard/afip_missed_document_wizard_view.xml',
     ],
 
     'installable': True,
