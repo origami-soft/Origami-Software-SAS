@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <odoo>
-    <data>
+    <data noupdate="1">
 
         <!-- CREACION DE LA RELACION CON CODES_MODELS -->
 
