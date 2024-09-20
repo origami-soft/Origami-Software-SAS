@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class DenominationFiscalPosition(models.Model):
@@ -23,6 +23,13 @@ class DenominationFiscalPosition(models.Model):
         'Denominacion',
         required=True
     )
+    active = fields.Boolean(string='Activo', default=True)
+
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
 
     _sql_constraints = [(
         'unique',
