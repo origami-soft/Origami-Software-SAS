@@ -27,11 +27,11 @@ mapped with models using base_codes application
     ],
 
     'data': [
-        'views/account_denomination.xml',
-        'views/ar_fiscal_position.xml',
-        'views/afip_tables_configuration.xml',
-        'views/voucher_type.xml',
-        'views/account_move.xml',
+        # 'views/account_denomination.xml',
+        # 'views/ar_fiscal_position.xml',
+        # 'views/afip_tables_configuration.xml',
+        # 'views/voucher_type.xml',
+        # 'views/account_move.xml',
         # 'data/res_country_state.xml',
         # 'data/res_country.xml',
         # 'data/product_uom.xml',

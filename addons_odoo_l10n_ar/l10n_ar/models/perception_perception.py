@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models
+from odoo import models, api
 
 
 class PerceptionPerception(models.Model):
@@ -46,5 +46,11 @@ class PerceptionPerception(models.Model):
             ('company_id', '=', False),
             ('company_id', '=', company.id),
         ])
+
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

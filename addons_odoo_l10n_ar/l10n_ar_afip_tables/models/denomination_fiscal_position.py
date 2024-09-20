@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields
+from odoo import models, fields, api
 
 
 class DenominationFiscalPosition(models.Model):
@@ -15,12 +15,13 @@ class DenominationFiscalPosition(models.Model):
     #     required=True
     # )
     issue_fiscal_position_id = fields.Integer()
-    receipt_fiscal_position_id = fields.Many2one(
-        'ar.fiscal.position',
-        'Posicion Fiscal receptora',
-        ondelete='restrict',
-        required=True
-    )
+    # receipt_fiscal_position_id = fields.Many2one(
+    #     'ar.fiscal.position',
+    #     'Posicion Fiscal receptora',
+    #     ondelete='restrict',
+    #     required=True
+    # )
+    receipt_fiscal_position_id = fields.Integer()
     account_denomination_id = fields.Many2one(
         'account.denomination',
         'Denominacion',
@@ -28,6 +29,12 @@ class DenominationFiscalPosition(models.Model):
         required=True
     )
 
+    active = fields.Boolean(string='Activo', default=True)
+    @api.model
+    def unlink(self):
+        for record in self:
+            record.active = False
+        return True
     # _sql_constraints = [(
     #     'unique',
     #     'unique(issue_fiscal_position_id, receipt_fiscal_position_id, account_denomination_id)',
