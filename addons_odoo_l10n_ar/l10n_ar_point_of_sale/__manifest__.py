@@ -27,9 +27,9 @@ entre posiciones fiscales y denominaciones.
     ],
 
     'data': [
-        # 'views/account_move.xml',
-        # 'views/document_book.xml',
-        # 'views/pos_ar.xml',
+        'views/account_move.xml',
+        'views/document_book.xml',
+        'views/pos_ar.xml',
     ],
 
     'active': False,

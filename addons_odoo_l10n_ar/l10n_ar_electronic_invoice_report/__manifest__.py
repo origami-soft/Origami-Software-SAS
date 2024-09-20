@@ -25,9 +25,9 @@
     ],
 
     'data': [
-        # 'views/pos_ar.xml',
-        # 'report/account_invoice_report.xml',
-        # 'report/report_electronic_invoice.xml',
+        'views/pos_ar.xml',
+        'report/account_invoice_report.xml',
+        'report/report_electronic_invoice.xml',
     ],
 
     'active': False,

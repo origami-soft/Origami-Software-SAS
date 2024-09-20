@@ -24,10 +24,10 @@
     ],
 
     'data': [
-        # 'data/document_book_type.xml',
-        # 'data/voucher_type.xml',
-        # 'views/pos_ar.xml',
-        # 'views/stock_picking.xml',
+        'data/document_book_type.xml',
+        'data/voucher_type.xml',
+        'views/pos_ar.xml',
+        'views/stock_picking.xml',
     ],
 
     'installable': True,
