@@ -28,7 +28,7 @@ mapped with models using base_codes application
 
     'data': [
         'views/account_denomination.xml',
-        'views/ar_fiscal_position.xml',
+        # 'views/ar_fiscal_position.xml',
         'views/afip_tables_configuration.xml',
         'views/voucher_type.xml',
         'views/account_move.xml',
