@@ -8,18 +8,16 @@ class DenominationFiscalPosition(models.Model):
     _name = 'denomination.fiscal.position'
     _description = 'Denominación de posiciones fiscales'
 
-    # issue_fiscal_position_id = fields.Many2one(
-    #     'ar.fiscal.position',
-    #     'Posicion Fiscal emisora',
-    #     required=True
-    # )
-    # receipt_fiscal_position_id = fields.Many2one(
-    #     'ar.fiscal.position',
-    #     'Posicion Fiscal receptora',
-    #     required=True
-    # )
-    issue_fiscal_position_id = fields.Integer()
-    receipt_fiscal_position_id = fields.Integer()
+    issue_fiscal_position_id = fields.Many2one(
+        'ar.fiscal.position',
+        'Posicion Fiscal emisora',
+        required=True
+    )
+    receipt_fiscal_position_id = fields.Many2one(
+        'ar.fiscal.position',
+        'Posicion Fiscal receptora',
+        required=True
+    )
 
     account_denomination_id = fields.Many2one(
         'account.denomination',
