@@ -23,7 +23,7 @@
     ],
 
     'data': [
-        # 'wizard/wizard_general_ledger_excel.xml',
+        'wizard/wizard_general_ledger_excel.xml',
         'security/ir.model.access.csv'
     ],
 

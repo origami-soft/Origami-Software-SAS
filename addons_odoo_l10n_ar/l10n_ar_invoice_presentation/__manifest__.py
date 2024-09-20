@@ -23,8 +23,8 @@
     ],
 
     'data': [
-        # 'views/account_invoice_presentation.xml',
-        # 'views/account_invoice_vat_digital_book.xml',
+        'views/account_invoice_presentation.xml',
+        'views/account_invoice_vat_digital_book.xml',
         'security/ir.model.access.csv',
         'data/security.xml',
     ],
