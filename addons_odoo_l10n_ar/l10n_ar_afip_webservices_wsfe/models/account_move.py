@@ -38,11 +38,6 @@ class AccountMove(models.Model):
         copy=False
     )
 
-    def _get_integrity_hash_fields(self):
-        if self._context.get('is_written_from_afip'):
-            return ['journal_id', 'company_id']
-        return super()._get_integrity_hash_fields()
-
     def _check_electronic_invoice_sent(self):
         return any(move.cae for move in self)
     
@@ -77,7 +72,6 @@ class AccountMove(models.Model):
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
-        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
         pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)
@@ -461,7 +455,6 @@ class AccountMove(models.Model):
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
-        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
         pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)
@@ -626,7 +619,6 @@ class AccountMove(models.Model):
         :raises ValidationError: Si el talonario configurado no tiene la misma numeracion que en AFIP.
                                  Si hubo algun error devuelto por afip al momento de enviar los datos.
         """
-        self = self.with_context(is_written_from_afip=True)
         electronic_invoices = []
         pos = self.document_book_id.pos_ar_id
         invoices = self.filtered(lambda l: not l.cae and l.amount_total and l.pos_ar_id == pos).sorted(lambda l: l.id)

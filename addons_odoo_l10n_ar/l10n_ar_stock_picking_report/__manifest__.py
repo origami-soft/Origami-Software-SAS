@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_stock_picking_report',
 
-    'version': '1.0.1',
+    'version': '1.0.2',
 
     'summary': 'Reporte de remito autoimpresor',
 

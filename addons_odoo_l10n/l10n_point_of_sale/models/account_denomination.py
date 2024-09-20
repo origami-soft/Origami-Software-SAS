@@ -13,6 +13,6 @@ class AccountDenomination(models.Model):
     )
     description = fields.Char(string='Descripción')
 
-    # _sql_constraints = [('name_unique', 'unique(name)', 'El nombre debe ser único por denominación')]
+    _sql_constraints = [('name_unique', 'unique(name)', 'El nombre debe ser único por denominación')]
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

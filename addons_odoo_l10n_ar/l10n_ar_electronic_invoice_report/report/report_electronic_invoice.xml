@@ -261,7 +261,7 @@
                             >
                                 <t t-if="line.display_type == 'product'">
                                     <td>
-                                        <t t-set="name_lines" t-value="line.name.split('\n')" />
+                                        <t t-set="name_lines" t-value="line.name.split('\n') if line.name else []"/>
                                         <t t-foreach="name_lines" t-as="name_line">
                                             <span t-out="name_line" t-options="{'widget': 'text'}"/>
                                             <br/>

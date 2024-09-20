@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, api
+from odoo import models
 
 
 class RetentionRetention(models.Model):
@@ -38,9 +38,4 @@ class RetentionRetention(models.Model):
             ('company_id', '=', company.id),
         ])
 
-    @api.model
-    def unlink(self):
-        for record in self:
-            record.active = False
-        return True
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

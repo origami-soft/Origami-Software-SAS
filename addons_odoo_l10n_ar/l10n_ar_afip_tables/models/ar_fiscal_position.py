@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields
 from odoo.exceptions import ValidationError
 
 
@@ -8,7 +8,6 @@ class AccountFiscalPosition(models.Model):
 
     _inherit = 'ar.fiscal.position'
 
-    denomination_fiscal_position_ids = fields.Many2one('denomination.fiscal.position', ondelete='restrict')
     denomination_fiscal_position_ids = fields.One2many(
         'denomination.fiscal.position',
         'issue_fiscal_position_id',
@@ -17,7 +16,6 @@ class AccountFiscalPosition(models.Model):
              " a otras posiciones fiscales\npara cada denominacion"
     )
 
-    active = fields.Boolean(string='Activo', default=True)
     def get_denomination(self, receipt_fiscal_position):
         """
         Busca la denominacion para la posicion fiscal que se pide
@@ -29,10 +27,5 @@ class AccountFiscalPosition(models.Model):
             lambda x: x.receipt_fiscal_position_id == receipt_fiscal_position
         ).account_denomination_id
 
-    @api.model
-    def unlink(self):
-        for record in self:
-            record.active = False
-        return True
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

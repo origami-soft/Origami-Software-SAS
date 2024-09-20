@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class AccountTaxAr(models.AbstractModel):
@@ -54,12 +54,6 @@ class AccountTaxAr(models.AbstractModel):
         string='Activo',
         default=True
     )
-
-    @api.model
-    def unlink(self):
-        for record in self:
-            record.active = False
-        return True
 
     def get_taxes(self, company):
         raise NotImplementedError("Método no implementado")
