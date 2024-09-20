@@ -39,7 +39,7 @@ mapped with models using base_codes application
         'data/account_denomination.xml',
         'data/voucher_type.xml',
         'data/partner_document_type.xml',
-        'data/ar_fiscal_position.xml',
+        # 'data/ar_fiscal_position.xml',
         'data/afip_concept.xml',
         'data/denomination_fiscal_position.xml',
         'security/ir.model.access.csv',
