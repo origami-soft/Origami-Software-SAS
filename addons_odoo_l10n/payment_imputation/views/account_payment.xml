@@ -17,18 +17,21 @@
                 </div>
                 <group name="group2" position="inside">
                     <field name="payment_difference" invisible="1"/>
-                    <div name="payment_difference" invisible="not payment_difference" groups="account.group_account_user">
-                        <label for="payment_difference" string="Diferencia"/>
-                        <field name="payment_difference"/>
+                    <div name="payment_difference" invisible="not payment_difference" groups="account.group_account_user" colspan="2">
+                        <div class="o_row">
+                            <label for="payment_difference" string="Diferencia"/>
+                            <field name="payment_difference"/>
+                        </div>
                         <field name="payment_difference_handling" widget="radio" nolabel="1"/>
                         <div invisible="payment_difference_handling == 'open'">
-                            <label for="writeoff_account_id" string="Contabilizar la diferencia en" class="oe_edit_only"/>
-                            <field name="writeoff_account_id"
-                                   options="{'no_create': True}"
-                                   required="payment_difference_handling == 'reconcile'"
-                            />
-                            <label for="writeoff_label" class="oe_edit_only" string="Descripción"/>
-                            <field name="writeoff_label" required="payment_difference_handling == 'reconcile'"/>
+                            <div class="o_row">
+                                <label for="writeoff_account_id" string="Contabilizar la diferencia en" class="oe_edit_only"/>
+                                <field name="writeoff_account_id" options="{'no_create': True}" required="payment_difference_handling == 'reconcile'"/>
+                            </div>
+                            <div class="o_row">
+                                <label for="writeoff_label" class="oe_edit_only" string="Descripción"/>
+                                <field name="writeoff_label" required="payment_difference_handling == 'reconcile'"/>
+                            </div>
                         </div>
                     </div>
                 </group>
@@ -39,6 +42,7 @@
                                 <tree editable="bottom" create="false" decoration-info="amount &gt; 0 and amount &lt; amount_residual_in_payment_currency and payment_state =='draft'" decoration-muted="amount == 0 and payment_state =='draft'" decoration-success="amount == amount_residual_in_payment_currency and payment_state =='draft'" decoration-danger="amount &gt; amount_residual_in_payment_currency and payment_state =='draft'">
                                     <field name="concile" string="Imputar total"/>
                                     <field name="name"/>
+                                    <button name="open_move" icon="fa-file-text-o" type="object"/>
                                     <field name="move_line_date"/>
                                     <field name="move_line_date_maturity"/>
                                     <field name="move_line_id" column_invisible="1"/>
@@ -57,6 +61,7 @@
                             <field name="payment_imputation_move_ids" colspan="2" readonly="1" nolabel="1">
                                 <tree editable="bottom" create="false">
                                     <field name="move_id"/>
+                                    <button name="open_move" icon="fa-file-text-o" type="object"/>
                                     <field name="invoice_date"/>
                                     <field name="invoice_date_due"/>
                                     <field name="amount" sum="Total"/>

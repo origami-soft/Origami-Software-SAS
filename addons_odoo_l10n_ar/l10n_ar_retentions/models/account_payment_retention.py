@@ -143,6 +143,6 @@ class AccountPaymentRetention(models.Model):
         return vals
 
     def get_line_error_description(self):
-        return "Retención de {} {}".format(dict(self._fields['type'].selection).get(self.type), self.jurisdiction)
+        return "Retención de {} {}".format(dict(self._fields['type'].related_field.selection).get(self.type), self.jurisdiction)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

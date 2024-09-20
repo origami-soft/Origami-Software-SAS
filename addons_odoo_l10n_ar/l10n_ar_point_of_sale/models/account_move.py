@@ -28,11 +28,6 @@ class AccountMove(models.Model):
         'Numero documento',
         copy=False
     )
-    full_voucher_name = fields.Char(
-        "Número completo",
-        compute='compute_full_voucher_name',
-        store=True,
-    )
 
     @api.depends("pos_ar_id", "move_type", "partner_id")  # Se agrega dependencia de partner_id
     def compute_document_book(self):
@@ -182,9 +177,8 @@ class AccountMove(models.Model):
             )
     
     def set_line_name_on_voucher_name(self):
-        self.line_ids.filtered(lambda l: l.account_id.account_type in ('asset_receivable', 'liability_payable')).write({
-            'name': self.full_voucher_name
-        })
+        self.line_ids.filtered(lambda l: l.account_id.account_type in ('asset_receivable', 'liability_payable'))\
+            .with_context(skip_invoice_integrity_check=True).write({'name': self.full_voucher_name})
 
     def _validate_supplier_invoice_number(self):
         """

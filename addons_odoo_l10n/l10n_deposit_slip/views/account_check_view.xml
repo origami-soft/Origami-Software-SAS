@@ -14,6 +14,9 @@
                 <field name="deposit_date" invisible="not deposit_slip_id"/>
                 <field name="deposit_bank_id" invisible="not deposit_slip_id"/>
             </field>
+            <xpath expr="//header" position="inside">
+                <button name="btn_deposit_checks" type="object" string="Depositar" groups="l10n_treasury.group_account_treasury_manager" invisible="state == 'deposited'"/>
+            </xpath>
         </field>
     </record>
 

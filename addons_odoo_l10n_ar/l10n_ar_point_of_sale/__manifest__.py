@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_point_of_sale',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'summary': 'Punto de venta para Argentina',
 
@@ -27,9 +27,9 @@ entre posiciones fiscales y denominaciones.
     ],
 
     'data': [
-        # 'views/account_move.xml',
-        # 'views/document_book.xml',
-        # 'views/pos_ar.xml',
+        'views/account_move.xml',
+        'views/document_book.xml',
+        'views/pos_ar.xml',
     ],
 
     'active': False,

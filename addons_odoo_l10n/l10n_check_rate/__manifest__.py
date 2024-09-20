@@ -4,7 +4,7 @@
 
     'name': 'l10n Check Rate',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'category': '',
 
@@ -28,6 +28,7 @@
         'views/account_own_check.xml',
         'views/account_third_check.xml',
         'views/account_payment.xml',
+        'wizard/account_payment_register_views.xml',
 
     ],
 

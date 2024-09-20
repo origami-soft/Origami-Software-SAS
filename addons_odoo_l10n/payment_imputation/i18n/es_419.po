@@ -1,0 +1,4 @@
+#. module: payment_imputation
+#: model:ir.ui.menu,name:account.menu_action_account_payments_receivable
+msgid "Payments"
+msgstr "Cobros"

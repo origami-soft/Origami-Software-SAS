@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_electronic_invoice_report',
 
-    'version': '1.1.3',
+    'version': '1.1.4',
 
     'description': 'Reporte para facturación electrónica',
 
@@ -25,9 +25,9 @@
     ],
 
     'data': [
-        # 'views/pos_ar.xml',
-        # 'report/account_invoice_report.xml',
-        # 'report/report_electronic_invoice.xml',
+        'views/pos_ar.xml',
+        'report/account_invoice_report.xml',
+        'report/report_electronic_invoice.xml',
     ],
 
     'active': False,

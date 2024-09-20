@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<odoo>
+    <record model="ir.ui.view" id="view_account_payment_register_form">
+        <field name="name">view_account_payment_register_form</field>
+        <field name="model">account.payment.register</field>
+        <field name="inherit_id" ref="l10n_account_payment.view_account_payment_register_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='payment_type_line_ids']/tree/field[@name='rate']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_type_line_ids']/tree/field[@name='rate']" position="before">
+                <field name="natural_rate" invisible="same_currency_as_payment" />
+            </xpath>
+        </field>
+    </record>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

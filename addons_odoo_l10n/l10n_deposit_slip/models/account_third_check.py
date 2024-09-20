@@ -80,4 +80,19 @@ class AccountThirdCheck(models.Model):
         move_lines.write({'name': self.get_move_line_label_with_number()})
         return res
 
+    def btn_deposit_checks(self):
+        view = self.env.ref('l10n_deposit_slip.account_deposit_slip_wizard_form')
+        model = self.env.ref('l10n_deposit_slip.model_account_third_check')
+        return {
+            'name': 'Depositar cheques',
+            'type': 'ir.actions.act_window',
+            'res_model': 'wizard.deposit.slip',
+            'view_mode': 'form',
+            'view_id': view.id,
+            'binding_model_id': model.id,
+            'binding_view_types':('list','form'),
+            'groups_id': [(4, self.env.ref('l10n_treasury.group_account_treasury_manager').id)],
+            'target': 'new',
+        }
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

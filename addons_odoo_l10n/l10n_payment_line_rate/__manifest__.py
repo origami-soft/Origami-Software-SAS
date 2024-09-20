@@ -4,7 +4,7 @@
 
     'name': 'l10n Payment Line Rate',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'category': '',
 

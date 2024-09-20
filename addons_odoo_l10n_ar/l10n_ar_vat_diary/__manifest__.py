@@ -22,7 +22,7 @@
     ],
 
     'data': [
-        # 'views/account_fiscal_position.xml',
+        'views/account_fiscal_position.xml',
         'views/account_tax.xml',
         'views/vat_diary.xml',
         'report/vat_diary_pdf_report_data.xml',

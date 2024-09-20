@@ -26,7 +26,7 @@
 
     'data': [
 
-        # 'views/pos_ar.xml',
+        'views/pos_ar.xml',
 
     ],
 

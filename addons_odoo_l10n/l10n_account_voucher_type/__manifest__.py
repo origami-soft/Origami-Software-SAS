@@ -5,7 +5,7 @@
 
     'name': 'l10n_account_voucher_type',
 
-    'version': '1.0.0',
+    'version': '1.1.0',
 
     'category': 'Tipos de comprobantes para contabilidad',
 
@@ -27,7 +27,7 @@
         'security/groups.xml',
         'security/ir.model.access.csv',
         'views/account_move.xml',
-        # 'views/account_payment.xml',
+        'views/account_payment.xml',
         'views/voucher_type.xml',
         'wizard/account_move_reversal.xml',
     ],
