@@ -15,11 +15,11 @@ class AccountTax(models.Model):
             'retention': lambda recs: recs.write({'amount_type': 'percent', 'active': False})
         }
     )
-    perception_id = fields.Many2one(
+    perception_id = fields.Many2many(
         comodel_name='perception.perception',
         string='Percepción'
     )
-    retention_id = fields.Many2one(
+    retention_id = fields.Many2many(
         comodel_name='retention.retention',
         string='Retención'
     )
