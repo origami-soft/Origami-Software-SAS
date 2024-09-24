@@ -51,7 +51,7 @@
         <field name="name">Impuestos de percepciones efectuadas</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">account.invoice.perception</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_account_invoice_perception_tree"/>
         <field name="context">{"search_default_applied":1}</field>
         <field name="domain">[('move_id.state','=','posted')]</field>
@@ -62,7 +62,7 @@
         <field name="name">Impuestos de percepciones soportadas</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">account.invoice.perception</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="view_id" ref="view_account_invoice_perception_tree"/>
         <field name="context">{"search_default_supported":1}</field>
         <field name="domain">[('move_id.state','=','posted')]</field>
