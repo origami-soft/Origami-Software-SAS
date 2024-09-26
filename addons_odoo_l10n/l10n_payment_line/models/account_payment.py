@@ -40,7 +40,7 @@ class AccountPayment(models.Model):
         return res
 
     def _get_available_journal_domain(self):
-        domain = [('type', 'in', ('bank', 'cash')), ('company_id', '=', self.company_id.id)]
+        domain = [('type', 'in', ('bank', 'cash')),'|', ('company_id', '=', self.company_id.id), ('company_id', '=', self.env.company.id)]
         if not self.is_internal_transfer:
             domain.append(('selectable_in_payments', '=', True))
         return domain

@@ -7,10 +7,10 @@
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="account.res_config_settings_view_form"/>
         <field name="arch" type="xml">
-            <block id="invoicing_settings" position="after">
+            <xpath expr="//block[@id='invoicing_settings']" position="after">
                 <h2>Métodos de pago</h2>
                 <div class="row mt16 o_settings_container" id="account_payment_line_settings"/>
-            </block>
+            </xpath>
         </field>
     </record>
 
