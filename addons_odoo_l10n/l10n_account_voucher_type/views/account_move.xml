@@ -24,11 +24,12 @@
             <field name="ref" position="after">
                 <field name="voucher_type_category" invisible="1"/>
                 <field name="is_debit_note" invisible="1"/>
-                <field
-                    name="voucher_type_id"
-                    invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or document_book_id"
-                    domain="[('category', '=', voucher_type_category)]"
-                />
+<!--                <field-->
+<!--                    name="voucher_type_id"-->
+<!--                    invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or document_book_id"-->
+<!--                    domain="[('category', '=', voucher_type_category)]"-->
+<!--                />-->
+                <field name="voucher_type_id" invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund']" readonly="['|', ('state', '!=', 'draft'), ('document_book_id', '!=', False)]" domain="[('category', '=', voucher_type_category)]"/>
             </field>
         </field>
     </record>
