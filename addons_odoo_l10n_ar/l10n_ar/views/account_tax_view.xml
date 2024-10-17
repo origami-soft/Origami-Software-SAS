@@ -13,8 +13,8 @@
                     <field name="is_vat"/>
                 </field>
                 <field name="amount_type" position="after">
-                    <field name="perception_id" widget="many2many_tags" required="amount_type == 'perception'" invisible="amount_type != 'perception'"/>
-                    <field name="retention_id" widget="many2many_tags" required="amount_type == 'retention'" invisible="amount_type != 'retention'"/>
+                    <field name="perception_id" required="amount_type == 'perception'" invisible="amount_type != 'perception'"/>
+                    <field name="retention_id" required="amount_type == 'retention'" invisible="amount_type != 'retention'"/>
                 </field>
             </field>
         </record>
