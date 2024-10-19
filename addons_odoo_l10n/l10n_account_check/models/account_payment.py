@@ -28,6 +28,7 @@ class AccountPayment(models.Model):
         copy=False
     )
     check_issue_date = fields.Date(compute='compute_check_issue_date')
+    copy_journal_id = fields.Many2one(comodel_name='account.journal', store=True, readonly=False, check_company=True)
 
     @api.model
     def default_get(self, fields):
@@ -112,11 +113,15 @@ class AccountPayment(models.Model):
                 vals['is_internal_transfer'] = True
             if self.env.context.get('default_payment_type', False) and 'payment_type' not in vals:
                 vals['payment_type'] = self.env.context.get('default_payment_type')
+            if 'journal_id' in vals:
+                vals['copy_journal_id'] = vals.get('journal_id')
         return super().create(vals_list)
 
     def write(self, vals):
         if self.env.context.get('default_is_internal_transfer', False) and not self.is_internal_transfer and self.payment_type == self.env.context.get('default_payment_type'):
             vals['is_internal_transfer'] = True
+        if self.is_internal_transfer and self.payment_type == 'inbound' and self.copy_journal_id and self.journal_id != self.copy_journal_id:
+            vals['journal_id'] = self.copy_journal_id.id
         return super().write(vals)
 
     def action_paired_internal_transfer_payment_id(self):
