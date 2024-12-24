@@ -19,16 +19,17 @@
     <record id="account_move_voucher_type_form" model="ir.ui.view">
         <field name="name">Account move voucher type form</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="inherit_id" ref="l10n_point_of_sale.invoice_pos_ar_form"/>
         <field name="arch" type="xml">
             <field name="ref" position="after">
                 <field name="voucher_type_category" invisible="1"/>
                 <field name="is_debit_note" invisible="1"/>
-                <field
-                    name="voucher_type_id"
-                    invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund']"
-                    domain="[('category', '=', voucher_type_category)]"
-                />
+<!--                <field-->
+<!--                    name="voucher_type_id"-->
+<!--                    invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund'] or document_book_id"-->
+<!--                    domain="[('category', '=', voucher_type_category)]"-->
+<!--                />-->
+                <field name="voucher_type_id" invisible="move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund']" readonly="['|', ('state', '!=', 'draft'), ('document_book_id', '!=', False)]" domain="[('category', '=', voucher_type_category)]"/>
             </field>
         </field>
     </record>

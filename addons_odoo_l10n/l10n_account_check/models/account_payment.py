@@ -28,6 +28,15 @@ class AccountPayment(models.Model):
         copy=False
     )
     check_issue_date = fields.Date(compute='compute_check_issue_date')
+    copy_journal_id = fields.Many2one(comodel_name='account.journal', store=True, readonly=False, check_company=True)
+
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        if res.get("company_id") == False:
+            res["company_id"] = self.env.company.id
+        return res
+
 
     def unlink(self):
         """ Heredo el método unlink() ya que al eliminar un pago,
@@ -94,5 +103,37 @@ class AccountPayment(models.Model):
                 payment.account_own_check_ids.cancel_payment()
 
         return super(AccountPayment, self).action_draft()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'company_id' not in vals:
+                vals['company_id'] = self.env.company.id
+            if self.env.context.get('default_is_internal_transfer', False) and 'is_internal_transfer' not in vals:
+                vals['is_internal_transfer'] = True
+            if self.env.context.get('default_payment_type', False) and 'payment_type' not in vals:
+                vals['payment_type'] = self.env.context.get('default_payment_type')
+            if 'journal_id' in vals:
+                vals['copy_journal_id'] = vals.get('journal_id')
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if self.env.context.get('default_is_internal_transfer', False) and not self.is_internal_transfer and self.payment_type == self.env.context.get('default_payment_type'):
+            vals['is_internal_transfer'] = True
+        if self.is_internal_transfer and self.payment_type == 'inbound' and self.copy_journal_id and self.journal_id != self.copy_journal_id:
+            vals['journal_id'] = self.copy_journal_id.id
+        return super().write(vals)
+
+    def action_paired_internal_transfer_payment_id(self):
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': 'Transferencias internas',
+            'res_model': 'account.payment',
+            'view_mode': 'form',
+            'res_id': self.paired_internal_transfer_payment_id.id,
+            'context': dict(self._context, create=False, default_company_id=self.company_id.id)
+        }
+        return action
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

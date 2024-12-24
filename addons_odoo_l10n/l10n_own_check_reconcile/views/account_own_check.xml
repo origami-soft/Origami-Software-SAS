@@ -9,8 +9,6 @@
         <field name="arch" type="xml">
             <field name="state" position="before">
                 <field name="reconcile_move_ids" invisible="1"/>
-                <button name="view_reconcile_moves" string="Ver asientos de débito" type="object"
-                        invisible="not reconcile_move_ids"/>
                 <button name="cancel_reconcile" string="Revertir débito" type="object" confirm="¿Está seguro?"
                         invisible="not reconcile_move_ids"/>
             </field>
@@ -20,6 +18,15 @@
             <field name="issue_date" position="after">
                 <field name="reconcile_date" readonly="1" invisible="not reconcile_date"/>
             </field>
+            <xpath expr="//header" position="inside">
+                <button name="btn_debit" type="object" string="Debitar" groups="l10n_treasury.group_account_treasury_manager" invisible="state == 'reconciled'"/>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="view_reconcile_moves" string="Asientos" type="object"
+                    invisible="not reconcile_move_ids" icon="fa-pencil-square-o"/>
+                </div>
+            </xpath>
         </field>
     </record>
 

@@ -64,7 +64,7 @@ class OwnCheckReconcile(models.Model):
         ],
         required=True,
         default='draft',
-        track_visibility='onchange',
+        tracking=True,
     )
 
     company_id = fields.Many2one(

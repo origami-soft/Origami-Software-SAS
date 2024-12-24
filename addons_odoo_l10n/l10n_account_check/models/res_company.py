@@ -16,5 +16,10 @@ class ResCompany(models.Model):
         'Diario de cheques propios',
         domain="[('company_id', '=', id), ('payment_usage', '=', 'own_check')]"
     )
+    own_check_bank_id = fields.Many2one(
+        comodel_name='account.journal',
+        string='Banco por defecto en cheques propios',
+        domain="[('company_id', '=', company_id), ('type', '=', 'bank'), ('bank_id', '!=', False) ]"
+    )
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
