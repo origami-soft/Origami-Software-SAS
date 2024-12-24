@@ -143,7 +143,7 @@
         <field name="view_mode">tree,form,graph</field>
         <field name="context">{'default_is_internal_transfer': True,
                                'readonly_is_internal_transfer': True,
-                               'default_company_id': context.get('company'),
+                               'default_company_id': context.get('company') or 1,
                                'default_move_journal_types': ['bank', 'cash'],
                                'default_payment_type': 'outbound',
                                'readonly_payment_type': True}</field>
