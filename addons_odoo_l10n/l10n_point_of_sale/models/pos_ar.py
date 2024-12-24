@@ -40,7 +40,7 @@ class PosAr(models.Model):
         :return: Talonarios encontrados
         :rtype: document.book()
         """        
-        self.ensure_one()
+        # self.ensure_one()
         return self.document_book_ids.filtered(
             lambda db:
             (db.category == params.get('category') if 'category' in params else True) and
@@ -59,7 +59,7 @@ class PosAr(models.Model):
         :return: Talonario encontrado
         :rtype: document.book()
         """        
-        self.ensure_one()
+        # self.ensure_one()
         dbooks = self.get_available_documents(params)
         if not dbooks:
             return None

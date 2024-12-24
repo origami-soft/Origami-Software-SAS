@@ -77,7 +77,6 @@ class WizardDepositSlip(models.TransientModel):
             'check_ids': [(6, 0, self._get_checks().ids)],
             'state': 'draft',
             'currency_id': self.currency_id.id,
-            'reference': f'Cheque {self._get_checks().name}',
         }
 
     def _create_deposit_slip(self):

@@ -50,11 +50,12 @@ class AccountAbstractPaymentLine(models.AbstractModel):
             else:
                 payment_line.journal_id = payment_line.journal_id or payment_line._origin.journal_id
 
-    @api.depends('journal_id.currency_id', 'journal_id.company_id.currency_id', 'payment_id.company_id.currency_id')
+    @api.depends('journal_id.currency_id', 'payment_id.company_id.currency_id')
     def get_journal_currency(self):
         for r in self:
-            r.currency_id = r.journal_id.currency_id or r.journal_id.company_id.currency_id if r.journal_id else \
-                r.payment_id.company_id.currency_id
+            company_currency = r.payment_id.company_id.currency_id
+            currency = r.journal_id.currency_id or company_currency if r.journal_id else False
+            r.currency_id = currency
 
     @api.depends('currency_id', 'payment_currency_id')
     def get_same_currency_as_payment(self):

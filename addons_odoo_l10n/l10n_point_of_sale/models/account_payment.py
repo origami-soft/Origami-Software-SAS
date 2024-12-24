@@ -36,11 +36,6 @@ class AccountPayment(models.Model):
         compute="compute_pos_document_book_ids"
     )
 
-    @api.depends('full_voucher_name')
-    def _compute_display_name(self):
-        for r in self:
-            r.display_name = r.full_voucher_name
-
     def get_params_for_available_vouchers(self):
         self.ensure_one()
         return {
@@ -64,7 +59,7 @@ class AccountPayment(models.Model):
         payments_with_pos = self.filtered(lambda r: r.journal_id.pos_ar_id)
         for rec in payments_with_pos:
             params = rec.get_params_for_available_vouchers()
-            rec.document_book_id = rec.journal_id.pos_ar_id.get_default_document_book(params)
+            rec.document_book_id = rec.pos_ar_id.get_default_document_book(params)
         (self - payments_with_pos).document_book_id = None
     
     @api.depends("pos_ar_id", "payment_type")
@@ -85,5 +80,8 @@ class AccountPayment(models.Model):
             for payment in self:
                 payment.move_id.write({'document_book_id': payment.document_book_id.id})
         return res
+
+    def action_paired_internal_transfer_payment_id(self):
+        pass
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

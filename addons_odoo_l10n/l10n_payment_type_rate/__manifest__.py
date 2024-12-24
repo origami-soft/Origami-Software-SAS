@@ -4,7 +4,7 @@
 
     'name': 'l10n Payment Type Rate',
 
-    'version': '1.0.3',
+    'version': '1.0',
 
     'category': '',
 
@@ -26,7 +26,6 @@
     'data': [
 
         'views/account_payment.xml',
-        'wizard/account_payment_register_views.xml',
 
     ],
 

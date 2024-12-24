@@ -4,7 +4,7 @@
 
     'name': 'l10n Payment Line',
 
-    'version': '1.0.1',
+    'version': '1.0',
 
     'category': '',
 
