@@ -34,7 +34,7 @@ class AccountAbstractPaymentLine(models.AbstractModel):
             return
         payment = self.payment_id
         real_rate = self.env['res.currency']._get_conversion_rate(
-            payment.currency_id, self.currency_id, payment.company_id, self.date_abstract_payment)
+            payment.currency_id, self.currency_id, payment.company_id, payment.date)
         self.rate = self.natural_rate if real_rate >= 1 else 1 / self.natural_rate
 
     @api.onchange('journal_id')

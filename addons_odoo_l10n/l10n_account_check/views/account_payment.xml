@@ -127,23 +127,13 @@
         <field name="model">account.payment</field>
         <field name="inherit_id" ref="account.view_account_payment_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='currency_id']" position="after">
-                <field name="paired_internal_transfer_payment_id" invisible="1"/>
-            </xpath>
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_paired_internal_transfer_payment_id" type="object" class="oe_stat_button" icon="fa-file" invisible="not paired_internal_transfer_payment_id or (paired_internal_transfer_payment_id != False and payment_type == 'inbound')" groups="account.group_account_user,account.group_account_readonly">
-                    <div class="o_stat_info">
-                        <span class="o_stat_text">Documento</span>
-                    </div>
-                </button>
-            </xpath>
             <xpath expr="//field[@name='is_internal_transfer']" position="attributes">
                 <attribute name="readonly">context.get('readonly_is_internal_transfer',False) or state != 'draft'</attribute>
-                <attribute name="invisible">state != 'draft'</attribute>
+                <attribute name="invisible">context.get('readonly_is_internal_transfer',False)</attribute>
             </xpath>
             <xpath expr="//field[@name='payment_type']" position="attributes">
                 <attribute name="readonly">context.get('readonly_payment_type',False) or state != 'draft'</attribute>
-<!--                <attribute name="invisible">context.get('readonly_payment_type',False)</attribute>-->
+                <attribute name="invisible">context.get('readonly_payment_type',False)</attribute>
             </xpath>
         </field>
     </record>
@@ -156,8 +146,7 @@
                                'readonly_is_internal_transfer': True,
                                'default_move_journal_types': ['bank', 'cash'],
                                'default_payment_type': 'outbound',
-                               'readonly_payment_type': True,
-                               'default_company_id': context.get('company_id')}</field>
+                               'readonly_payment_type': True}</field>
         <field name="domain">[('is_internal_transfer', '=', True)]</field>
         <field name="help" type="html">
             <p class="oe_view_nocontent_create">

@@ -1,0 +1,5 @@
+rarfile
+w3lib
+pandas==2.0.3
+openpyxl == 3.1.2
+mysql-connector==2.2.9

@@ -12,10 +12,8 @@ BOOK_TYPE_CATEGORIES = {
 # Cada localización debe adoptar un nombre de método que sea el 
 # de la variable a continuación más el código de país (en minúscula)
 # para agregar las denominaciones correspondientes al filtro de comprobantes
-# y para determinar el nombre del comprobante
 DEFAULT_DOCUMENT_BOOK_FUNC = 'get_params_for_available_vouchers_'
 AVAILABLE_DOCUMENT_BOOK_FUNC = 'get_params_for_document_books_'
-FULL_VOUCHER_NAME_FUNC = 'get_full_voucher_name_'
 
 
 class AccountMove(models.Model):
@@ -49,57 +47,6 @@ class AccountMove(models.Model):
         comodel_name='document.book',
         compute="compute_pos_document_book_ids"
     )
-    full_voucher_name = fields.Char(
-        "Número completo",
-        compute='compute_full_voucher_name',
-        store=True,
-    )
-
-    def _get_fields_to_skip(self):
-        return ['name', 'date']
-
-    def _get_integrity_hash_fields(self):
-        res = super()._get_integrity_hash_fields()
-        if self._context.get('skip_invoice_integrity_check'):
-            return [x for x in res if x not in self._get_fields_to_skip()]
-        return res
-
-    def _get_invoice_report_filename(self, extension='pdf'):
-        """ Piso el método para que el nombre del archivo sea en base a full_voucher_name en vez de name """
-        self.ensure_one()
-        return f"{self.full_voucher_name.replace('/', '_')}.{extension}"
-
-    def _get_full_voucher_name_depends_fields(self):
-        """Cada localización agregará a este método los campos
-        que requiera para calcular el full_voucher_name
-        """
-        return ['name']
-
-    def _get_full_voucher_name(self, full_voucher_name_func):
-        self.ensure_one()
-        country = self.company_id.country_id
-        if not country:
-            return self.name
-        country_code = country.code.lower()
-        if not ustr(country_code).encode('utf-8').isalpha():
-            return self.name
-        func = getattr(self, full_voucher_name_func + country_code, None)
-        if not func:
-            return self.name
-        return func()
-
-    @api.depends(lambda self: self._get_full_voucher_name_depends_fields())
-    def compute_full_voucher_name(self):
-        """Cada localización definirá su método get_full_voucher_name_
-        según el criterio que se requiera para armar el name
-        """
-        for r in self:
-            r.full_voucher_name = r._get_full_voucher_name(FULL_VOUCHER_NAME_FUNC)
-    
-    @api.depends('full_voucher_name')
-    def _compute_display_name(self):
-        for r in self:
-            r.display_name = r.full_voucher_name
 
     def get_params_for_available_vouchers(self):
         """Método genérico para pedir los parámetros de filtro de comprobantes
@@ -150,6 +97,13 @@ class AccountMove(models.Model):
             params = rec.get_params_for_document_books()
             rec.pos_document_book_ids = rec.pos_ar_id.get_available_documents(params) if rec.pos_ar_id else None
 
+    @api.depends('document_book_id')
+    def _compute_name(self):
+        """Evitamos que asigne numeración estándar si lleva talonario"""
+        moves_with_book = self.filtered(lambda x: x.document_book_id)
+        moves_with_book.filtered(lambda x: not x.name).write({'name': '/'})
+        super(AccountMove, self-moves_with_book)._compute_name()
+
     def _post(self, soft=True):
         res = super(AccountMove, self)._post(soft)
         for invoice in self.filtered(lambda x: x.document_book_id):
@@ -159,96 +113,31 @@ class AccountMove(models.Model):
                 # Llamamos a la funcion a ejecutarse desde el tipo de talonario,
                 # de esta forma, hará lo correspondiente
                 # para distintos casos (preimpreso, electronica, fiscal, etc.)
-                getattr(invoice.with_context(skip_invoice_integrity_check=True), invoice.document_book_id.book_type_id.foo)()
-                # Fuerzo una referencia de pago para evitar que Odoo la complete con el campo name
-                invoice.payment_reference = invoice.full_voucher_name
+                getattr(invoice, invoice.document_book_id.book_type_id.foo)()
         return res
 
     def action_preprint(self):
         """ Funcion para ejecutarse al validar una factura con talonario preimpreso """
         return
-    
-    def _get_move_display_name(self, show_ref=False):
-        res = super()._get_move_display_name(show_ref)
-        res = res.replace(self.name, self.full_voucher_name)
-        return res
 
-    def _compute_payments_widget_reconciled_info(self):
-        """ Heredo el método para reemplazar el name del asiento por full_voucher_name """
-        res = super()._compute_payments_widget_reconciled_info()
-        for m in self:
-            if not m.invoice_payments_widget:
-                continue
-            for i, data in enumerate(m.invoice_payments_widget.get('content', [])):
-                move = self.browse(data.get('move_id'))
-                m.invoice_payments_widget['content'][i]['ref'] = \
-                    m.invoice_payments_widget['content'][i]['ref'].replace(move.name, move.full_voucher_name)
-        return res
-
-    def _compute_payments_widget_to_reconcile_info(self):
-        """ Sobrescribo el método para usar full_voucher_name (no funciona por herencia)
-        Líneas modificadas: 202, 205 (traducciones) y 225
-        """
-        for move in self:
-            move.invoice_outstanding_credits_debits_widget = False
-            move.invoice_has_outstanding = False
-
-            if move.state != 'posted' \
-                    or move.payment_state not in ('not_paid', 'partial') \
-                    or not move.is_invoice(include_receipts=True):
-                continue
-
-            pay_term_lines = move.line_ids\
-                .filtered(lambda line: line.account_id.account_type in ('asset_receivable', 'liability_payable'))
-
-            domain = [
-                ('account_id', 'in', pay_term_lines.account_id.ids),
-                ('parent_state', '=', 'posted'),
-                ('partner_id', '=', move.commercial_partner_id.id),
-                ('reconciled', '=', False),
-                '|', ('amount_residual', '!=', 0.0), ('amount_residual_currency', '!=', 0.0),
-            ]
-
-            payments_widget_vals = {'outstanding': True, 'content': [], 'move_id': move.id}
-
-            if move.is_inbound():
-                domain.append(('balance', '<', 0.0))
-                payments_widget_vals['title'] = "Créditos pendientes"
-            else:
-                domain.append(('balance', '>', 0.0))
-                payments_widget_vals['title'] = "Débitos pendientes"
-
-            for line in self.env['account.move.line'].search(domain):
-
-                if line.currency_id == move.currency_id:
-                    # Same foreign currency.
-                    amount = abs(line.amount_residual_currency)
-                else:
-                    # Different foreign currencies.
-                    amount = line.company_currency_id._convert(
-                        abs(line.amount_residual),
-                        move.currency_id,
-                        move.company_id,
-                        line.date,
-                    )
-
-                if move.currency_id.is_zero(amount):
-                    continue
-
-                payments_widget_vals['content'].append({
-                    'journal_name': line.ref or line.move_id.full_voucher_name,
-                    'amount': amount,
-                    'currency_id': move.currency_id.id,
-                    'id': line.id,
-                    'move_id': line.move_id.id,
-                    'date': fields.Date.to_string(line.date),
-                    'account_payment_id': line.payment_id.id,
-                })
-
-            if not payments_widget_vals['content']:
-                continue
-
-            move.invoice_outstanding_credits_debits_widget = payments_widget_vals
-            move.invoice_has_outstanding = True
+    def _get_last_sequence_domain(self, relaxed=False):
+        where_string, param = super(AccountMove, self)._get_last_sequence_domain(relaxed=relaxed)
+        # Se reemplazan ocurrencias de backslash con dobles backslash ya que PostgreSQL 
+        # los interpreta de esa forma. Ver link https://stackoverflow.com/a/55544610
+        if param.get('anti_regex'):
+            param['anti_regex'] = param['anti_regex'].replace('\\', r'\\')
+        # Los talonarios de tipo Preimpreso automático tienen en true el dato use_automatic_sequence
+        # Para evitar que al hacer facturas/pagos con estos utilice la secuencia de, por ejemplo, 
+        # facturas/pagos electrónicas, se excluye a los tipos de talonario electrónicos de la búsqueda 
+        # de la última secuencia (tienen use_automatic_sequence en false).
+        # Para las facturas/pagos que no tengan talonario también se tiene que usar la secuencia estándar, 
+        # no así para las facturas de proveedor
+        if (self.is_sale_document() or self.payment_id) and (not self.document_book_id or self.document_book_id.book_type_id.use_automatic_sequence):
+            where_string += """ AND id NOT IN (SELECT am.id 
+                                              FROM account_move AS am 
+                                              JOIN document_book AS dbook ON am.document_book_id = dbook.id 
+                                              JOIN document_book_type AS dbookt ON dbook.book_type_id = dbookt.id 
+                                              WHERE dbookt.use_automatic_sequence != true or dbookt.use_automatic_sequence IS NULL)"""
+        return where_string, param
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

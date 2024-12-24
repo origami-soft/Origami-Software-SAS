@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
+# Part of BrowseInfo. See LICENSE file for full copyright and licensing details.LICENSE
 
 {
 
     'name': 'l10n_point_of_sale',
 
-    'version': '1.1.8',
+    'version': '1.0.0',
 
     'summary': 'Punto de venta para Argentina y Uruguay',
 
@@ -26,24 +27,18 @@ Modulo encargado de manejar talonarios y puntos de venta.
     ],
 
     'data': [
-        # 'data/document_book_type.xml',
+        'data/document_book_type.xml',
         'security/ir.model.access.csv',
         'security/security.xml',
         'views/account_denomination.xml',
         'views/account_journal.xml',
         'views/account_move.xml',
-        'views/account_move_line.xml',
         'views/account_payment.xml',
         'views/document_book.xml',
         'views/pos_ar.xml',
         'views/menu.xml',
         'views/voucher_type.xml',
-        'report/invoice_report.xml',
     ],
-
-    'post_init_hook': 'post_init_hook',
-
-    'uninstall_hook': 'uninstall_hook',
 
     'active': False,    
     

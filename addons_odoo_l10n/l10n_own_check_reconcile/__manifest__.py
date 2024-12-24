@@ -4,7 +4,7 @@
 
     'name': 'Registro de débito de cheques',
 
-    'version': '1.0.3',
+    'version': '1.0',
 
     'category': '',
 
