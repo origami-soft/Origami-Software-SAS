@@ -8,6 +8,6 @@ class AbstractPaymentImputationLine(models.AbstractModel):
 
     def _compute_name(self):
         for line in self:
-            line.name = line.move_line_id.full_voucher_name
+            line.name = line.move_line_id.name or line.move_line_id.full_voucher_name
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

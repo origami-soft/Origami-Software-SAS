@@ -36,6 +36,11 @@ class AccountPayment(models.Model):
         compute="compute_pos_document_book_ids"
     )
 
+    @api.depends('full_voucher_name')
+    def _compute_display_name(self):
+        for r in self:
+            r.display_name = r.full_voucher_name
+
     def get_params_for_available_vouchers(self):
         self.ensure_one()
         return {
@@ -80,8 +85,5 @@ class AccountPayment(models.Model):
             for payment in self:
                 payment.move_id.write({'document_book_id': payment.document_book_id.id})
         return res
-
-    def action_paired_internal_transfer_payment_id(self):
-        pass
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

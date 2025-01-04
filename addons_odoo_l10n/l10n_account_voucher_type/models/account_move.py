@@ -19,6 +19,7 @@ class AccountMove(models.Model):
         compute='compute_voucher_type',
         readonly=False,
         store=True,
+        copy=False,
         check_company=True,
         ondelete='restrict'
     )

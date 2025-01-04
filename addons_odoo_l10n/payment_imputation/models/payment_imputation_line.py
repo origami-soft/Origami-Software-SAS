@@ -52,6 +52,7 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
         for line in self:
             line.currency_id = line.move_line_id.currency_id or line.move_line_id.company_currency_id
 
+    @api.depends('move_line_id.name', 'move_line_id.move_id.name')
     def _compute_name(self):
         for line in self:
             line.name = line.move_line_id.name or line.move_line_id.move_id.name
@@ -132,5 +133,18 @@ class PaymentImputationLine(models.Model):
     payment_id = fields.Many2one('account.payment', 'Pago', ondelete='cascade')
     payment_state = fields.Selection(related='payment_id.state')
     move_line_id = fields.Many2one(ondelete="restrict")
+
+    def open_move(self):
+        view_form = self.env.ref('account.view_move_form').id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Factura',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': self.move_line_id.move_id.id,
+            'view_id': view_form,
+            'context': "{'create': False}",
+            'target': 'current'
+        }
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

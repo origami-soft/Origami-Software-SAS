@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 
 from odoo import models, fields
-from odoo.exceptions import ValidationError
+
 
 class DocumentBookType(models.Model):
     _name = 'document.book.type'
@@ -49,13 +49,5 @@ class DocumentBookType(models.Model):
         'unique(type, category)',
         'Ya existe ese tipo de talonario para esa categoría'
     )]
-
-    def unlink(self):
-        for record in self:
-            linked_books = self.env['document.book'].search([('book_type_id', '=', record.id)])
-            if linked_books:
-                return True
-                # raise ValidationError(f"No se puede eliminar el tipo de talonario '{record.name}' porque está asociado a uno o más talonarios.")
-        return super(DocumentBookType, self).unlink()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
