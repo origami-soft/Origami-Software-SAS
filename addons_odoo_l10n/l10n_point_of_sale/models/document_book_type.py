@@ -50,4 +50,10 @@ class DocumentBookType(models.Model):
         'Ya existe ese tipo de talonario para esa categoría'
     )]
 
+    def unlink(self):
+        for record in self:
+            linked_books = self.env['document.book'].search([('book_type_id', '=', record.id)])
+            if linked_books:
+                return True
+        return super(DocumentBookType, self).unlink()
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
