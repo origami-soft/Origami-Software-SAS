@@ -259,7 +259,7 @@ class AccountMove(models.Model):
         el mismo diario entre recibos de compra y facturas de proveedor
         """
         where_string, param = super()._get_last_sequence_domain(relaxed)
-        if self.move_type.endswith('receipt'):
+        if (self.move_type.endswith('receipt') or self.payment_id) and 'anti_regex' in param:
             where_string += f" AND move_type = '{self.move_type}'"
             where_string = where_string.replace('AND sequence_prefix !~ %(anti_regex)s ', '')
             param.pop('anti_regex')

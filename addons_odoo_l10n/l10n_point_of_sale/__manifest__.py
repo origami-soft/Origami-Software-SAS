@@ -4,7 +4,7 @@
 
     'name': 'l10n_point_of_sale',
 
-    'version': '1.1.10',
+    'version': '1.1.12',
 
     'summary': 'Punto de venta para Argentina y Uruguay',
 
@@ -26,7 +26,7 @@ Modulo encargado de manejar talonarios y puntos de venta.
     ],
 
     'data': [
-        # 'data/document_book_type.xml',
+        'data/document_book_type.xml',
         'security/ir.model.access.csv',
         'security/security.xml',
         'views/account_denomination.xml',

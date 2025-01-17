@@ -61,14 +61,13 @@ class AccountMove(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            currency_id = vals.get('currency_id')
+            currency_id = self.env['res.currency'].browse(vals.get('currency_id'))
             company_id = vals.get('company_id')
             invoice_date = vals.get('invoice_date', fields.Date.today())
 
-            if currency_id and 'currency_rate' not in vals:
-                currency = self.env['res.currency'].browse(currency_id)
+            if currency_id and currency_id.need_rate and 'currency_rate' not in vals:
                 company = self.env['res.company'].browse(company_id)
-                vals['currency_rate'] = self._get_currency_rate(currency, company, invoice_date)
+                vals['currency_rate'] = self._get_currency_rate(currency_id, company, invoice_date)
 
         # Crea el registro con los valores modificados
         return super(AccountMove, self).create(vals_list)
