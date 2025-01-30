@@ -36,7 +36,8 @@ class DocumentBook(models.Model):
     book_type_id = fields.Many2one(
         comodel_name='document.book.type', 
         string='Tipo de talonario', 
-        required=True
+        required=True,
+        ondelete="cascade"
     )
     voucher_type_id = fields.Many2one(
         comodel_name='voucher.type',
