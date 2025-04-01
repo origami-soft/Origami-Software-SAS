@@ -35,11 +35,6 @@ class AccountPayment(models.Model):
         comodel_name='document.book',
         compute="compute_pos_document_book_ids"
     )
-    @api.model
-    def default_get(self, fields_list):
-        default = super().default_get(fields_list)
-        default['company_id'] = self.env.company.id
-        return default
 
     @api.depends('full_voucher_name')
     def _compute_display_name(self):

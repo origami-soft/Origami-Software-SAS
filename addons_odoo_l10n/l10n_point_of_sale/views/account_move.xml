@@ -7,6 +7,7 @@
             <field name="name">Invoice pos ar form</field>
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="priority">17</field>
             <field name="arch" type="xml">
                 <field name="ref" position="after">
                     <field name="pos_document_book_ids" invisible="1"/>
@@ -18,7 +19,7 @@
                     <field name="document_book_type" invisible="1"/>
                 </field>
                 <field name="name" position="before">
-                    <field name="full_voucher_name" 
+                    <field name="full_voucher_name"
                            invisible="full_voucher_name == '/' and not posted_before and not quick_edit_mode or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
                            readonly="state != 'draft'"
                            placeholder="Borrador"/>

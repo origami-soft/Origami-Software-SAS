@@ -370,7 +370,7 @@ class PaymentImputationWizard(models.TransientModel):
         :return: Monto convertido
         :rtype: float
         """
-        if move_line.currency_id == move_line.company_currency_id:
+        if not move_line.currency_id or move_line.currency_id == move_line.company_currency_id:
             return 1
         return move_line.balance/move_line.amount_currency
 
