@@ -7,8 +7,9 @@ from ..exceptions import exceptions
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
+    journal_id = fields.Many2one('account.journal', string="Diario")
     show_payment_lines = fields.Boolean(compute='get_show_payment_lines')
-    payment_usage = fields.Selection(related='journal_id.payment_usage', store=True)
+    payment_usage = fields.Selection(related='journal_id.payment_usage')
     move_ids = fields.One2many('account.move', 'payment_id')
     available_journal_ids = fields.Many2many('account.journal', compute='get_available_journals')
 
