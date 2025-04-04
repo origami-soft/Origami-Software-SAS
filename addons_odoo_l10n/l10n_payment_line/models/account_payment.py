@@ -12,6 +12,7 @@ class AccountPayment(models.Model):
     payment_usage = fields.Selection(related='journal_id.payment_usage')
     move_ids = fields.One2many('account.move', 'payment_id')
     available_journal_ids = fields.Many2many('account.journal', compute='get_available_journals')
+    company_id = fields.Many2one('res.company', string="Compañía", default=lambda self: self.env.company)
 
     @api.depends_context('default_is_internal_transfer')
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
