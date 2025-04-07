@@ -122,7 +122,7 @@
                             <br/>
                         </t>
                         <strong>Comprobante que origina la Retención: </strong>
-                        <span t-field="o.name"/>
+                        <span t-field="o.full_voucher_name"/>
                         <br/>
                         <strong>Monto del Comprobante que origina la Retención: </strong>
                         <span t-field="o.amount"
@@ -157,7 +157,7 @@
         <div class="header">
             <t t-set="company" t-value="o.company_id"/>
             <div class="row">
-                <img t-if="company.logo" class="text-left" style="max-height: 90px; max-width: 300px" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                <img t-if="company.logo" class="text-left" style="max-height: 90px; max-width: 300px; width: auto" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
                 <div style="width:30px"></div>
                 <div class="col-6" name="company_address">
                     <div t-field="company.partner_id"
@@ -213,8 +213,8 @@
                             <span t-esc="o.voucher_name.upper()"/>
                         </t>
                         <t t-else="">
-                            <span t-if="o.name" t-esc="o.name.upper()"/>
-                            <span t-if="not o.name" t-esc="''"/>
+                            <span t-if="o.full_voucher_name" t-esc="o.full_voucher_name.upper()"/>
+                            <span t-if="not o.full_voucher_name" t-esc="''"/>
                         </t>
                     </h3>
                     <div class="row">

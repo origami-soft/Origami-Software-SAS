@@ -1,0 +1,4 @@
+[submodule "odoo_l10n"]
+	path = odoo_l10n
+	url = git@bitbucket.org:blueorangegroup/odoo_l10n.git
+	branch = 17.0

@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_perceptions',
 
-    'version': '1.2.3',
+    'version': '1.2.4',
 
     'category': 'Accounting',
 

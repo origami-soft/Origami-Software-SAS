@@ -4,7 +4,7 @@
 
     'name': 'L10n ar credit cards',
 
-    'version': '1.0.1',
+    'version': '1.0.2',
 
     'category': 'Accounting',
 

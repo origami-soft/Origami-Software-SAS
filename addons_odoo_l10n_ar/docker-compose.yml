@@ -1,0 +1,26 @@
+version: '3'
+services:
+  odoo:
+    image: odoo_bo:17.0
+    depends_on:
+      - db
+    ports:
+      - "9017:8069"
+    volumes:
+      - /home/administrador/odoo/17.0:/home/bo
+      - /home/administrador/odoo/17.0/extra-addons/odoo_l10n_ar/odoo.conf:/etc/odoo/odoo.conf
+      - /bitbucket_key:/bitbucket_key
+      - odoo-data:/var/lib/odoo
+    entrypoint: "/home/bo/extra-addons/odoo_l10n_ar/entry.sh"
+  db:
+    image: postgres:15-bullseye
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+volumes:
+  odoo-data:
+  odoo-db-data:

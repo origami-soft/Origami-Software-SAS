@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import account_move
+from . import account_move_line
 from . import document_book
 from . import document_book_type
 from . import fce_associated_document

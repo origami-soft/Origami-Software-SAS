@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_sale',
 
-    'version': '1.0.1',
+    'version': '1.0.2',
 
     'summary': 'Integracion para ventas y localizacion Argentina',
 

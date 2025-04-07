@@ -35,7 +35,7 @@ class DocumentBook(models.Model):
     )
     book_type_id = fields.Many2one(
         comodel_name='document.book.type', 
-        string='Tipo de talonario', 
+        string='Tipo de talonario',
         required=True,
         ondelete="cascade"
     )

@@ -2,11 +2,11 @@
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
-import xlrd
-import base64
 from datetime import datetime
 from itertools import groupby
 from dateutil import relativedelta
+from io import BytesIO
+import openpyxl, base64
 
 
 class AfipImportDocumentsWizard(models.TransientModel):
@@ -201,27 +201,27 @@ class AfipImportDocumentsWizard(models.TransientModel):
 
     def get_xls_values(self):
         try:
-            book = xlrd.open_workbook(file_contents=base64.b64decode(self.file))
-            sheet = book.sheet_by_index(0)
+            book = openpyxl.load_workbook(BytesIO(base64.b64decode(self.file)))
+            sheet = book.worksheets[0]
             vals = []
-            for x in range(2, sheet.nrows):
+            for x in range(3, sheet.max_row + 1):
                 vals.append({
-                    'date': datetime.strptime(sheet.cell(x, 0).value, '%d/%m/%Y'),
-                    'voucher_type': sheet.cell(x, 1).value,
-                    'point_of_sale': str(int(sheet.cell(x, 2).value)),
-                    'voucher_name': str(int(sheet.cell(x, 3).value)),
-                    'cae': str(int(sheet.cell(x, 5).value)),
-                    'document_type': sheet.cell(x, 6).value,
-                    'document_number': str(int(sheet.cell(x, 7).value)),
-                    'name': sheet.cell(x, 8).value,
-                    'currency_value': sheet.cell(x, 9).value,
-                    'currency': sheet.cell(x, 10).value,
-                    'amount_untaxed': sheet.cell(x, 11).value,
-                    'amount_not_taxed': sheet.cell(x, 12).value,
-                    'amount_exempt': sheet.cell(x, 13).value,
-                    'amount_other_tributes': sheet.cell(x, 14).value,
-                    'amount_vat': sheet.cell(x, 15).value,
-                    'amount_total': sheet.cell(x, 16).value,
+                    'date': datetime.strptime(sheet.cell(x, 1).value, '%d/%m/%Y'),
+                    'voucher_type': sheet.cell(x, 2).value,
+                    'point_of_sale': str(int(sheet.cell(x, 3).value)),
+                    'voucher_name': str(int(sheet.cell(x, 4).value)),
+                    'cae': str(int(sheet.cell(x, 6).value)),
+                    'document_type': sheet.cell(x, 7).value,
+                    'document_number': str(int(sheet.cell(x, 8).value)),
+                    'name': sheet.cell(x, 9).value,
+                    'currency_value': sheet.cell(x, 10).value,
+                    'currency': sheet.cell(x, 11).value,
+                    'amount_untaxed': sheet.cell(x, 12).value,
+                    'amount_not_taxed': sheet.cell(x, 13).value,
+                    'amount_exempt': sheet.cell(x, 14).value,
+                    'amount_other_tributes': sheet.cell(x, 15).value,
+                    'amount_vat': sheet.cell(x, 16).value,
+                    'amount_total': sheet.cell(x, 17).value,
                 })
         except Exception:
             raise ValidationError("Hubo un error al intentar leer el archivo.")

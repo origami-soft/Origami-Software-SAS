@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <template id="report_invoice_document" inherit_id="l10n_ar_dispatch_number.report_invoice_document">
+        <xpath expr="//span[@name='span_dispatch']/.." position="attributes">
+            <attribute name="t-if" add="or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')" separator=" "/>
+        </xpath>
+    </template>
+
+    <template id="report_electronic_invoice_body" inherit_id="l10n_ar_dispatch_number.report_electronic_invoice_body">
+        <xpath expr="//span[@name='span_dispatch']/.." position="attributes">
+            <attribute name="t-if" add="or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')" separator=" "/>
+        </xpath>
+    </template>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4: -->

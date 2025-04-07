@@ -36,6 +36,6 @@ class PurchaseImportationPresentation(PurchaseVatPresentation):
             importation_line.despachoImportacion = self.get_despachoImportacion(invoice)
             importation_line.importeNetoGravado = self.get_importeNetoGravado(invoice, tax)
             importation_line.alicuotaIva = self.get_alicuotaIva(tax)
-            importation_line.impuestoLiquidado = self.helper.format_amount(abs(tax.balance))
+            importation_line.impuestoLiquidado = self.get_impuestoLiquidado(tax)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

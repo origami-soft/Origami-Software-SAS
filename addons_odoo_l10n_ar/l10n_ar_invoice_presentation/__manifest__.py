@@ -4,7 +4,7 @@
 
     'name': 'Account invoice presentation',
 
-    'version': '1.0.2',
+    'version': '1.0.5',
 
     'category': 'Account',
 

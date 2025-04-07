@@ -1,7 +1,7 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import ast, pytz, zeep
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from l10n_ar_api import documents
 from l10n_ar_api.afip_webservices import wsfe, wsfex, wsbfe
@@ -258,6 +258,11 @@ class AccountMove(models.Model):
             self.partner_id.partner_document_type_id.id,
             'Afip'
         )
+        electronic_invoice.customer_fiscal_position = codes_models_proxy.get_code(
+            'ar.fiscal.position',
+            self.partner_id.property_account_position_id.ar_fiscal_position_id.id,
+            'Afip'
+        )
         electronic_invoice.mon_id = self.env['codes.models.relation'].get_code(
             'res.currency',
             self.currency_id.id,
@@ -329,10 +334,13 @@ class AccountMove(models.Model):
             raise ValidationError("No se puede realizar la acción de reversión masiva.")
         return values
 
+    def _get_vat_lines(self):
+        return self.line_ids.filtered(lambda x: x.tax_line_id.is_vat and not x.tax_line_id.is_exempt)
+
     def _add_vat_to_electronic_invoice(self, electronic_invoice):
         """ Agrega los impuestos que son iva a informar """
         codes_models_proxy = self.env['codes.models.relation']
-        for line in self.line_ids.filtered(lambda x: x.tax_line_id.is_vat and not x.tax_line_id.is_exempt):
+        for line in self._get_vat_lines():
             base = sum(
                 self.invoice_line_ids.filtered(
                     lambda x: line.tax_line_id in x.tax_ids
@@ -342,7 +350,10 @@ class AccountMove(models.Model):
             # En casos de multi currency no podemos tomar la base imponible desde la linea
             # que tiene el valor de impuesto, tenemos que buscarla
             # desde la linea de factura
-            electronic_invoice.add_iva(documents.tax.Iva(code, abs(line.amount_currency), base))
+            electronic_invoice.add_iva(documents.tax.Iva(code, line.get_vat_balance(), base))
+
+    def _get_other_tributes_lines(self):
+        return self.line_ids.filtered(lambda t: abs(t.balance) and t.tax_line_id and not t.tax_line_id.is_vat)
 
     def _add_other_tributes_to_electronic_invoice(self, electronic_invoice):
         """ Agrega los impuestos que son percepciones """
@@ -352,8 +363,8 @@ class AccountMove(models.Model):
         tax_group_perception_iva = self.env['perception.perception'].get_perception_vat_groups(self.company_id)
 
         # Contemplamos 2 casos de tributos que no sean IVA, internos o percepciones.
-        for ml in self.line_ids.filtered(lambda t: abs(t.balance) and t.tax_line_id and not t.tax_line_id.is_vat):
-            balance = abs(ml.amount_currency if ml.amount_currency else ml.balance)
+        for ml in self._get_other_tributes_lines():
+            balance = ml.get_other_tributes_balance()
             base = round(sum(line.price_subtotal for line in self.invoice_line_ids.filtered(
                 lambda x: x.product_id and x.product_id.perception_taxable
             )), 2)
@@ -810,5 +821,12 @@ class AccountMove(models.Model):
             'result': result,
             'date': date
         })
+    
+    def action_post(self):
+        # Verifica que las NC con percepciones tengan Documentos asociados
+        if any(move.move_type == 'out_refund' and move.perception_ids and not move.fce_associated_document_ids for move in self):
+            raise ValidationError("No puede confirmar una nota de crédito con percepciones sin documentos asociados.")
+        
+        return super().action_post()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

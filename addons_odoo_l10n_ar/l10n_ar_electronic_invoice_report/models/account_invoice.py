@@ -66,10 +66,9 @@ class AccountMove(models.Model):
         y retorna un diccionario con los datos directamente sacados de la factura para la generacion del QR.
         """
         data = {
-            # La especificación del JSON con los datos del comprobante  (versión 1)
+            # La especificación del JSON con los datos del comprobante (versión 1)
             'ver': int(1),
-            "fecha": str(datetime.strftime(datetime.now(), '%Y-%m-%d')
-                         if not self.invoice_date or fields.Date.context_today(self) else self.invoice_date),
+            "fecha": datetime.strftime(self.invoice_date or fields.Date.context_today(self), '%Y-%m-%d'),
             "cuit": int(self.company_id.partner_id.vat),
             "ptoVta": int(self.voucher_name.split('-')[0]),
             "tipoCmp": int(self.voucher_type_id.code),
@@ -205,5 +204,17 @@ class AccountMove(models.Model):
         sales_client_order_ref_list = self.mapped('invoice_line_ids.sale_line_ids.order_id').filtered(
             lambda x: x.client_order_ref).mapped('client_order_ref')
         return ', '.join(sales_client_order_ref_list) if sales_client_order_ref_list else ''
+
+    def get_vat_total(self):
+        total = 0
+        for line in self._get_vat_lines():
+            total += line.get_vat_balance()
+        return total
+
+    def get_other_taxes_total(self):
+        total = 0
+        for line in self._get_other_tributes_lines():
+            total += line.get_other_tributes_balance()
+        return total
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

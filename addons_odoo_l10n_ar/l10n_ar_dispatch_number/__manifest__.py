@@ -1,10 +1,10 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 {
 
     'name': 'l10n_ar_dispatch_number',
 
-    'version': '1.0.0',
+    'version': '1.0.1',
 
     'category': '',
 

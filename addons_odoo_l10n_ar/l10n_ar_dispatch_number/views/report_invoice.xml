@@ -14,8 +14,8 @@
                 <t t-set="lot_values" t-value="o._get_invoiced_lot_values()"/>
                     <t t-if="lot_values">
                         <t t-foreach="lot_values" t-as="obj">
-                            <t t-if="obj.get('product_id') == line.product_id.id or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')">
-                                <span t-esc="obj.get('dispatch_number', '')" />
+                            <t t-if="obj.get('product_id') == line.product_id.id">
+                                <span name="span_dispatch" t-esc="obj.get('dispatch_number', '')" />
                             </t>
                     </t>
                 </t>
@@ -35,8 +35,8 @@
                 <t t-set="lot_values" t-value="o._get_invoiced_lot_values()"/>
                 <t t-if="lot_values">
                     <t t-foreach="lot_values" t-as="obj">
-                        <t t-if="obj.get('product_id') == line.product_id.id or obj.get('product_id') in line.product_id.mapped('bom_ids.bom_line_ids.product_id.id')">
-                            <span t-esc="obj.get('dispatch_number', '')" />
+                        <t t-if="obj.get('product_id') == line.product_id.id">
+                            <span name="span_dispatch" t-esc="obj.get('dispatch_number', '')" />
                         </t>
                     </t>
                 </t>
@@ -44,7 +44,6 @@
         </xpath>        
     </template>
 
-
 </odoo>
-<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
--->
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4: -->

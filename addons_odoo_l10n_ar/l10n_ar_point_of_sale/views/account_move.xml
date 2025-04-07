@@ -10,15 +10,6 @@
             <field name="model">account.move</field>
             <field name="inherit_id" ref="account.view_move_form"/>
             <field name="arch" type="xml">
-                <xpath expr="//group[@id='header_left_group']/label[@for='ref']" position="attributes">
-                    <attribute name="invisible">True</attribute>
-                </xpath>
-                <xpath expr="//group[@id='header_left_group']/field[@name='ref'][1]" position="attributes">
-                    <attribute name="invisible">True</attribute>
-                </xpath>
-                <xpath expr="//group[@id='header_left_group']/field[@name='ref'][2]" position="attributes">
-                    <attribute name="invisible">move_type in ['out_invoice', 'out_receipt', 'out_refund', 'in_invoice', 'in_receipt', 'in_refund']</attribute>
-                </xpath>
                 <xpath expr="//group[@id='header_left_group']/field[@name='ref'][2]" position="after">
                     <field name="voucher_name"
                         invisible="pos_ar_id or move_type not in ['in_invoice', 'in_refund', 'out_invoice', 'out_refund']"

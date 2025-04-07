@@ -25,7 +25,6 @@
                     </group>
                     <footer>
                         <button name="validate_documents" class="oe_highlight" string="Validar documentos" type="object"/>
-                        o
                         <button string="Cancelar" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
@@ -74,7 +73,6 @@
                             string="Finalizar"
                             invisible="document_line_ids"
                         />
-                        o
                         <button string="Cancelar" class="oe_link" special="cancel"/>
                     </footer>
                 </form>

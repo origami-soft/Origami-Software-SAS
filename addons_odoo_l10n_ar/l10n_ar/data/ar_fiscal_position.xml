@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data>
 
         <record id='ar_fiscal_position_ivari' model='ar.fiscal.position'>
             <field name='name'>IVA Responsable Inscripto</field>
