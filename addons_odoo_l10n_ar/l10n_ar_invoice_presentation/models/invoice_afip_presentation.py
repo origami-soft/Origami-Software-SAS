@@ -47,32 +47,32 @@ class InvoiceAfipPresentation(models.AbstractModel):
 
         for invoice in self.invoice_ids:
             if not invoice.fiscal_position_id:
-                errors.append("La factura {} no posee posicion fiscal.".format(invoice.name))
+                errors.append("La factura {} no posee posición fiscal.".format(invoice.full_voucher_name))
 
             is_foreign = invoice.fiscal_position_id.ar_fiscal_position_id in foreign_fiscal_positions
 
             if not invoice.partner_id.vat and not is_foreign:
-                errors.append("El partner {} no posee numero de documento.".format(invoice.partner_id.name))
+                errors.append("El partner {} no posee número de documento.".format(invoice.partner_id.name))
 
             if not invoice.partner_id.partner_document_type_id:
                 errors.append("El partner {} no posee tipo de documento.".format(invoice.partner_id.name))
 
             if not invoice.partner_id.country_id.vat and is_foreign and \
                     invoice.partner_id.country_id != invoice.partner_id.env.ref('base.ar'):
-                errors.append("El partner {} no posee pais con documento.".format(invoice.partner_id.name))
+                errors.append("El partner {} no posee país con documento.".format(invoice.partner_id.name))
 
             if invoice.amount_total == 0:
-                errors.append("El total de la factura {} es cero.".format(invoice.name))
+                errors.append("El total de la factura {} es cero.".format(invoice.full_voucher_name))
 
             if not invoice.line_ids:
-                errors.append("La factura {} no posee lineas de asientos.".format(invoice.name))
+                errors.append("La factura {} no posee líneas de asientos.".format(invoice.full_voucher_name))
 
             if self.get_total_notTaxed_taxes(invoice, data):
-                errors.append("La factura {} posee montos en los impuestos no gravados.".format(invoice.name))
+                errors.append("La factura {} posee montos en los impuestos no gravados.".format(invoice.full_voucher_name))
 
         if errors:
             raise ValidationError(
-                "ERROR\nLa presentacion no pudo ser generada por los siguientes motivos:\n{}".format("\n".join(errors))
+                "ERROR\nLa presentación no pudo ser generada por los siguientes motivos:\n{}".format("\n".join(errors))
             )
 
     @staticmethod

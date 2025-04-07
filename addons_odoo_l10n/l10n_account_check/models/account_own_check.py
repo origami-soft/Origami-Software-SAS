@@ -32,6 +32,11 @@ class AccountOwnCheck(models.Model):
         readonly=False
     )
 
+    _sql_constraints = [
+        ('_unique_own_check', 'unique (name, bank_id)',
+        "No puede registrar 2 cheques propios con el mismo número y banco."),
+    ]
+
     @api.depends('company_id', 'payment_id')
     def _compute_default_bank_journal_id(self):
         for rec in self:

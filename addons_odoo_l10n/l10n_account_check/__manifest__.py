@@ -4,7 +4,7 @@
 
     'name': 'Cheques',
 
-    'version': '1.0.2',
+    'version': '1.0.4',
 
     'summary': 'Cheques propios y de terceros',
 

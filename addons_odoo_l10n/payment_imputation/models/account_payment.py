@@ -42,7 +42,7 @@ class AccountPayment(models.Model):
     @api.depends('is_internal_transfer', 'payment_imputation_ids', 'amount', 'advance_amount')
     def _compute_payment_imputation_difference(self):
         for payment in self:
-            if not payment.is_internal_transfer and payment.payment_imputation_ids:
+            if not payment.is_internal_transfer and (payment.payment_imputation_ids or payment.advance_amount):
                 total_imputation = sum(payment.payment_imputation_ids.mapped('amount'))
                 payment.payment_imputation_difference = payment.amount - payment.advance_amount - total_imputation
             else:
@@ -225,16 +225,16 @@ class AccountPayment(models.Model):
                     imputation_move._get_accounting_date(imputation_date, False),
                     round=False
                 )
-
             debit_move = move_line if move_line.debit > 0 else imputation.move_line_id
             credit_move = move_line if move_line.credit > 0 else imputation.move_line_id
 
-            if not (full or imputation.full_reconcile) or self.advance_amount:
+            if not (full or imputation.full_reconcile):
                 # Para casos parciales aprovechamos los compute storeados
                 imputation.move_line_id.update({
                     'amount_residual': amount if self.payment_type == 'inbound' else -amount,
                     'amount_residual_currency': amount_currency if self.payment_type == 'inbound' else -amount_currency
                 })
+                
                 (debit_move | credit_move).reconcile()
                 imputation.move_line_id._compute_amount_residual()
 

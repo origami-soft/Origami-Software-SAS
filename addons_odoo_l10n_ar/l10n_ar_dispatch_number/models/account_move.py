@@ -1,10 +1,11 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from collections import defaultdict
 
 from odoo import models
 from odoo.tools import float_compare, float_is_zero
 from odoo.tools.misc import formatLang
+
 
 class AccountMove(models.Model):
 
@@ -13,24 +14,28 @@ class AccountMove(models.Model):
     def _get_invoiced_lot_values(self):
         if not bool(self.env['ir.config_parameter'].sudo().get_param('l10n_ar_dispatch_number.use_billing_first')):
             res = super(AccountMove, self)._get_invoiced_lot_values()
-            
+
             stock_lot_proxy = self.env['stock.lot']
             for line in res:
                 lot_id = stock_lot_proxy.browse([line.get('lot_id')])
                 # Tomo el ultimo número del lote
-                line['dispatch_number'] = lot_id.dispatch_number.split(',')[-1].strip() if lot_id.dispatch_number else ''
+                line['dispatch_number'] = lot_id.dispatch_number.split(
+                    ',')[-1].strip() if lot_id.dispatch_number else ''
                 line['product_id'] = lot_id.product_id.id
         else:
             # Se pisa la logica original para los casos donde se factura primero
-            # para considerar dichos casos hay que modificar la forma en la que se obtienen los remitos 
+            # para considerar dichos casos hay que modificar la forma en la que se obtienen los remitos
 
             res = []
             # if self.state == 'draft' or not self.invoice_date or self.move_type not in ('out_invoice', 'out_refund'):
             #     return res
 
-            current_invoice_amls = self.invoice_line_ids.filtered(lambda aml: aml.display_type == 'product' and aml.product_id and aml.product_id.type in ('consu', 'product') and aml.quantity)
-            all_invoices_amls = current_invoice_amls.sale_line_ids.invoice_lines.filtered(lambda aml: aml.move_id.state == 'posted').sorted(lambda aml: (aml.date, aml.move_name, aml.id))
-            index = all_invoices_amls.ids.index(current_invoice_amls[:1].id) if current_invoice_amls[:1] in all_invoices_amls else 0
+            current_invoice_amls = self.invoice_line_ids.filtered(
+                lambda aml: aml.display_type == 'product' and aml.product_id and aml.product_id.type in ('consu', 'product') and aml.quantity)
+            all_invoices_amls = current_invoice_amls.sale_line_ids.invoice_lines.filtered(
+                lambda aml: aml.move_id.state == 'posted').sorted(lambda aml: (aml.date, aml.move_name, aml.id))
+            index = all_invoices_amls.ids.index(
+                current_invoice_amls[:1].id) if current_invoice_amls[:1] in all_invoices_amls else 0
             previous_amls = all_invoices_amls[:index]
             invoiced_qties = current_invoice_amls._get_invoiced_qty_per_product()
             invoiced_products = invoiced_qties.keys()
@@ -38,7 +43,8 @@ class AccountMove(models.Model):
             if self.move_type == 'out_invoice':
                 # filter out the invoices that have been fully refund and re-invoice otherwise, the quantities would be
                 # consumed by the reversed invoice and won't be print on the new draft invoice
-                previous_amls = previous_amls.filtered(lambda aml: aml.move_id.payment_state != 'reversed')
+                previous_amls = previous_amls.filtered(
+                    lambda aml: aml.move_id.payment_state != 'reversed')
 
             previous_qties_invoiced = previous_amls._get_invoiced_qty_per_product()
 
@@ -52,19 +58,23 @@ class AccountMove(models.Model):
             qties_per_lot = defaultdict(float)
             previous_qties_delivered = defaultdict(float)
             # Se añade al filtro el estado assigned, para los casos donde se factura primero
-            stock_move_lines = current_invoice_amls.sale_line_ids.move_ids.move_line_ids.filtered(lambda sml: sml.state in ('done', 'assigned') and sml.lot_id).sorted(lambda sml: (sml.date, sml.id))
+            stock_move_lines = current_invoice_amls.sale_line_ids.move_ids.move_line_ids.filtered(
+                lambda sml: sml.state in ('done', 'assigned') and sml.lot_id).sorted(lambda sml: (sml.date, sml.id))
             for sml in stock_move_lines:
                 if sml.product_id not in invoiced_products or 'customer' not in {sml.location_id.usage, sml.location_dest_id.usage}:
                     continue
                 product = sml.product_id
                 product_uom = product.uom_id
-                quantity = sml.product_uom_id._compute_quantity(sml.quantity, product_uom)
+                quantity = sml.product_uom_id._compute_quantity(
+                    sml.quantity, product_uom)
 
                 # is it a stock return considering the document type (should it be it thought of as positively or negatively?)
                 is_stock_return = (
-                        self.move_type == 'out_invoice' and (sml.location_id.usage, sml.location_dest_id.usage) == ('customer', 'internal')
-                        or
-                        self.move_type == 'out_refund' and (sml.location_id.usage, sml.location_dest_id.usage) == ('internal', 'customer')
+                    self.move_type == 'out_invoice' and (
+                        sml.location_id.usage, sml.location_dest_id.usage) == ('customer', 'internal')
+                    or
+                    self.move_type == 'out_refund' and (
+                        sml.location_id.usage, sml.location_dest_id.usage) == ('internal', 'customer')
                 )
                 if is_stock_return:
                     returned_qty = min(qties_per_lot[sml.lot_id], quantity)
@@ -78,7 +88,8 @@ class AccountMove(models.Model):
                 # try to reach the previous_qty_invoiced
                 if float_compare(quantity, 0, precision_rounding=product_uom.rounding) < 0 or \
                         float_compare(previous_qty_delivered, previous_qty_invoiced, precision_rounding=product_uom.rounding) < 0:
-                    previously_done = quantity if is_stock_return else min(previous_qty_invoiced - previous_qty_delivered, quantity)
+                    previously_done = quantity if is_stock_return else min(
+                        previous_qty_invoiced - previous_qty_delivered, quantity)
                     previous_qties_delivered[product] += previously_done
                     quantity -= previously_done
 
@@ -100,7 +111,8 @@ class AccountMove(models.Model):
                     'uom_name': lot.product_uom_id.name,
                     'lot_name': lot.name,
                     'lot_id': lot.id,
-                    'dispatch_number': lot.dispatch_number.split(',')[-1].strip() if lot.dispatch_number else '',  # Tomo el ultimo número del lote
+                    # Tomo el ultimo número del lote
+                    'dispatch_number': lot.dispatch_number.split(',')[-1].strip() if lot.dispatch_number else '',
                     'product_id': lot.product_id.id,
                 })
 

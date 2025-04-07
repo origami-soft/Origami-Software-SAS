@@ -1,6 +1,7 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from odoo import models, fields
+
 
 class StockLot(models.Model):
     _inherit = 'stock.lot'

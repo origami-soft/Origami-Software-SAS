@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class DocumentBookType(models.Model):
@@ -43,14 +43,6 @@ class DocumentBookType(models.Model):
         help="Los comprobantes que usen este tipo de talonario se considerarán para calcular una secuencia automática",
         default=False
     )
-
-    active = fields.Boolean(string='Activo', default=True)
-
-    @api.model
-    def unlink(self):
-        for record in self:
-            record.active = False
-        return True
 
     _sql_constraints = [(
         'unique_type_categ',

@@ -20,14 +20,21 @@ class AccountMove(models.Model):
     )
     jurisdiction_id = fields.Many2one(
         comodel_name='res.country.state',
-        string='Jurisdiccion',
+        string='Jurisdicción',
         domain=_get_domain,
+        compute='compute_jurisdiction_id',
+        store=True,
         ondelete='restrict'
     )
     voucher_name = fields.Char(
         'Numero documento',
         copy=False
     )
+
+    @api.depends('partner_shipping_id', 'partner_id')
+    def compute_jurisdiction_id(self):
+        for r in self:
+            r.jurisdiction_id = r.partner_shipping_id.state_id or r.partner_id.state_id
 
     @api.depends("pos_ar_id", "move_type", "partner_id")  # Se agrega dependencia de partner_id
     def compute_document_book(self):

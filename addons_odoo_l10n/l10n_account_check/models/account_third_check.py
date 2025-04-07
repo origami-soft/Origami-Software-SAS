@@ -113,7 +113,7 @@ class AccountThirdCheck(models.Model):
     def post_receipt(self):
         """ Lo que deberia pasar con el cheque cuando se valida un recibo """
         if any(not r._check_post_receipt_state() for r in self):
-            exceptions.post_payment_non_draft_check()
+            exceptions.post_receipt_non_draft_check()
         self.next_state('draft')
 
     def _check_post_payment_state(self):

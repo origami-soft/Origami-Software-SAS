@@ -33,18 +33,18 @@
                                 decoration-success="amount == amount_residual_in_payment_currency"
                                 decoration-danger="amount &gt; amount_residual_in_payment_currency"
                             >
-                                <field name="concile" string="Imputar total"/>
-                                <field name="name"/>
-                                <field name="move_line_date"/>
-                                <field name="move_line_date_maturity"/>
+                                <field name="concile" string="Imputar total" optional="show"/>
+                                <field name="name" optional="show"/>
+                                <field name="move_line_date" optional="show"/>
+                                <field name="move_line_date_maturity" optional="show"/>
                                 <field name="move_line_id" column_invisible="1"/>
                                 <field name="currency_id" column_invisible="1"/>
                                 <field name="company_currency_id" column_invisible="1"/>
                                 <field name="payment_currency_id" column_invisible="1"/>
-                                <field name="amount"/>
-                                <field name="amount_residual_in_payment_currency" string="Restante"/>
-                                <field name="amount_total_in_payment_currency" string="Total"/>
-                                <field name="full_reconcile" string="Conciliar diferencia"/>
+                                <field name="amount" optional="show"/>
+                                <field name="amount_residual_in_payment_currency" string="Restante" optional="show"/>
+                                <field name="amount_total_in_payment_currency" string="Total" optional="show"/>
+                                <field name="full_reconcile" string="Conciliar diferencia" optional="show"/>
                             </tree>
                         </field>
                         <separator string="Créditos"/>
@@ -58,17 +58,17 @@
                                 decoration-success="amount == amount_residual_in_payment_currency"
                                 decoration-danger="amount &gt; amount_residual_in_payment_currency"
                             >
-                                <field name="concile" string="Imputar total"/>
-                                <field name="name"/>
-                                <field name="move_line_date"/>
+                                <field name="concile" string="Imputar total" optional="show"/>
+                                <field name="name" optional="show"/>
+                                <field name="move_line_date" optional="show"/>
                                 <field name="move_line_id" column_invisible="1"/>
                                 <field name="currency_id" column_invisible="1"/>
                                 <field name="company_currency_id" column_invisible="1"/>
                                 <field name="payment_currency_id" column_invisible="1"/>
-                                <field name="amount"/>
-                                <field name="amount_residual_in_payment_currency" string="Restante"/>
-                                <field name="amount_total_in_payment_currency" string="Total"/>
-                                <field name="full_reconcile" string="Conciliar diferencia"/>
+                                <field name="amount" optional="show"/>
+                                <field name="amount_residual_in_payment_currency" string="Restante" optional="show"/>
+                                <field name="amount_total_in_payment_currency" string="Total" optional="show"/>
+                                <field name="full_reconcile" string="Conciliar diferencia" optional="show"/>
                             </tree>
                         </field>
                         <group>

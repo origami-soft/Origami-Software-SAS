@@ -19,15 +19,18 @@ class PaymentImputationMove(models.Model):
     @api.depends("move_id", "payment_id")
     def _compute_amounts(self):
         for record in self:
-            """ El método _get_reconciled_info_JSON_values es el que provee los datos
-            de las imputaciones al widget de las facturas """
+            # El método _get_reconciled_info_JSON_values es el que provee los datos de las conciliaciones hechas
             reconciled_vals = record.move_id._get_all_reconciled_invoice_partials()
-            amount = 0
-            move_currency = record.move_id.currency_id
             payment_company = record.payment_id.company_id
             payment_date = record.payment_id.date
-            for reconciled_value in reconciled_vals:
-                amount += move_currency._convert(reconciled_value.get("amount", 0.0), record.currency_id, payment_company, payment_date)
+            amount = 0
+            for val in reconciled_vals:
+                # Si lo que se está conciliando contra la factura no es el pago del documento imputado, lo ignoro
+                if not val.get('aml') or val['aml'].payment_id != record.payment_id:
+                    continue
+                amount += val['currency']._convert(val.get("amount", 0.0), record.currency_id, payment_company, payment_date)
+
+            move_currency = record.move_id.currency_id
             record.update({
                 'amount': amount,
                 'amount_residual': move_currency._convert(record.move_id.amount_residual, record.currency_id, payment_company, payment_date),

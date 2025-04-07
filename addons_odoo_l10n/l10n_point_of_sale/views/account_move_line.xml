@@ -17,6 +17,20 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="view_move_line_tree">
+            <field name="name">Move line tree</field>
+            <field name="model">account.move.line</field>
+            <field name="inherit_id" ref="account.view_move_line_tree"/>
+            <field name="arch" type="xml">
+                <field name="move_name" position="after">
+                    <field name="full_voucher_name" string="Asiento contable" widget="open_move_widget"/>
+                </field>
+                <field name="move_name" position="attributes">
+                    <attribute name="column_invisible">True</attribute>
+                </field>
+            </field>
+        </record>
+
     </data>
 </odoo>
 

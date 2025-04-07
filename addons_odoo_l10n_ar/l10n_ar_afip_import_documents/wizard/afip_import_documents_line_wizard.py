@@ -65,7 +65,6 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         self.ensure_one()
         lines = []
         base_vals = {
-            'account_id': self._get_invoice_account(),
             'quantity': 1,
         }
         # En caso de que AFIP informe un neto gravado, agrego una línea para el mismo
@@ -111,15 +110,6 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
             lines.append((0, 0, line_vals))
 
         return lines
-
-    def _get_invoice_account(self):
-        property_name = 'property_account_expense_id' if self.wizard_id.type == 'received'\
-            else 'property_account_income_id'
-        property_val = self.env['ir.property'].with_company(self.wizard_id.company_id)._get_default_property(
-            property_name,
-            'product.template'
-        )  # Devuelve una tupla ('many2one', ('account.account', ID))
-        return property_val[1][1] if property_val and property_val[1] and property_val[1][1] else None
     
     def _get_vat_tax(self, percentage):
         if not percentage:

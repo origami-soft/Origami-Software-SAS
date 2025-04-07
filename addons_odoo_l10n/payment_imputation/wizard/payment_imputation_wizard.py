@@ -2,7 +2,7 @@
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-from odoo.tools.float_utils import float_compare
+from odoo.tools.float_utils import float_compare, float_round
 
 ROUND_PRECISION = 2
 
@@ -214,7 +214,7 @@ class PaymentImputationWizard(models.TransientModel):
         """
         Imputa los créditos seleccionados.
         """
-
+        precision_digits = self.currency_id.decimal_places
         # Borramos las imputaciones que no se van a realizar
         self.debit_imputation_line_ids.filtered(lambda x: not x.amount).unlink()
         self.credit_imputation_line_ids.filtered(lambda x: not x.amount).unlink()
@@ -225,7 +225,8 @@ class PaymentImputationWizard(models.TransientModel):
 
             company_currency = self.company_id.currency_id
 
-            for line in self.debit_imputation_line_ids.filtered(lambda x: x.move_line_id.account_id):
+            for line in self.debit_imputation_line_ids.filtered(
+                lambda x: x.move_line_id.account_id):
 
                 line_amount = line.amount
 
@@ -236,18 +237,28 @@ class PaymentImputationWizard(models.TransientModel):
                     (line.move_line_id + imputation.move_line_id).reconcile()
                     break
 
-                # En el caso que no sean iguales, uno de los dos debe ser mayor que el otro, agarramos el minimo
-                minimun_amount = min(line_amount, imputation.amount)
+                # En el caso que no sean iguales, uno de los dos debe
+                # ser mayor que el otro, agarramos el minimo
+                if float_compare(
+                    line_amount,
+                    imputation.amount,
+                    precision_digits=precision_digits
+                ) == -1:
+                    minimun_amount, rate = line_amount, self.get_move_line_rate(line.move_line_id)
+                else:
+                    minimun_amount, rate = imputation.amount, self.get_move_line_rate(
+                        imputation.move_line_id)
 
                 line.amount -= minimun_amount
                 imputation.amount -= minimun_amount
-                imputation_amount = company_currency._convert(
-                    minimun_amount, self.currency_id, self.company_id, self._get_payment_date(), round=False
-                )
-                amount_currency = minimun_amount if self.currency_id != company_currency else imputation_amount
-
-                debit_move = imputation.move_line_id if imputation.move_line_id.debit > 0 else line.move_line_id
-                credit_move = imputation.move_line_id if imputation.move_line_id.credit > 0 else line.move_line_id
+                imputation_amount = float_round(
+                    minimun_amount * rate, precision_digits=precision_digits)
+                amount_currency = minimun_amount if self.currency_id != company_currency\
+                    else imputation_amount
+                debit_move = imputation.move_line_id if imputation.move_line_id.debit > 0\
+                    else line.move_line_id
+                credit_move = imputation.move_line_id if imputation.move_line_id.credit > 0\
+                    else line.move_line_id
 
                 lines_to_concile |= line.move_line_id
 
@@ -284,7 +295,8 @@ class PaymentImputationWizard(models.TransientModel):
         self._validate_imputation_amounts()
 
     def _validate_imputation_amounts(self):
-        """ Valida que los créditos a imputar no sean mayor que los débitos, por cada cuenta contable a imputar. """
+        """ Valida que los créditos a imputar no sean mayor que los débitos,
+        por cada cuenta contable a imputar. """
         precision_digits = self.currency_id.decimal_places
         debit_imputations = self.debit_imputation_line_ids.filtered(lambda x: x.amount)
         credit_imputations = self.credit_imputation_line_ids.filtered(lambda x: x.amount)
@@ -348,5 +360,18 @@ class PaymentImputationWizard(models.TransientModel):
                 line.amount = line.amount_residual_in_payment_currency
             self._get_total_payment()
             self.select_all_credit = False
+
+    def get_move_line_rate(self, move_line):
+        """Método auxiliar para obtener la cotización utilizada en
+        un account.move.line en particular
+
+        :param move_line: Apunte contable
+        :type move_line: account.move.line()
+        :return: Monto convertido
+        :rtype: float
+        """
+        if not move_line.currency_id or move_line.currency_id == move_line.company_currency_id:
+            return 1
+        return move_line.balance/move_line.amount_currency
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

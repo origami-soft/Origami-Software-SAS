@@ -9,7 +9,6 @@ class SaleOrder(models.Model):
     def _prepare_invoice(self):
         res = super()._prepare_invoice()
         res.update({
-            'jurisdiction_id': (self.partner_shipping_id.state_id or self.partner_id.state_id).id,
             'name': '/'
         })
         return res

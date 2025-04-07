@@ -48,9 +48,9 @@ class AccountMove(models.Model):
         taxes_to_link = perception_taxes - taxes_invoices
         self.invoice_line_ids.filtered(lambda x: x.perception_applies()).update(
             {'tax_ids': [fields.Command.link(t.id) for t in taxes_to_link]})
-
+    
     def get_perception_ctx(self):
-        vals = {}
+        vals = {'base': self.get_perception_base()}
         for p in self.perception_ids:
             tax = p.perception_id.get_taxes(self.company_id)
             if not tax:

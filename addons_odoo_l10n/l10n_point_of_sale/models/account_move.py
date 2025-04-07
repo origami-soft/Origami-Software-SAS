@@ -32,6 +32,7 @@ class AccountMove(models.Model):
         compute='compute_document_book',
         readonly=False,
         store=True,
+        copy=False,
         check_company=True,
         ondelete='restrict'
     )
@@ -54,6 +55,7 @@ class AccountMove(models.Model):
         compute='compute_full_voucher_name',
         store=True,
     )
+    fiscal_position_id = fields.Many2one(copy=False)
 
     def _get_fields_to_skip(self):
         return ['name', 'date']
@@ -250,5 +252,17 @@ class AccountMove(models.Model):
 
             move.invoice_outstanding_credits_debits_widget = payments_widget_vals
             move.invoice_has_outstanding = True
+    
+    def _get_last_sequence_domain(self, relaxed=False):
+        """ Heredo este método para que, al estar armando recibos de compra o de venta, siga la numeración de los
+        recibos anteriores en vez de buscar otra clase de documentos, para evitar problemas si, por ejemplo, se reusa
+        el mismo diario entre recibos de compra y facturas de proveedor
+        """
+        where_string, param = super()._get_last_sequence_domain(relaxed)
+        if (self.move_type.endswith('receipt') or self.payment_id) and 'anti_regex' in param:
+            where_string += f" AND move_type = '{self.move_type}'"
+            where_string = where_string.replace('AND sequence_prefix !~ %(anti_regex)s ', '')
+            param.pop('anti_regex')
+        return where_string, param
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

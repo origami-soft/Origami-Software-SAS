@@ -76,7 +76,7 @@ class OwnCheckReconcile(models.Model):
 
     def _get_default_company(self):
         checks = self.env['account.own.check'].browse(self.env.context.get('active_ids'))
-        return checks.mapped('company_id')[0] if checks else self.env.company
+        return checks.mapped('company_id')[0] if checks and checks.mapped('company_id') else self.env.company
 
     @api.depends('date', 'journal_id.name')
     def _compute_display_name(self):

@@ -28,11 +28,11 @@ class Presentation:
         :return: objeto de la api.
         """
         filtered_invoices = self.filter_invoices(invoices)
-        #try:
-        for invoice in filtered_invoices:
-            self.create_line(invoice)
-        #except Exception as e:
-            #raise ValidationError(e.args)
+        try:
+            for invoice in filtered_invoices:
+                self.create_line(invoice)
+        except Exception as e:
+            raise ValidationError(e.args)
 
         return self.builder
 
@@ -43,10 +43,13 @@ class Presentation:
         return invoice.voucher_type_id.code
 
     def _check_invoice_voucher_name(self, invoice):
+        if not invoice.voucher_name:
+            msg = f"La factura {invoice.name} no posee número de documento (voucher_name)"
+            raise ValidationError(msg)
         split_voucher_name = invoice.voucher_name.split('-')
         if split_voucher_name and (len(split_voucher_name) != 2 or any(not l.isdigit() for l in split_voucher_name)):
-            msg = "La factura {} no posee un número apto para su inclusión en el libro IVA digital"
-            raise ValidationError(msg.format(invoice.name))
+            msg = f"La factura {invoice.name} no posee un número apto para su inclusión en el libro IVA digital"
+            raise ValidationError(msg)
 
     def get_puntoDeVenta(self, invoice):
         """

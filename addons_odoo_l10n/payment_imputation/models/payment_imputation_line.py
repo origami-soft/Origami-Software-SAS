@@ -52,6 +52,7 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
         for line in self:
             line.currency_id = line.move_line_id.currency_id or line.move_line_id.company_currency_id
 
+    @api.depends('move_line_id.name', 'move_line_id.move_id.name')
     def _compute_name(self):
         for line in self:
             line.name = line.move_line_id.name or line.move_line_id.move_id.name

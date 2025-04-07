@@ -33,12 +33,11 @@ class AccountMove(models.Model):
     def compute_current_currency_rate(self):
         """ Calculo la cotizacion actual de la moneda siempre y cuando sea distinta a la de la compañia """
         for invoice in self:
-            if invoice.currency_id and invoice.currency_id != invoice.company_id.currency_id:
-                date = invoice.invoice_date or fields.Date.today()
-                rate = self.env['res.currency']._get_conversion_rate(invoice.currency_id, invoice.company_id.currency_id, invoice.company_id, date)
-                invoice.current_currency_rate = rate
-            else:
-                invoice.current_currency_rate = 1
+            invoice.current_currency_rate = self._get_currency_rate(
+                invoice.currency_id,
+                invoice.company_id,
+                invoice.invoice_date or fields.Date.today()
+            )
 
     def _recompute_dynamic_lines(self, recompute_all_taxes=False, recompute_tax_base_amount=False):
         if self.need_rate:
@@ -51,12 +50,26 @@ class AccountMove(models.Model):
             )
         return super(AccountMove, self)._recompute_dynamic_lines(recompute_all_taxes, recompute_tax_base_amount)
 
+    def _get_currency_rate(self, currency, company, date):
+        """ Helper method to get the currency rate """
+        if currency and currency != company.currency_id:
+            rate = self.env['res.currency']._get_conversion_rate(
+                currency, company.currency_id, company, date)
+            return round(rate, 6)
+        return 1
+
     @api.model_create_multi
     def create(self, vals_list):
-        res = super().create(vals_list)
-        for invoice in res:
-            if invoice.need_rate and not invoice.currency_rate:
-                invoice.currency_rate = invoice.current_currency_rate
-        return res
+        for vals in vals_list:
+            currency_id = self.env['res.currency'].browse(vals.get('currency_id'))
+            company_id = vals.get('company_id')
+            invoice_date = vals.get('invoice_date', fields.Date.today())
+
+            if currency_id and currency_id.need_rate and 'currency_rate' not in vals:
+                company = self.env['res.company'].browse(company_id)
+                vals['currency_rate'] = self._get_currency_rate(currency_id, company, invoice_date)
+
+        # Crea el registro con los valores modificados
+        return super(AccountMove, self).create(vals_list)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
