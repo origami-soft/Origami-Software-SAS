@@ -390,7 +390,8 @@
                         </table>
                     </div>
                 </div>
-                <div id="tax_details" name="tax_details" class="row d-block pt-4" t-if="not o.voucher_type_id.denomination_id.vat_discriminated">
+                <div id="tax_details" name="tax_details" class="row d-block pt-4">
+<!--                    t-if="not o.voucher_type_id.denomination_id.vat_discriminated"-->
                     <div>
                         <span class="fw-bold" style="border-bottom: black 1px solid">Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</span>
                         <div style="display: block;  margin-top: 5px;">
