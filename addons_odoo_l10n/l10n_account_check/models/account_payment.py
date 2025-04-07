@@ -95,4 +95,7 @@ class AccountPayment(models.Model):
 
         return super(AccountPayment, self).action_draft()
 
+    def action_paired_internal_transfer_payment_id(self):
+        pass
+
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
