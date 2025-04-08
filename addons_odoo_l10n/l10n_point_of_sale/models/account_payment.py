@@ -64,7 +64,7 @@ class AccountPayment(models.Model):
         payments_with_pos = self.filtered(lambda r: r.journal_id.pos_ar_id)
         for rec in payments_with_pos:
             params = rec.get_params_for_available_vouchers()
-            rec.document_book_id = rec.pos_ar_id.get_default_document_book(params)
+            rec.document_book_id = rec.journal_id.pos_ar_id.get_default_document_book(params)
         (self - payments_with_pos).document_book_id = None
     
     @api.depends("pos_ar_id", "payment_type")
