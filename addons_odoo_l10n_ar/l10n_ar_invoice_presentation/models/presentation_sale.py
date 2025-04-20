@@ -49,6 +49,9 @@ class SaleInvoicePresentation(SalePresentation):
     def fill_perceptions(self, invoice, line):
         if invoice.partner_id.property_account_position_id.ar_fiscal_position_id == self.data.fiscal_position_nc:
             line.percepcionNC = self.get_percepcion_nc(invoice)
+            line.importePercepciones = 0
+            line.importePerIM = 0
+            line.importePerIIBB = 0
         else:
             line.percepcionNC = 0
             line.importePercepciones = self.get_importe_per_by_jurisdiction(invoice, ['nacional'])
@@ -61,14 +64,15 @@ class SaleInvoicePresentation(SalePresentation):
         :param invoice: record.
         :return: string, importe percepcion nc, ej: '2134'
         """
-        importe_precepciones = 0
+        importe_percepciones = 0
         for ml in invoice.filtered(
             lambda x: x.partner_id.property_account_position_id.ar_fiscal_position_id == self.data.fiscal_position_nc
-        ).filtered(lambda t: abs(t.amount_currency or t.balance) > 0 and t.tax_line_id and not t.tax_line_id.is_vat):
-            if ml.tax_line_id.perception_id:
-                importe_precepciones += abs(ml.amount_currency or ml.balance)
+        ).line_ids.filtered(lambda t: \
+            abs(t.amount_currency or t.balance) > 0 and not t.tax_line_id.is_vat and t.tax_line_id.perception_id):
+            
+            importe_percepciones += abs(ml.amount_currency or ml.balance)
 
-        return self.helper.format_amount(importe_precepciones)
+        return self.helper.format_amount(importe_percepciones)
 
     # No implementado
     @staticmethod
