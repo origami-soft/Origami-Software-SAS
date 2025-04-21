@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_cot_arba',
 
-    'version': '1.2.2',
+    'version': '1.2.3',
 
     'summary': 'Añade Código de Operación de Traslado (COT) en remitos',
 

@@ -34,7 +34,7 @@ class AccountPaymentRegister(models.TransientModel):
         return values
     
     def _create_payment_vals_from_batch(self, batch_result):
-        values = super()._create_payment_vals_from_wizard(batch_result)
+        values = super()._create_payment_vals_from_batch(batch_result)
         if self._context.get('active_model') == 'account.move.line':
             values.update(
                 self._get_imputation_vals(batch_result.get('lines', []))

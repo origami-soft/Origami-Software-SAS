@@ -20,16 +20,16 @@ class ResPartner(models.Model):
             'DESTINATARIO_TIPO_DOCUMENTO': self._return_valid_document_type(), # Valores posibles: ‘DNI’, ‘LC’, ‘LE’, ‘PAS’, ‘CI’
             'DESTINATARIO_DOCUMENTO': self._return_valid_document_type() and self.commercial_partner_id.vat or '', # Valores posibles: blanco o numero > 0
             'DESTINATARIO_CUIT': '' if self._is_final_consumer() else self.commercial_partner_id.vat, # Requerido si consumidor final=0
-            'DESTINATARIO_RAZON_SOCIAL': self.name[:49], # Requerido si consumidor final = 0
+            'DESTINATARIO_RAZON_SOCIAL': self.name[:49] if self.name else '', # Requerido si consumidor final = 0
             'DESTINATARIO_TENEDOR': '0' if self._is_final_consumer() else '1', # Si DESTINATARIO_CONSUMIDOR_FINAL=1 entonces DESTINATARIO_TENEDOR=0
-            'DESTINO_DOMICILIO_CALLE': self.street[:39],
+            'DESTINO_DOMICILIO_CALLE': self.street[:39] if self.street else '',
             'DESTINO_DOMICILIO_NUMERO': '', # 0 (cero) ó ‘ ’ (blanco) si DESTINO_DOMICILIO_COMPLE=‘S/N’
             'DESTINO_DOMICILIO_COMPLE': 'S/N', # Valores posibles: ‘ ’, ‘S/N’ , ‘1/2’, ‘1/4’, ‘BIS’
             'DESTINO_DOMICILIO_PISO': '',
             'DESTINO_DOMICILIO_DTO': '',
             'DESTINO_DOMICILIO_BARRIO': '',
-            'DESTINO_DOMICILIO_CODIGOPOSTAL': self.zip[:7],
-            'DESTINO_DOMICILIO_LOCALIDAD': self.city[:49],
+            'DESTINO_DOMICILIO_CODIGOPOSTAL': self.zip[:7] if self.zip else '',
+            'DESTINO_DOMICILIO_LOCALIDAD': self.city[:49] if self.city else '',
             'DESTINO_DOMICILIO_PROVINCIA': self.state_id.code, # Válido según Tabla de Provincias
         }
     

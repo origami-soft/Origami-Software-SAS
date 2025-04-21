@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_vat_diary',
 
-    'version': '1.0.2',
+    'version': '1.0.3',
 
     'category': 'Accounting',
 

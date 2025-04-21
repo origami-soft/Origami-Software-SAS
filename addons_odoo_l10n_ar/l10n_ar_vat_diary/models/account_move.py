@@ -123,7 +123,7 @@ class AccountMove(models.Model):
             no_iva[item.tax_line_id.id] = {
                 'name': item.tax_line_id.name,
                 'base': base * sign * rate,
-                'amount': item.price_subtotal * sign * rate
+                'amount': abs(item.amount_currency) * sign * rate
             }
         return no_iva
 
@@ -219,6 +219,5 @@ class AccountMove(models.Model):
             ))
         if errors:
             raise ValidationError('\n'.join(errors))
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
