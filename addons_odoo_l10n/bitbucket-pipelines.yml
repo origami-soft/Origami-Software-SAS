@@ -1,0 +1,122 @@
+# Definimos el bloque de ejecución principal como un ancla para no repetir código
+definitions:
+  # 1. DEFINIMOS CACHÉS ESTRICTAMENTE AISLADAS POR SISTEMA OPERATIVO
+  caches:
+    pip-2004: ~/.cache/pip
+    pip-2204: ~/.cache/pip
+    pip-2404: ~/.cache/pip
+
+  steps:
+    - step: &motor_universal
+        script:
+          # 1. BOOTSTRAP: Clonar el repositorio centralizado (Git ya viene en tu imagen Docker)
+          - git clone git@bitbucket.org:blueorangegroup/odoo_compiler.git -b pipeline /tmp/compilador
+
+          # 2. MOTOR SCRIPT: Ejecutar hooks en orden
+          - |
+            if [ -d /tmp/compilador/ci_hooks/script ]; then
+              for script_file in $(find /tmp/compilador/ci_hooks/script -maxdepth 1 -name "*.sh" | sort); do
+                TITLE=$(grep "^# TITLE:" "$script_file" | sed 's/^# TITLE: //' || true)
+                TITLE=${TITLE:-"Ejecutando $(basename "$script_file")"}
+            
+                echo -e "\n========================================================="
+                echo -e "$TITLE"
+                echo -e "=========================================================\n"
+                bash -e "$script_file"
+              done
+            else
+              echo "⚠️ No se encontró la carpeta de scripts centralizados."
+            fi
+
+        after-script:
+          # 3. MOTOR AFTER-SCRIPT: Ejecutar hooks de finalización
+          - |
+            if [ -d /tmp/compilador/ci_hooks/after_script ]; then
+              for script_file in $(find /tmp/compilador/ci_hooks/after_script -maxdepth 1 -name "*.sh" | sort); do
+                TITLE=$(grep "^# TITLE:" "$script_file" | sed 's/^# TITLE: //' || true)
+                TITLE=${TITLE:-"Ejecutando $(basename "$script_file")"}
+            
+                echo -e "\n========================================================="
+                echo -e "$TITLE"
+                echo -e "=========================================================\n"
+                bash -e "$script_file"
+              done
+            fi
+
+pipelines:
+  # ---------------------------------------------------------
+  # PIPELINES MANUALES (Disponibles desde la interfaz web)
+  # ---------------------------------------------------------
+  custom:
+    Manual-Ubuntu-24.04:
+      - variables:
+          - name: FORCE_FULL_COMPILE
+            description: "Compilar todo el repositorio."
+            default: "false"
+            allowed-values:
+              - "false"
+              - "true"
+      - step:
+          <<: *motor_universal
+          name: "Forzar Compilación: Ubuntu 24.04 (Odoo 18+)"
+          image: oteroalejandro/ubuntu-compiler:24.04-stable
+          caches:
+            - pip-2404
+
+    Manual-Ubuntu-22.04:
+      - variables:
+          - name: FORCE_FULL_COMPILE
+            description: "Compilar todo el repositorio."
+            default: "false"
+            allowed-values:
+              - "false"
+              - "true"
+      - step:
+          <<: *motor_universal
+          name: "Forzar Compilación: Ubuntu 22.04 (Odoo 16-17)"
+          image: oteroalejandro/ubuntu-compiler:22.04-stable
+          caches:
+            - pip-2204
+
+    Manual-Ubuntu-20.04:
+      - variables:
+          - name: FORCE_FULL_COMPILE
+            description: "Compilar todo el repositorio."
+            default: "false"
+            allowed-values:
+              - "false"
+              - "true"
+      - step:
+          <<: *motor_universal
+          name: "Forzar Compilación: Ubuntu 20.04 (Odoo 15)"
+          image: oteroalejandro/ubuntu-compiler:20.04-stable
+          caches:
+            - pip-2004
+
+  # ---------------------------------------------------------
+  # PIPELINES AUTOMÁTICOS (Disparados por Gitflow)
+  # ---------------------------------------------------------
+  branches:
+    '{15.0,develop_15.0}':
+      - step:
+          <<: *motor_universal
+          name: "Compilar Ubuntu 20.04"
+          image: oteroalejandro/ubuntu-compiler:20.04-stable
+          caches:
+            - pip-2004
+
+    '{1[6-7].0,develop_1[6-7].0}':
+      - step:
+          <<: *motor_universal
+          name: "Compilar Ubuntu 22.04"
+          image: oteroalejandro/ubuntu-compiler:22.04-stable
+          caches:
+            - pip-2204
+
+    '{1[8-9].0,2[0-9].0,develop_1[8-9].0,develop_2[0-9].0}':
+      - step:
+          <<: *motor_universal
+          name: "Compilar Ubuntu 24.04"
+          image: oteroalejandro/ubuntu-compiler:24.04-stable
+          caches:
+            - pip-2404
