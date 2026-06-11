@@ -41,7 +41,13 @@ def _remove_stub(cr, name):
             "base_vat_ar migration: refuse to remove module %r in state %r",
             name, state)
         return
+    # Data owned BY the stub module (none if never installed) ...
     cr.execute("DELETE FROM ir_model_data WHERE module = %s", (name,))
+    # ... and the module's own identity xmlid owned by `base`, otherwise the
+    # later rename of the old module's xmlid collides with this dangling row.
+    cr.execute(
+        "DELETE FROM ir_model_data WHERE module = 'base' AND name = %s",
+        ('module_%s' % name,))
     cr.execute("DELETE FROM ir_module_module_dependency WHERE module_id = %s", (mod_id,))
     cr.execute("DELETE FROM ir_module_module WHERE id = %s", (mod_id,))
 
