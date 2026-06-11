@@ -35,7 +35,7 @@ class ResPartner(models.Model):
     
     def _is_final_consumer(self):
         self.ensure_one()
-        return self.property_account_position_id.ar_fiscal_position_id.id == self.env.ref('l10n_ar.ar_fiscal_position_cf').id
+        return self.property_account_position_id.ar_fiscal_position_id.id == self.env.ref('l10n_ar_bo.ar_fiscal_position_cf').id
 
     def _return_valid_document_type(self):
         self.ensure_one()

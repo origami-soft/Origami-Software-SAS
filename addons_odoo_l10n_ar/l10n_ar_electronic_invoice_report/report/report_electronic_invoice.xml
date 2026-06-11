@@ -157,7 +157,7 @@
         <template id="report_electronic_invoice_footer">
 
             <div class="footer" style="font-size: 12px">
-                <t t-if="o.is_credit_invoice">
+                <t t-if="o.is_credit_invoice or o.company_id.display_invoice_amount_total_words">
                     <div style="text-align:right;width: 100%;padding-right: 10px"><b><t t-esc="o.get_invoice_total_as_numbers()"/></b></div>
                 </t>
                 <div style="overflow:auto">
@@ -210,14 +210,12 @@
 
         <!--LAYOUT-->
         <template id="report_electronic_invoice_layout">
-            <t t-name="report.electronic_invoice_layout">
-                <t t-call="l10n_ar_electronic_invoice_report.report_electronic_invoice_header"/>
-                    <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name"
-                         t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
-                        <t t-raw="0"/>
-                    </div>
-                <t t-call="l10n_ar_electronic_invoice_report.report_electronic_invoice_footer"/>
-            </t>
+            <t t-call="l10n_ar_electronic_invoice_report.report_electronic_invoice_header"/>
+            <div class="article o_report_layout_standard" t-att-data-oe-model="o and o._name"
+                 t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+                <t t-out="0"/>
+            </div>
+            <t t-call="l10n_ar_electronic_invoice_report.report_electronic_invoice_footer"/>
         </template>
 
         <!--CUERPO-->
@@ -288,7 +286,7 @@
                                         <t t-if="has_internal">
                                             <td class="text-end">
                                                 <span t-esc="', '.join([ str(tax.description) for tax in
-                                    line.tax_ids.filtered(lambda x: x.tax_group_id == env.ref('l10n_ar.tax_group_internal'))])"/>
+                                    line.tax_ids.filtered(lambda x: x.tax_group_id == env.ref('l10n_ar_bo.tax_group_internal'))])"/>
                                             </td>
                                         </t>
                                     </t>
@@ -390,8 +388,7 @@
                         </table>
                     </div>
                 </div>
-                <div id="tax_details" name="tax_details" class="row d-block pt-4">
-<!--                    t-if="not o.voucher_type_id.denomination_id.vat_discriminated"-->
+                <div id="tax_details" name="tax_details" class="row d-block pt-4" t-if="not o.voucher_type_id.denomination_id.vat_discriminated">
                     <div>
                         <span class="fw-bold" style="border-bottom: black 1px solid">Régimen de Transparencia Fiscal al Consumidor (Ley 27.743)</span>
                         <div style="display: block;  margin-top: 5px;">
@@ -440,7 +437,7 @@
                 <!--TEXTO Ley Nº 27.618 -->
                 <div style="font-size:11px;padding-top: 10px">
                     <div>
-                        <t t-if="o.voucher_type_id.denomination_id == env.ref('l10n_ar_afip_tables.account_denomination_a', None) and o.fiscal_position_id.ar_fiscal_position_id == env.ref('l10n_ar.ar_fiscal_position_mon', None)">
+                        <t t-if="o.voucher_type_id.denomination_id == env.ref('l10n_ar_afip_tables.account_denomination_a', None) and o.fiscal_position_id.ar_fiscal_position_id == env.ref('l10n_ar_bo.ar_fiscal_position_mon', None)">
                             <span>El crédito fiscal discriminado en el presente comprobante, sólo podrá ser computado a efectos del Régimen de Sostenimiento e Inclusión Fiscal para Pequeños Contribuyentes de la Ley Nº 27.618</span>
                         </t>
                     </div>
@@ -466,7 +463,7 @@
             </t>
         </template>
 
-        <template id="report_electronic_invoice">
+        <template id="electronic_invoice">
             <t t-call="web.html_container">
                 <t t-foreach="docs" t-as="o">
                     <t t-call="l10n_ar_electronic_invoice_report.report_electronic_invoice_template" t-lang="o.partner_id.lang"/>

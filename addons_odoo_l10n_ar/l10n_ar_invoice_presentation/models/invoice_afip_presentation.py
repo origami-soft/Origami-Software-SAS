@@ -39,8 +39,8 @@ class InvoiceAfipPresentation(models.AbstractModel):
         """
 
         foreign_fiscal_positions = [
-            self.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
-            self.env.ref('l10n_ar.ar_fiscal_position_prov_ext'),
+            self.env.ref('l10n_ar_bo.ar_fiscal_position_cliente_ext'),
+            self.env.ref('l10n_ar_bo.ar_fiscal_position_prov_ext'),
         ]
 
         errors = []

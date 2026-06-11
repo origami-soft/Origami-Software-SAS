@@ -91,8 +91,8 @@ class AccountMove(models.Model):
         )
 
         foreign_fiscal_positions = [
-            self.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
-            self.env.ref('l10n_ar.ar_fiscal_position_prov_ext'),
+            self.env.ref('l10n_ar_bo.ar_fiscal_position_cliente_ext'),
+            self.env.ref('l10n_ar_bo.ar_fiscal_position_prov_ext'),
         ]
         is_foreign = self.partner_id.property_account_position_id.ar_fiscal_position_id in foreign_fiscal_positions
         vat = self.partner_id.country_id.vat if is_foreign and self.partner_id.country_id != self.env.ref('base.ar') else self.partner_id.vat

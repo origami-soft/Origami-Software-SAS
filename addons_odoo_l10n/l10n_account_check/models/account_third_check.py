@@ -129,19 +129,19 @@ class AccountThirdCheck(models.Model):
         self.next_state('wallet_handed')
 
     def _check_cancel_receipt_state(self):
-        return self.state == 'wallet'
+        return self.state in ('wallet','draft')
 
     def cancel_receipt(self):
         """ Lo que deberia pasar con el cheque cuando se cancela un recibo """
         if any(not check._check_cancel_receipt_state() for check in self):
             exceptions.cancel_receipt_non_wallet_check()
-        self.cancel_state('wallet')
+        self.filtered(lambda c: c.state == 'wallet').cancel_state('wallet')
 
     def cancel_payment(self):
         """ Lo que deberia pasar con el cheque cuando se cancela una orden de pago """
         if any(not check._check_state_for_cancel_payment() for check in self):
             exceptions.cancel_payment_non_handed_check()
-        self.cancel_state('handed')
+        self.filtered(lambda c: c.state == 'handed').cancel_state('handed')
 
     def get_cancel_states(self):
         return {
@@ -199,5 +199,30 @@ class AccountThirdCheck(models.Model):
         if payment.partner_type == 'supplier':
             return False
         return True
+
+    @api.constrains('name', 'partner_id', 'bank_id', 'amount')
+    def _check_duplicate_third_check(self):
+        """
+        Evita la carga duplicada de cheques de terceros en recibos de cobranza.
+        Criterios: mismo número, mismo cliente, mismo banco emisor, mismo importe.
+        Se valida al guardar.
+        """
+        for r in self:
+            if not (r.name and r.partner_id and r.bank_id and r.amount):
+                continue
+
+            domain = [
+                ('id', '!=', r.id),
+                ('name', '=', r.name),
+                ('partner_id', '=', r.partner_id.id),
+                ('bank_id', '=', r.bank_id.id),
+                ('amount', '=', r.amount),
+                ('company_id', '=', r.company_id.id),
+            ]
+
+            if self.search_count(domain):
+                exceptions.duplicate_third_check_warning(
+                    r.name, r.amount, r.bank_id.name, r.partner_id.display_name
+                )
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

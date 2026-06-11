@@ -10,6 +10,8 @@
             <field name="arch" type="xml">
                 <field name="name" position="after">
                     <field name="prefix_quantity"/>
+                    <field name="company_activity_ids" invisible="1"/>
+                    <field name="activity_id" options="{'no_create': True}" domain="[('id', 'in', company_activity_ids)]"/>
                 </field>
                 <field name="book_type_id" position="after">
                     <field name="last_number"/>

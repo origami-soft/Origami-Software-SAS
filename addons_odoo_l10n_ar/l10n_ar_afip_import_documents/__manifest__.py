@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_afip_import_documents',
 
-    'version': '1.1.1',
+    'version': '1.3',
 
     'category': 'Localization',
 

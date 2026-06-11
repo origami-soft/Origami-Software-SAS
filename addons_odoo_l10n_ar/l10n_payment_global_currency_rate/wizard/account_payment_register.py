@@ -19,6 +19,13 @@ class AccountPaymentRegister(models.TransientModel):
         related='currency_id.need_rate'
     )
 
+    @api.onchange('currency_rate')
+    def onchange_currency_rate(self):
+        for field in self.env['account.payment'].get_payment_line_fields():
+            for line in getattr(self, field).filtered(lambda x: x.currency_id == x.payment_id.company_id.currency_id):
+                line.rate = self.currency_rate or self.current_currency_rate
+                line.onchange_amount()
+
     @api.depends('currency_id', 'payment_date', 'company_id')
     def compute_current_currency_rate(self):
         """ Calculo la cotizacion actual de la moneda siempre y cuando sea distinta a la de la compañia """

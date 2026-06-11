@@ -46,17 +46,18 @@ class WizardOwnCheckReconcile(models.TransientModel):
         checks = self.env['account.own.check'].browse(self.env.context.get('active_ids'))
         return checks.mapped('company_id')[0] if checks and checks.mapped('company_id') else self.env.company
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """
         Redefino el create porque al confirmar en el popup se crea el objeto y pierdo la referencia a las líneas
-        :param vals: valores de la creacion
-        :return: objeto creado
+        :param vals_list: lista de valores de la creacion
+        :return: objetos creados
         """
-        res = super(WizardOwnCheckReconcile, self).create(vals)
-        if vals.get('line_ids') and not res.line_ids:
-            line_ids = [val[1] for val in vals['line_ids']]
-            res.line_ids = [(6, 0, line_ids)]
+        res = super(WizardOwnCheckReconcile, self).create(vals_list)
+        for record, vals in zip(res, vals_list):
+            if vals.get('line_ids') and not record.line_ids:
+                line_ids = [val[1] for val in vals['line_ids']]
+                record.line_ids = [(6, 0, line_ids)]
         return res
 
     def get_move_line_vals(self, move, account, amount_currency, line_currency, check, debit=0.0, credit=0.0):

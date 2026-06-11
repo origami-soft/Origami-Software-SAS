@@ -103,21 +103,21 @@ class RetentionSicore(models.Model):
         line = lines.create_line()
         line.codigoComprobante = self.get_code(r.payment_id)
         line.fechaDocumento = r.payment_id.date.strftime('%d/%m/%Y')
-        line.referenciaDocumento = r.payment_id.voucher_name.replace('-', '').rjust(16)
-        line.importeDocumento = '{0:.2f}'.format(r.payment_id.amount).zfill(16).replace('.', ',')
+        line.referenciaDocumento = r.payment_id.voucher_name.replace('-', '').ljust(16)
+        line.importeDocumento = '{0:.2f}'.format(r.payment_id.amount).zfill(16)
         line.codigoImpuesto = self.get_tax_code(r)
-        line.codigoRegimen = str(r.activity_id.code).zfill(3)
+        line.codigoRegimen = str(r.activity_id.code).ljust(3) if r.activity_id else '865'
         line.codigoOperacion = '1'  # 1 Retención, 2 Percepción, 4 Imposibilidad de Retención
-        line.base = '{0:.2f}'.format(r.base).zfill(14).replace('.', ',')
+        line.base = '{0:.2f}'.format(r.base).zfill(14)
         line.fecha = r.date.strftime('%d/%m/%Y')
         line.codigoCondicion = self.get_condition_code()
         line.retencionPracticadaSS = '0'
-        line.importe = '{0:.2f}'.format(r.amount).zfill(14).replace('.', ',')
-        line.porcentaje = '{0:.2f}'.format(0).zfill(6).replace('.', ',')
+        line.importe = '{0:.2f}'.format(r.amount).zfill(14)
+        line.porcentaje = '{0:.2f}'.format(0).zfill(6)
         line.fechaEmision = ''.ljust(10)
         line.codigoDocumento = self.get_document_afip_code(r.payment_id.partner_id.partner_document_type_id.id)
-        line.cuit = r.payment_id.partner_id.vat.rjust(20)
-        line.numeroCertificado = r.certificate_no.replace('-', '').rjust(14)
+        line.cuit = r.payment_id.partner_id.vat.ljust(20)
+        line.numeroCertificado = r.certificate_no.replace('-', '').zfill(14)
     
     def get_presentation(self):
         return presentation.Presentation("sicore", "retenciones")

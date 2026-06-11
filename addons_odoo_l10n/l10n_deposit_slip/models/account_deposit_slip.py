@@ -122,13 +122,15 @@ class AccountDepositSlip(models.Model):
 
         self.state = 'canceled'
 
-    @api.model
-    def create(self, values):
-        values['name'] = self.env['ir.sequence'].next_by_code('account.deposit.slip.sequence')
-        return super(AccountDepositSlip, self).create(values)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            values['name'] = self.env['ir.sequence'].next_by_code('account.deposit.slip.sequence')
+        return super(AccountDepositSlip, self).create(vals_list)
     
     def _create_check_move(self, check):
         vals = {
+            'name': '/',
             'date': self.date,
             'ref': 'Boleta de depósito {}{}: {}'.format(
                 self.name, " ({})".format(self.reference) if self.reference else '', check.name),
@@ -148,6 +150,7 @@ class AccountDepositSlip(models.Model):
     
     def _create_deposit_move(self, check):
         vals = {
+            'name': '/',
             'date': self.date,
             'ref': 'Boleta de depósito {}{}: {}'.format(
                 self.name, " ({})".format(self.reference) if self.reference else '', check.name),

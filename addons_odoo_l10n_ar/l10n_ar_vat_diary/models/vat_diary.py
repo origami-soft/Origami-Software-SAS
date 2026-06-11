@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-import io, base64, xlwt
+import io, base64, xlwt, csv
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from datetime import datetime
@@ -20,6 +20,9 @@ class VatDiary(models.Model):
     date_to = fields.Date('Hasta', required=True)
     report = fields.Binary('Reporte XLS', readonly=True)
     report_filename = fields.Char(string='Nombre archivo')
+    csv_report = fields.Binary('Reporte CSV', readonly=True)
+    csv_report_filename = fields.Char(string='Nombre archivo CSV')
+    company_id = fields.Many2one('res.company', string="Compañía", default=lambda l: l.env.company)
 
     @api.depends('type', 'date_from', 'date_to')
     def _compute_display_name(self):
@@ -64,7 +67,9 @@ class VatDiary(models.Model):
         ]
 
     def _get_invoices(self):
-        return self.env['account.move'].search(self._get_invoices_search_domain())
+        invoices = self.env['account.move'].search(self._get_invoices_search_domain())
+        invoices._check_vat_diary_voucher_name()
+        return invoices
 
     def _get_vouchers_data(self, vouchers):
         # Se genera una lista de diccionarios con todos los documentos a incluir en el reporte
@@ -138,7 +143,8 @@ class VatDiary(models.Model):
             3: 'Condición IVA',
             4: 'Tipo',
             5: 'Comprobante',
-            6: 'Jurisdicción'
+            6: 'Jurisdicción',
+            7: 'Concepto',
         }
 
     def get_header_values(self, taxes_position):
@@ -180,6 +186,7 @@ class VatDiary(models.Model):
             4: voucher.get('voucher_type'),
             5: voucher.get('voucher'),
             6: voucher.get('jurisdiction'),
+            7: voucher.get('concept', ''),
         }
         vals[last_position + size] = voucher.get('total')
         return vals
@@ -324,6 +331,30 @@ class VatDiary(models.Model):
             raise ValidationError("No se han encontrado documentos para ese rango de fechas")
         voucher = self._get_vouchers_data(vouchers)
         return self.sort_voucher_values(voucher)
+
+    def get_csv_details_values(self, invoices):
+        values = []
+        for i in invoices:
+            values.extend(getattr(i, f'get_csv_{self.type}_vat_diary_list')())
+        return values
+
+    def get_csv_report_values(self):
+        invoices = self._get_invoices()
+        if not invoices:
+            raise ValidationError("No se han encontrado documentos para ese rango de fechas")
+        return self.get_csv_details_values(invoices)
+
+    def generate_csv_report(self):
+        file_data = io.StringIO()
+        writer = csv.writer(file_data, delimiter=';', quoting=csv.QUOTE_MINIMAL)
+        for row in self.get_csv_report_values():
+            writer.writerow(row)
+        self.csv_report = base64.encodebytes(file_data.getvalue().encode('ascii'))
+        
+        diary_type = self.display_name.split(':')[0]
+        date_from = self.date_from.strftime('%d-%m-%Y')
+        date_to = self.date_to.strftime('%d-%m-%Y')
+        self.csv_report_filename = diary_type + " " + date_from + ' a ' + date_to + '.csv'
 
     def get_iva_totals(self, iva, dictionary={}):
         # En caso de proporcionar dictionary actualiza el diccionario con los valores que correspondan

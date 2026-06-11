@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_taxes',
 
-    'version': '1.0',
+    'version': '1.1',
 
     'category': 'Accounting',
 
@@ -18,7 +18,8 @@
 
     'depends': [
         'base_codes',
-        'l10n_ar'
+        'l10n_ar_bo',
+        'invoice_currency_rate',
     ],
 
     'data': [

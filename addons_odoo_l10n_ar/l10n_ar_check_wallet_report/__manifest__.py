@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_check_wallet_report',
 
-    'version': '1.0.0',
+    'version': '1.0.1',
 
     'category': 'Localization',
 

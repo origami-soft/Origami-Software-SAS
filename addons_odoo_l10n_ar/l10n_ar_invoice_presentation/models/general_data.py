@@ -22,6 +22,6 @@ class GeneralData:
         self.tax_purchase_ng = vat_no_gravado_compras
         self.tax_sale_ng = vat_no_gravado_ventas
         self.codes_model_proxy = self.proxy.env['codes.models.relation']
-        self.fiscal_position_nc = self.proxy.env.ref("l10n_ar.ar_fiscal_position_no_categ")
+        self.fiscal_position_nc = self.proxy.env.ref("l10n_ar_bo.ar_fiscal_position_no_categ")
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

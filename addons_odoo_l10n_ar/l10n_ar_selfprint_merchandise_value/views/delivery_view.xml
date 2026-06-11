@@ -20,6 +20,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='backorder_id']" position="after">
                 <field name="insurance_value" readonly="state == 'done'" invisible="picking_type_code != 'outgoing'"/>
+                <field name="insurance_value_in_currency" readonly="state == 'done'" invisible="insurance_value == insurance_value_in_currency"/>
             </xpath>
         </field>
     </record>

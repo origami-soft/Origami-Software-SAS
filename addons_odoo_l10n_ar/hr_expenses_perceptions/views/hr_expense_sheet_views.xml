@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="hr_expense_sheet_perception_form">
+        <field name="name">hr.expense.sheet.perception.form</field>
+        <field name="model">hr.expense.sheet</field>
+        <field name="inherit_id" ref="hr_expense.view_hr_expense_sheet_form"/>
+        <field name="arch" type="xml">
+            <!-- Grilla de percepciones inline, debajo de las líneas de gasto -->
+            <xpath expr="//page[@name='expenses']//field[@name='expense_line_ids']" position="after">
+                <separator string="Percepciones" invisible="payment_mode != 'own_account'"/>
+                <field name="perception_ids" nolabel="1"
+                       invisible="payment_mode != 'own_account'"
+                       readonly="state not in ('draft', 'submit', 'approve')">
+                    <tree editable="bottom" string="Percepciones">
+                        <field name="currency_id" column_invisible="1"/>
+                        <field name="perception_id"
+                               domain="[('type_tax_use', '=', 'purchase'),'|',('company_id', '=', parent.company_id),('company_id', '=', False)]"/>
+                        <field name="aliquot" widget="percentage"/>
+                        <field name="base"/>
+                        <field name="amount"/>
+                        <field name="name" column_invisible="1"/>
+                        <field name="jurisdiction" column_invisible="1"/>
+                    </tree>
+                </field>
+            </xpath>
+            <!-- Desglose de percepciones en el footer de totales -->
+            <xpath expr="//group[@name='expense_total']/field[@name='total_tax_amount']" position="after">
+                <div class="oe_inline o_td_label"
+                     invisible="payment_mode != 'own_account' or total_perception_amount == 0">
+                    <label for="total_perception_amount"/>
+                </div>
+                <field name="total_perception_amount" nolabel="1"
+                       invisible="payment_mode != 'own_account' or total_perception_amount == 0"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4
+-->

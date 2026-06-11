@@ -36,7 +36,7 @@
             id="general_ledger_excel_menuitem"
             name="Libro diario (Excel)"
             action="general_ledger_excel_action"
-            parent="l10n_ar.reports_ar_main_menu"
+            parent="l10n_ar_bo.reports_ar_main_menu"
             sequence="10"
         />
 

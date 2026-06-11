@@ -47,12 +47,6 @@ class AccountPaymentRetention(models.Model):
         'Actividad',
     )
     type = fields.Selection(
-        selection=[
-            ('vat', 'IVA'),
-            ('gross_income', 'Ingresos Brutos'),
-            ('profit', 'Ganancias'),
-            ('other', 'Otro'),
-        ],
         string="Tipo",
         related='retention_id.type',
         readonly=True,

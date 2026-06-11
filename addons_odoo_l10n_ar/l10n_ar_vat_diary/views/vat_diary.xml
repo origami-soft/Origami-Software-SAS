@@ -9,6 +9,7 @@
             <form>
                 <header>
                     <button name="generate_xls_report" type="object" string="Generar XLS"/>
+                    <button name="generate_csv_report" type="object" string="Generar CSV"/>
                     <button name="generate_pdf_report" type="object" string="Descargar PDF"/>
                 </header>
                 <sheet>
@@ -21,8 +22,10 @@
                         <group>
                             <field name="separate_not_taxable_from_exempt"/>
                             <field name="include_suffered_retentions" invisible="type != 'purchases'"/>
-                            <field name="report" filename="report_filename" widget="binary"/>
+                            <field name="report" invisible="not report" filename="report_filename" widget="binary"/>
                             <field name="report_filename" invisible="1"/>
+                            <field name="csv_report" invisible="not csv_report" filename="csv_report_filename" widget="binary"/>
+                            <field name="csv_report_filename" invisible="1"/>
                         </group>
                     </group>
                 </sheet>
@@ -52,7 +55,7 @@
         id="vat_diary_menu"
         name="Subdiario IVA"
         action="action_view_vat_diary"
-        parent="l10n_ar.reports_ar_main_menu"
+        parent="l10n_ar_bo.reports_ar_main_menu"
         sequence="10"
     />
 

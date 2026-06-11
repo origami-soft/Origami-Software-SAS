@@ -83,7 +83,7 @@
             id="account_invoice_presentation_menu"
             name="Presentacion ventas/compras"
             action="action_account_invoice_presentation_view"
-            parent="l10n_ar.reports_ar_main_menu"
+            parent="l10n_ar_bo.reports_ar_main_menu"
             sequence="100"
         />
 

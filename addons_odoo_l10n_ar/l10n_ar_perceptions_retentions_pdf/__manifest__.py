@@ -4,7 +4,7 @@
 
     'name': 'L10n ar retentions perceptions pdf',
 
-    'version': '1.0.0',
+    'version': '1.0.1',
 
     'category': '',
 

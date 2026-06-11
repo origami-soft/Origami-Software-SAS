@@ -58,7 +58,7 @@
 
         <!-- MENU -->
         <menuitem id="retention_iva_menu_view" name="IVA Retenciones"
-            parent="l10n_ar.reports_ar_main_menu" action="retention_iva_action" sequence="41" />
+            parent="l10n_ar_bo.reports_ar_main_menu" action="retention_iva_action" sequence="41" />
 
     </data>
 

@@ -286,10 +286,10 @@ class AccountMove(models.Model):
     def _add_associated_documents_to_electronic_invoice_refund(self, electronic_invoice):
         """ Agrega los documentos asociados para facturas cuando se envíen notas de débito o crédito """
         if self.is_debit_note or self.move_type == 'out_refund':
-            if not self.fce_associated_document_ids:
+            if not (self.fce_associated_document_ids or self.is_credit_invoice):
                 electronic_invoice.period_from = self.invoice_date or fields.Date.context_today(self)
                 electronic_invoice.period_to = self.invoice_date or fields.Date.context_today(self)
-            else:
+            elif self.fce_associated_document_ids:
                 electronic_invoice.associated_documents = list(map(lambda assoc_doc: assoc_doc.create_wsfe_associated_document(), self.fce_associated_document_ids))
 
     def _add_optionals_to_credit_invoice(self, electronic_invoice):
@@ -822,9 +822,13 @@ class AccountMove(models.Model):
             'date': date
         })
     
+    def should_check_associated_documents(self):
+        return self.move_type == 'out_refund' and\
+            any(r.perception_id.require_associated_documents_in_refunds for r in self.perception_ids)
+    
     def action_post(self):
-        # Verifica que las NC con percepciones tengan Documentos asociados
-        if any(move.move_type == 'out_refund' and move.perception_ids and not move.fce_associated_document_ids for move in self):
+        # Verifica que las NC con percepciones tengan documentos asociados
+        if any(move.should_check_associated_documents() and not move.fce_associated_document_ids for move in self):
             raise ValidationError("No puede confirmar una nota de crédito con percepciones sin documentos asociados.")
         
         return super().action_post()

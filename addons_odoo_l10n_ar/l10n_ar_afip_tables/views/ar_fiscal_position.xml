@@ -6,7 +6,7 @@
         <record model="ir.ui.view" id="denomination_fiscal_position_form">
             <field name="name">Mapeo denominaciones / posiciones fiscales</field>
             <field name="model">ar.fiscal.position</field>
-            <field name="inherit_id" ref="l10n_ar.ar_fiscal_position_form"/>
+            <field name="inherit_id" ref="l10n_ar_bo.ar_fiscal_position_form"/>
             <field name="arch" type="xml">
                 <sheet position="inside">
                     <notebook>

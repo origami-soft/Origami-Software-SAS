@@ -33,7 +33,7 @@ class TestSoldCheck(common.TransactionCase):
             'payment_date': date_today,
             'state': 'wallet',
         })
-        self.third_check_journal_account = self.env.ref('l10n_ar.1_valores_diferidos_a_cobrar')
+        self.third_check_journal_account = self.env.ref('l10n_ar_bo.1_valores_diferidos_a_cobrar')
         self.third_check_journal = journal_proxy.create({
             'name': 'Cheques diferidos',
             'code': 'CHCK',
@@ -42,7 +42,7 @@ class TestSoldCheck(common.TransactionCase):
             'default_credit_account_id': self.third_check_journal_account.id,
         })
         self.env.company.account_third_check_journal_id = self.third_check_journal
-        self.journal_account = self.env.ref('l10n_ar.1_banco_cuenta_en_pesos')
+        self.journal_account = self.env.ref('l10n_ar_bo.1_banco_cuenta_en_pesos')
         self.journal = journal_proxy.create({
             'name': 'Cobros y pagos',
             'code': 'CYP',
@@ -56,7 +56,7 @@ class TestSoldCheck(common.TransactionCase):
             'bank_account_id': self.journal,
             'date': fields.Date.context_today(sold_check),
             'account_third_check_ids': self.third_check | self.third_check_2,
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos'),
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos'),
         })
 
     def test_negative_amounts(self):
@@ -68,7 +68,7 @@ class TestSoldCheck(common.TransactionCase):
         sequence = self.env['ir.sequence'].next_by_code('account.sold.check.sequence')
         sold_check_proxy = self.env['account.sold.check']
         sold_check = sold_check_proxy.create({
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'journal_id': self.journal.id,
             'date': fields.Date.context_today(sold_check_proxy)
         })
@@ -141,8 +141,8 @@ class TestSoldCheck(common.TransactionCase):
     def test_move_line_vals_with_commission(self):
         self.sold_check.commission = 10
         self.sold_check.interests = 5
-        self.sold_check.commission_account_id = self.env.ref('l10n_ar.1_caja_en_pesos')
-        self.sold_check.interest_account_id = self.env.ref('l10n_ar.1_banco_cuenta_en_pesos')
+        self.sold_check.commission_account_id = self.env.ref('l10n_ar_bo.1_caja_en_pesos')
+        self.sold_check.interest_account_id = self.env.ref('l10n_ar_bo.1_banco_cuenta_en_pesos')
         self.sold_check.post()
         lines = self.sold_check.move_id.line_ids
         assert len(lines) == 4

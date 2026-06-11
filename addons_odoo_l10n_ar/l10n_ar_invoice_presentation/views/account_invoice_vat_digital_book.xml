@@ -83,7 +83,7 @@
             id="account_invoice_vat_digital_book_menu"
             name="Libro IVA Digital"
             action="action_account_invoice_vat_digital_book_view"
-            parent="l10n_ar.reports_ar_main_menu"
+            parent="l10n_ar_bo.reports_ar_main_menu"
             sequence="30"
         />
 

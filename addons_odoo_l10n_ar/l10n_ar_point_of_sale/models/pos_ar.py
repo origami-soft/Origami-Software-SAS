@@ -12,6 +12,20 @@ class PosAr(models.Model):
         'Cantidad de dígitos prefijo',
         default=4
     )
+    activity_id = fields.Many2one(
+        'afip.activity',
+        "Actividad ARCA",
+        default=lambda l: l.env.company.main_activity_id
+    )
+    company_activity_ids = fields.Many2many(
+        'afip.activity',
+        compute='_compute_company_activity_ids'
+    )
+
+    @api.depends('company_id.main_activity_id', 'company_id.secondary_activity_ids')
+    def _compute_company_activity_ids(self):
+        for r in self:
+            r.company_activity_ids = r.company_id.main_activity_id | r.company_id.secondary_activity_ids
 
     def compare_name(self, other_pos):
         """ Piso el método original para contemplar los dígitos de prefijo (así, por ejemplo, no se permite crear un

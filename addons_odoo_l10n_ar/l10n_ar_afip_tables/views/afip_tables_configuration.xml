@@ -28,7 +28,32 @@
             </field>
         </record>
 
-        <!-- ACCIONES -->
+        <record model="ir.ui.view" id="afip_activity_form">
+            <field name="name">afip_activity_form</field>
+            <field name="model">afip.activity</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="description" placeholder="Descripción F883" nolabel="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="afip_activity_tree">
+            <field name="name">afip_activity_tree</field>
+            <field name="model">afip.activity</field>
+            <field name="arch" type="xml">
+                 <tree>
+                    <field name="code"/>
+                    <field name="name"/>
+                 </tree>
+            </field>
+        </record>
 
         <record id="action_afip_concept_view" model="ir.actions.act_window">
             <field name="name">Conceptos</field>
@@ -36,11 +61,15 @@
             <field name="view_mode">tree,form</field>
         </record>
 
-        <!-- MENUES -->
+        <record id="action_afip_activity_view" model="ir.actions.act_window">
+            <field name="name">Actividades ARCA</field>
+            <field name="res_model">afip.activity</field>
+            <field name="view_mode">tree,form</field>
+        </record>
 
         <menuitem
             id="afip_configuration_menu"
-            name="Configuracion AFIP"
+            name="Configuración ARCA"
             sequence="25"
             parent="base.menu_custom"
             groups="base.group_system"
@@ -54,6 +83,13 @@
             groups="base.group_system"
         />
 
+        <menuitem
+            id="afip_activity_menu"
+            name="Actividades ARCA"
+            parent="account.account_account_menu"
+            action="action_afip_activity_view"
+            groups="base.group_system"
+        />
 
     </data>
 </odoo>

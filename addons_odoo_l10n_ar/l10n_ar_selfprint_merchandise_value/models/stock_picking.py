@@ -1,20 +1,25 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from odoo import models, fields
 
 
-class DeliveryCarrier(models.Model):
+class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     insurance_value = fields.Float(
         string="Valor del seguro",
         digits=(10,2),
     )
+    insurance_value_in_currency = fields.Float('Valor del seguro en moneda')
 
     def _action_done(self):
         res = super()._action_done()
         for r in self.filtered(lambda l: l.sale_id):
-            r.insurance_value = r.get_insurance_value()
+            insurance_value = r.get_insurance_value()
+            insurance_value_in_currency = r.sale_id.currency_id._convert(
+                    insurance_value, r.company_id.currency_id, r.company_id, r.scheduled_date
+                )
+            r.write({'insurance_value': insurance_value, 'insurance_value_in_currency': insurance_value_in_currency})
         return res
 
     def get_insurance_value(self):
@@ -25,5 +30,6 @@ class DeliveryCarrier(models.Model):
             line_value = price_unit * (self.carrier_id.coefficient_value / 100) * line.quantity
             value += line_value
         return value
+
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

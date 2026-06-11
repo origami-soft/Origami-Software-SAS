@@ -5,7 +5,7 @@
 
     'name': 'l10n_account_voucher_type',
 
-    'version': '1.1.1',
+    'version': '1.1.3',
 
     'category': 'Tipos de comprobantes para contabilidad',
 

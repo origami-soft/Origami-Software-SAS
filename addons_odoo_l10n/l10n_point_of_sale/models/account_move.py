@@ -57,6 +57,15 @@ class AccountMove(models.Model):
     )
     fiscal_position_id = fields.Many2one(copy=False)
 
+    def _notify_by_email_prepare_rendering_context(self, message, msg_vals=False, model_description=False,
+                                                   force_email_company=False, force_email_lang=False):
+        """ Hago que en el subtítulo del mail salga el full_voucher_name de la factura """
+        res = super()._notify_by_email_prepare_rendering_context(
+            message, msg_vals, model_description, force_email_company, force_email_lang)
+        record = res['record']
+        res['subtitles'] = [s.replace(record.name, record.full_voucher_name) for s in res['subtitles']]
+        return res
+
     def _get_fields_to_skip(self):
         return ['name', 'date']
 

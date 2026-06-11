@@ -21,7 +21,7 @@ class TestAccountThirdCheck(TestSoldCheck):
             'journal_id': self.sold_check.journal_id,
             'date': fields.Date.context_today(self.env['account.sold.check']),
             'account_third_check_ids': self.third_check,
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos')
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos')
         })
         with self.assertRaises(ValidationError):
             self.third_check.sold_check_contraints()

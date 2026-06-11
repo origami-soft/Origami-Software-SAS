@@ -2,6 +2,8 @@
 
 import datetime
 
+from markupsafe import Markup
+
 from odoo import models, fields
 from odoo.exceptions import ValidationError
 
@@ -27,8 +29,20 @@ class StockPicking(models.Model):
         res = super()._action_done()
         self.env.cr.commit()
         for picking in self:
-            if picking.picking_type_id.get_cot_automatically and picking.company_id.cot_arba_key:
-                self.env['arba.cot.wizard'].with_context(active_model=picking._name, active_ids=picking.ids).create({'amount': picking.insurance_value}).confirm()
+            if (
+                picking.picking_type_id.get_cot_automatically
+                and picking.company_id.cot_arba_key
+            ):
+                res = (
+                    self.env["arba.cot.wizard"]
+                    .with_context(
+                        active_model=picking._name,
+                        active_ids=picking.ids,
+                        active_id=picking.id,
+                    )
+                    .create({"amount": picking.insurance_value})
+                )
+                res.confirm()
         return res
 
     def _get_arba_cot_details(self):
@@ -222,9 +236,10 @@ class StockPicking(models.Model):
             'cot': response.get('cot'),
         })
         self.message_post(
-            body=body,
+            body=Markup(body),
             subject='Remito Electrónico Solicitado',
-            attachments=attachments)
+            attachments=attachments,
+        )
 
         # Hago un commit para asegurarme la escritura de ARBA 
         # al procesar varios remitos

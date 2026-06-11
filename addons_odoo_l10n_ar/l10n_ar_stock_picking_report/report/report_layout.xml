@@ -72,7 +72,7 @@
                             </td>
                             <td>
                                 <b>
-                                    <span t-esc="parent_id.partner_document_type_id.name if parent_id.partner_document_type_id else DOCUMENTO"/>:
+                                    <span t-esc="parent_id.partner_document_type_id.name if parent_id.partner_document_type_id else 'DOCUMENTO'"/>:
                                 </b>
                                 <span t-esc="parent_id.vat"/>
                             </td>
@@ -183,7 +183,7 @@
                                 <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px; text-align: center"><span t-field="l.quantity"/></td>
                                 <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px; text-align: center"><span t-field="l.product_id.default_code"/></td>
                                 <td style="vertical-align: middle;border-bottom:1px solid;border-color: #c5c5c5;padding: 0px 0px 0px 5px">
-                                    <span t-field="l.display_name"/>
+                                    <span t-esc="l.get_report_description()"/>
                                     <t t-if="l.lot_id" groups="stock.group_production_lot">
                                         - Lote <span t-field="l.lot_id.name"/>
                                     </t>
@@ -200,10 +200,11 @@
     </template>
 
     <template id="report_selfprint_template">
-        <t t-set="pos_ar" t-value="o.picking_type_id.get_document_book(o.company_id).pos_ar_id"/>
-        <t t-foreach="range(pos_ar.copies_quantity)" t-as="l">
+        <t t-set="dbook" t-value="o.picking_type_id.get_document_book(o.company_id)"/>
+        <t t-set="pos_ar" t-value="dbook.pos_ar_id if dbook else False"/>
+        <t t-foreach="range(pos_ar.copies_quantity if pos_ar else 1)" t-as="l">
             <t t-call="l10n_ar_stock_picking_report.report_inner_layout">
-                <t t-set="type"><t t-esc="pos_ar.get_copie_name(l)"/></t>
+                <t t-set="type"><t t-esc="pos_ar.get_copie_name(l) if pos_ar else 'ORIGINAL'"/></t>
                 <t t-call="l10n_ar_stock_picking_report.report_selfprint_body" />
             </t>
         </t>

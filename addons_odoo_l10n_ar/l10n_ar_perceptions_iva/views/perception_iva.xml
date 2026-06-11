@@ -26,7 +26,7 @@
 
     <menuitem id="perception_iva_menu_view"
               name="IVA Percepciones"
-              parent="l10n_ar.reports_ar_main_menu"
+              parent="l10n_ar_bo.reports_ar_main_menu"
               action="perception_iva_action"
               sequence="41"/>
 

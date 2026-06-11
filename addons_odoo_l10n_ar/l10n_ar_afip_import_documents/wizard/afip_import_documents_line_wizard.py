@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
@@ -7,6 +7,7 @@ from odoo.exceptions import ValidationError
 class AfipImportDocumentsLineWizard(models.TransientModel):
 
     _name = 'afip.import.documents.line.wizard'
+    _description = 'Línea para importar documentos de ARCA'
 
     date = fields.Date(
         string='Fecha'
@@ -18,16 +19,16 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
         string='Punto de venta'
     )
     voucher_name = fields.Char(
-        string='Numero'
+        string='Número'
     )
     cae = fields.Char(
-        sring='CAE'
+        string='CAE'
     )
     document_type = fields.Char(
         string='Tipo de documento'
     )
     document_number = fields.Char(
-        string='Numero de documento'
+        string='Número de documento'
     )
     name = fields.Char(
         string='Denominación'
@@ -56,37 +57,91 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
     amount_total = fields.Float(
         string='Importe Total'
     )
+    vat_0_base = fields.Float(
+        string='NG IVA 0%'
+    )
+    vat_2_5_base = fields.Float(
+        string='NG IVA 2.5%'
+    )
+    vat_2_5_amount = fields.Float(
+        string='IVA 2.5%'
+    )
+    vat_5_base = fields.Float(
+        string='NG IVA 5%'
+    )
+    vat_5_amount = fields.Float(
+        string='IVA 5%'
+    )
+    vat_10_5_base = fields.Float(
+        string='NG IVA 10.5%'
+    )
+    vat_10_5_amount = fields.Float(
+        string='IVA 10.5%'
+    )
+    vat_21_base = fields.Float(
+        string='NG IVA 21%'
+    )
+    vat_21_amount = fields.Float(
+        string='IVA 21%'
+    )
+    vat_27_base = fields.Float(
+        string='NG IVA 27%'
+    )
+    vat_27_amount = fields.Float(
+        string='IVA 27%'
+    )
     wizard_id = fields.Many2one(
         comodel_name='afip.import.documents.wizard',
         string='Wizard',
     )
 
-    def get_invoice_lines(self):
-        self.ensure_one()
-        lines = []
-        base_vals = {
-            'quantity': 1,
-        }
-        # En caso de que AFIP informe un neto gravado, agrego una línea para el mismo
-        if self.amount_untaxed:
-            line_vals = {'name': "Neto gravado", 'price_unit': self.amount_untaxed}
-            # Obtengo el porcentaje de IVA a partir del cociente entre el importe de IVA y el neto gravado
-            tax_percentage = round(100 * self.amount_vat / self.amount_untaxed if self.amount_untaxed else 0, 2)
-            # Busco un impuesto IVA con el porcentaje obtenido
-            tax = self._get_vat_tax(tax_percentage)
+    def _get_vat_line_data(self, percentage):
+        percentage = int(percentage) if percentage.is_integer() else percentage
+        percentage_with_underscore = str(percentage).replace(".", "_")
+        base = getattr(self, f'vat_{percentage_with_underscore}_base')
+        if base:
+            amount = getattr(self, f'vat_{percentage_with_underscore}_amount') if percentage > 0 else 0
+            line_vals = {'name': f"IVA {percentage}%", 'price_unit': base}
+            tax = self._get_vat_tax(percentage)
             # En caso de encontrar un impuesto, le asigno el impuesto en cuestión a la línea
             if tax:
                 line_vals['tax_ids'] = [(6, 0, tax.ids)]
                 # En caso de que impuesto esté configurado para estar incluido en el precio, sumo el IVA al precio unitario
                 # para mantener el subtotal y total intactos
                 if tax.price_include:
-                    line_vals['price_unit'] += self.amount_vat
+                    line_vals['price_unit'] += amount
             # En caso de no encontrar un impuesto, hago que el precio unitario sea la suma de neto gravado e IVA para
             # mantener el subtotal y total intactos
             else:
-                line_vals['price_unit'] += self.amount_vat
-            line_vals.update(base_vals)
-            lines.append((0, 0, line_vals))
+                line_vals['price_unit'] += amount
+            return line_vals
+        return {}
+
+    def get_vat_percentages(self):
+        # Busco todos los IVAs cargados para tomar los porcentajes
+        vat_taxes = self.env['account.tax'].sudo().search([
+            ('company_id', '=', self.wizard_id.company_id.id),
+            ('is_exempt', '=', False),
+            ('is_vat', '=', True),
+            ('amount_type', '=', 'percent'),
+            ('type_tax_use', '=', 'purchase' if self.wizard_id.type == 'received' else 'sale')
+        ])
+        # Lo llevo a set en el medio para descartar porcentajes duplicados, en caso de que los haya
+        vat_percentages = list(set(vat_taxes.mapped('amount')))
+        # Lo ordeno para que las líneas de IVA se agreguen en orden
+        vat_percentages.sort()
+        return vat_percentages
+
+    def get_invoice_lines(self):
+        self.ensure_one()
+        lines = []
+        base_vals = {'quantity': 1}
+        # Agrego las líneas de IVA
+        for percentage in self.get_vat_percentages():
+            line_vals = self._get_vat_line_data(percentage)
+            if line_vals:
+                line_vals.update(base_vals)
+                lines.append((0, 0, line_vals))
         # En caso de que AFIP informe un importe no gravado, agrego una línea para el mismo
         if self.amount_not_taxed:
             not_taxed_tax = self._get_not_taxed_tax()
@@ -126,14 +181,14 @@ class AfipImportDocumentsLineWizard(models.TransientModel):
     def _get_not_taxed_tax(self):
         tax = self.env['account.tax'].sudo().search([
             ('company_id', '=', self.wizard_id.company_id.id),
-            ('is_exempt', '=', True),
+            ('is_exempt', '=', False),
             ('is_vat', '=', False),
             ('amount', '=', 0.0),
             ('amount_type', '=', 'fixed'),
             ('type_tax_use', '=', 'purchase' if self.wizard_id.type == 'received' else 'sale')
         ], limit=1)
         if not tax:
-            raise ValidationError("No se encontró impuesto para Iva No Gravado")
+            raise ValidationError("No se encontró impuesto para No Gravado")
         return tax
 
     def _get_exempt_tax(self):

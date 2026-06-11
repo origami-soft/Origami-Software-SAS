@@ -237,8 +237,8 @@ msgid "pos.ar"
 msgstr ""
 
 #. module: l10n_ar_electronic_invoice_report
-#: model:ir.model,name:l10n_ar_electronic_invoice_report.model_report_l10n_ar_electronic_invoice_report_report_electronic_invoice
-msgid "report.l10n_ar_electronic_invoice_report.report_electronic_invoice"
+#: model:ir.model,name:l10n_ar_electronic_invoice_report.model_report_l10n_ar_electronic_invoice_report_electronic_invoice
+msgid "report.l10n_ar_electronic_invoice_report.electronic_invoice"
 msgstr ""
 
 #. module: l10n_ar_electronic_invoice_report

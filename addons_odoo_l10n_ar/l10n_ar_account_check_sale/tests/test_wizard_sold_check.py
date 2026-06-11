@@ -38,9 +38,9 @@ class TestWizardSellCheck(TestSoldCheck):
         self.wizard_sold_check = slip_proxy.with_context(active_ids=check_ids).create({
             'journal_id': journal.id,
             'date': date_today,
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
-            'commission_account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
-            'interest_account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
+            'commission_account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
+            'interest_account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'commission': 10,
             'interests': 5
         })

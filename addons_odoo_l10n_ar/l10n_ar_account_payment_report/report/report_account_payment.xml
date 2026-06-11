@@ -235,9 +235,25 @@
                         </div>
                     </div>
 
+                     <!-- Variables de configuracion -->
+                     <t t-set="is_customer_receipt" t-value="o.payment_type == 'inbound' and o.partner_type == 'customer'"/>
+                     <t t-set="print_option" t-value="o.company_id.customer_receipt_print_option"/>
+                     <t t-set="has_imputation_data" t-value="o.payment_imputation_ids or o.advance_amount"/>
+
+                     <!-- Logica original: partner_type == customer y posted -> muestra moves, sino -> muestra lines -->
+                     <t t-set="original_show_moves" t-value="o.partner_type == 'customer' and o.state == 'posted'"/>
+
+                     <!-- Condiciones de visualizacion:
+                          - Recibo cliente: usa configuracion (puede mostrar "DOCUMENTOS IMPUTADOS" o "DOCUMENTOS A IMPUTAR")
+                          - Otros (pagos a proveedores): siempre "DOCUMENTOS IMPUTADOS" (comportamiento original) -->
+                     <t t-set="show_docs_imputed" t-value="has_imputation_data and ((is_customer_receipt and print_option == 'docs_imputed') or not is_customer_receipt)"/>
+                     <t t-set="show_docs_to_impute" t-value="has_imputation_data and is_customer_receipt and print_option == 'docs_to_impute'"/>
+
                      <!-- Tabla de documentos imputados -->
-                     <t t-if="o.payment_imputation_ids or o.advance_amount">
+                     <t t-if="show_docs_imputed">
                         <br/>
+                        <!-- Para NO recibos de cliente: usar logica original para decidir que datos mostrar -->
+                        <t t-set="show_moves_data" t-value="is_customer_receipt or original_show_moves"/>
                         <h4>
                             <div class="text-center">
                                 <strong>DOCUMENTOS IMPUTADOS</strong>
@@ -254,7 +270,113 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <t t-set="total_imputation" t-value="0.0"/>
+                                <t t-set="advance_amount" t-value="o.advance_amount"/>
+                                <t t-if="show_moves_data" t-set="advance_amount" t-value="o.amount - sum(o.payment_imputation_move_ids.mapped('amount'))"/>
+                                <t t-if="show_moves_data">
+                                    <t t-foreach="o.payment_imputation_move_ids" t-as="i">
+                                        <t t-set="total_imputation" t-value="total_imputation + i.amount"/>
+                                        <tr style="border-top: 0.5px groove lightgray; border-collapse: collapse;">
+                                            <td>
+                                                <span t-field="i.move_id.display_name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <span t-field="i.invoice_date"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: i.currency_id}"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount_residual" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: i.currency_id}"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-else="">
+                                    <t t-foreach="o.payment_imputation_ids" t-as="i">
+                                        <t t-set="total_imputation" t-value="total_imputation + i.amount"/>
+                                        <tr style="border-top: 0.5px groove lightgray; border-collapse: collapse;">
+                                            <td>
+                                                <span t-field="i.name"/>
+                                            </td>
+                                            <td class="text-center">
+                                                <t t-if="i.move_line_id.move_id.invoice_date">
+                                                    <span t-field="i.move_line_id.move_id.invoice_date"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <span t-field="i.move_line_date"/>
+                                                </t>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: i.currency_id}"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount_residual" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: i.currency_id}"/>
+                                            </td>
+                                            <td class="text-end">
+                                                <span t-esc="i.amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                                <t t-if="advance_amount > 0">
+                                    <t t-set="total_imputation" t-value="total_imputation + advance_amount"/>
+                                    <tr>
+                                        <td>
+                                            A CUENTA DE PRÓXIMOS PAGOS
+                                        </td>
+                                        <td/>
+                                        <td/>
+                                        <td/>
+                                        <td class="text-end">
+                                            <span t-esc="advance_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div class="clearfix">
+                            <div class="row">
+                                <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ms-auto">
+                                    <table class="table table-borderless">
+                                        <tr class="border-black o_subtotal">
+                                            <td><strong>TOTAL</strong></td>
+                                            <td class="text-end">
+                                                <span t-esc="total_imputation" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+
+                     <!-- Tabla de DOCUMENTOS A IMPUTAR -->
+                     <t t-if="show_docs_to_impute">
+                        <br/>
+                        <h4>
+                            <div class="text-center">
+                                <strong>DOCUMENTOS A IMPUTAR</strong>
+                            </div>
+                        </h4>
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr style="border-top: 1px solid lightgray; border-collapse: collapse;">
+                                    <th>DOCUMENTO</th>
+                                    <th>FECHA</th>
+                                    <th class="text-end">IMPORTE ORIGINAL</th>
+                                    <th class="text-end">RESTANTE</th>
+                                    <th class="text-end">ASIGNACIÓN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="total_imputation" t-value="0.0"/>
+                                <t t-set="advance_amount" t-value="o.advance_amount"/>
                                 <t t-foreach="o.payment_imputation_ids" t-as="i">
+                                    <t t-set="total_imputation" t-value="total_imputation + i.amount"/>
                                     <tr style="border-top: 0.5px groove lightgray; border-collapse: collapse;">
                                         <td>
                                             <span t-field="i.name"/>
@@ -278,16 +400,13 @@
                                         </td>
                                     </tr>
                                 </t>
-                                <t t-if="o.advance_amount">
+                                <t t-if="advance_amount > 0">
+                                    <t t-set="total_imputation" t-value="total_imputation + advance_amount"/>
                                     <tr>
-                                        <td>
-                                            SIN DOCUMENTO ASOCIADO
-                                        </td>
-                                        <td/>
-                                        <td/>
-                                        <td/>
+                                        <td>A CUENTA DE PROXIMOS PAGOS</td>
+                                        <td/><td/><td/>
                                         <td class="text-end">
-                                            <span t-esc="o.advance_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            <span t-esc="advance_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                         </td>
                                     </tr>
                                 </t>
@@ -300,7 +419,6 @@
                                         <tr class="border-black o_subtotal">
                                             <td><strong>TOTAL</strong></td>
                                             <td class="text-end">
-                                                <t t-set="total_imputation" t-value="sum(i.amount for i in o.payment_imputation_ids) + o.advance_amount"/>
                                                 <span t-esc="total_imputation" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                             </td>
                                         </tr>

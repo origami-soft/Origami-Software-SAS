@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_selfprint_merchandise_value',
 
-    'version': '1.0.0',
+    'version': '1.0.1',
 
     'category': 'Carrier',
 

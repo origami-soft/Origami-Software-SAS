@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <form>
                     <div class="alert alert-info" role="alert">
-                        El archivo a subir es el archivo descargado desde "Mis Comprobantes" en AFIP, en formato XLSX.<br/>
+                        El archivo a subir es el archivo descargado desde "Mis Comprobantes" en ARCA, en formato XLSX o CSV.<br/>
                         Debido a que la información de las facturas de exportación no es suficiente para ser cargada en el sistema,
                         no se podrán crear facturas de exportación automáticamente.
                     </div>
@@ -48,6 +48,17 @@
                                 <field name="name"/>
                                 <field name="currency_value" optional="hide"/>
                                 <field name="currency" optional="hide"/>
+                                <field name="vat_0_base" optional="hide"/>
+                                <field name="vat_2_5_base" optional="hide"/>
+                                <field name="vat_2_5_amount" optional="hide"/>
+                                <field name="vat_5_base" optional="hide"/>
+                                <field name="vat_5_amount" optional="hide"/>
+                                <field name="vat_10_5_base" optional="hide"/>
+                                <field name="vat_10_5_amount" optional="hide"/>
+                                <field name="vat_21_base" optional="hide"/>
+                                <field name="vat_21_amount" optional="hide"/>
+                                <field name="vat_27_base" optional="hide"/>
+                                <field name="vat_27_amount" optional="hide"/>
                                 <field name="amount_untaxed" optional="hide"/>
                                 <field name="amount_not_taxed" optional="hide"/>
                                 <field name="amount_exempt" optional="hide"/>
@@ -80,7 +91,7 @@
         </record>
 
         <record id="action_afip_import_documents" model="ir.actions.act_window">
-            <field name="name">Importar comprobantes de AFIP</field>
+            <field name="name">Importar comprobantes de ARCA</field>
             <field name="res_model">afip.import.documents.wizard</field>
             <field name="view_mode">form</field>
             <field name="target">new</field>
@@ -88,7 +99,7 @@
 
         <menuitem
             id="menu_action_afip_import_documents"
-            name="Importar comprobantes de AFIP"
+            name="Importar comprobantes de ARCA"
             action="action_afip_import_documents"
             parent="account.menu_finance_entries_actions"
             groups="account.group_account_manager"

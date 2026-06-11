@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_stock_picking_report',
 
-    'version': '1.0.2',
+    'version': '1.1.1',
 
     'summary': 'Reporte de remito autoimpresor',
 
@@ -19,7 +19,7 @@
     'license': 'OPL-1',
 
     'depends': [
-        'l10n_ar_stock',
+        'l10n_ar_stock_bo',
         'sale_stock',
         'l10n_ar_point_of_sale_common_report'
     ],
@@ -28,6 +28,7 @@
         'report/report_data.xml',
         'report/report_layout.xml',
         'views/stock_picking.xml',
+        'views/res_config_settings.xml',
     ],
 
     'installable': True,

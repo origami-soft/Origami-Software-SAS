@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_afip_webservices_wsfe',
 
-    'version': '1.1',
+    'version': '1.2',
 
     'category': 'Localization',
 
@@ -29,10 +29,12 @@
         'views/account_move.xml',
         'views/pos_ar.xml',
         'views/product_product.xml',
+        'views/perception_perception.xml',
         'views/wsfe_request_detail_view.xml',
         'security/ir.model.access.csv',
         'data/document_book_type.xml',
         'data/ncm_types.xml',
+        'data/perception_perception.xml',
         'wizard/account_move_reversal_view.xml',
         'wizard/afip_missed_document_wizard_view.xml',
     ],

@@ -201,6 +201,12 @@
             <field name="id_model" ref="base.ec"/>
             <field name="code">210</field>
         </record>
+        <record id="codes_models_afip_res_country_co" model="codes.models.relation">
+            <field name="name">Afip</field>
+            <field name="name_model">res.country</field>
+            <field name="id_model" ref="base.co"/>
+            <field name="code">205</field>
+        </record>
 
     </data>
 </odoo>

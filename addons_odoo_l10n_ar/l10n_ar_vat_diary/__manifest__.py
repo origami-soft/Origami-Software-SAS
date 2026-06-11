@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_vat_diary',
 
-    'version': '1.0.3',
+    'version': '1.1.4',
 
     'category': 'Accounting',
 
@@ -19,12 +19,15 @@
     'depends': [
         'l10n_ar_retentions',
         'l10n_ar_perceptions',
+        'l10n_ar_afip_tables',
     ],
 
     'data': [
         'views/account_fiscal_position.xml',
         'views/account_tax.xml',
         'views/vat_diary.xml',
+        'views/account_move.xml',
+        'views/res_config_settings.xml',
         'report/vat_diary_pdf_report_data.xml',
         'report/vat_diary_pdf_report.xml',
         'security/ir.model.access.csv'

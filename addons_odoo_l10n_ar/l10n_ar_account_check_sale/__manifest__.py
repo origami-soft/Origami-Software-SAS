@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_account_check_sale',
 
-    'version': '1.0.1',
+    'version': '1.0.3',
 
     'summary': 'Venta de cheques de terceros',
 

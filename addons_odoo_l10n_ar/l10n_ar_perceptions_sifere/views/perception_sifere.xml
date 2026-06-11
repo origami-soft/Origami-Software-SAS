@@ -25,7 +25,7 @@
 
     <menuitem id="perception_sifere_menu_view"
               name="SIFERE Percepciones"
-              parent="l10n_ar.reports_ar_main_menu"
+              parent="l10n_ar_bo.reports_ar_main_menu"
               action="perception_sifere_action"
               sequence="40"/>
 

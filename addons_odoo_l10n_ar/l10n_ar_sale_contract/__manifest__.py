@@ -20,7 +20,7 @@
 
     'depends': [
         'sale_subscription',
-        'l10n_ar',
+        'l10n_ar_bo',
     ],
 
     'data': [

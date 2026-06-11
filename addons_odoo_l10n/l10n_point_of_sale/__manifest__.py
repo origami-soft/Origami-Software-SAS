@@ -4,7 +4,7 @@
 
     'name': 'l10n_point_of_sale',
 
-    'version': '1.1.13',
+    'version': '1.1.14',
 
     'summary': 'Punto de venta para Argentina y Uruguay',
 

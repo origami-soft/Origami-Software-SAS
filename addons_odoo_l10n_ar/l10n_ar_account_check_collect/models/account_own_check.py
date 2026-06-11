@@ -11,19 +11,19 @@ class AccountOwnCheck(models.Model):
         'account.move',
         'Asiento de cobro',
         help="Asiento donde se registró el cobro de cheque",
-        track_visibility='onchange',
+        tracking=True,
         ondelete='restrict',
     )
     collect_check_move_id = fields.Many2one(
         'account.move',
         'Asiento del cheque',
         help="Asiento donde se registró el débito de la cuenta del cheque",
-        track_visibility='onchange',
+        tracking=True,
         ondelete='restrict',
     )
     collect_date = fields.Date(
         string='Fecha de cobro',
-        track_visibility='onchange'
+        tracking=True
     )
 
     company_id = fields.Many2one(

@@ -37,6 +37,24 @@ class AccountInvoicePerception(models.Model):
         required=True,
     )
     company_id = fields.Many2one(related='move_id.company_id')
+    company_currency_id = fields.Many2one(related='move_id.company_id.currency_id')
+    company_currency_amount = fields.Monetary(
+        "Importe en moneda de empresa",
+        compute='compute_company_currency_amount',
+        currency_field='company_currency_id'
+    )
+
+    @api.depends('move_id.currency_rate', 'move_id.company_id', 'move_id.date')
+    def compute_company_currency_amount(self):
+        for r in self:
+            if r.move_id.currency_rate:
+                r = r.with_context(
+                    fixed_rate=r.move_id.currency_rate,
+                    fixed_from_currency=r.currency_id,
+                    fixed_to_currency=r.company_id.currency_id
+                )
+            r.company_currency_amount = r.currency_id._convert(
+                r.amount, r.company_id.currency_id, r.company_id, r.date_account or fields.Date.today())
 
     @api.onchange('perception_id')
     def onchange_perception_id(self):

@@ -26,10 +26,11 @@ class ResCompany(models.Model):
         for r in self.filtered(lambda l: l not in companies_with_seq):
             r.create_deposit_slip_sequence()
 
-    @api.model
-    def create(self, vals):
-        res = super(ResCompany, self).create(vals)
-        res.create_deposit_slip_sequence()
+    @api.model_create_multi
+    def create(self, vals_list):
+        res = super(ResCompany, self).create(vals_list)
+        for record in res:
+            record.create_deposit_slip_sequence()
         return res
 
     def unlink(self):

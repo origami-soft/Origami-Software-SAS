@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_check_location',
 
-    'version': '1.0',
+    'version': '1.0.2',
 
     'category': 'Localization',
 

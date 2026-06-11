@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from odoo import models
+from odoo import models, fields
 
 TAX_USES = ['sale', 'purchase']
 TAX_AFIP_CODES = [('non_taxed', 1), ('exempt', 2), ('0', 3), ('10_5', 4), ('21', 5), ('27', 6), ('5', 8), ('2_5', 9)]
@@ -8,6 +8,9 @@ TAX_AFIP_CODES = [('non_taxed', 1), ('exempt', 2), ('0', 3), ('10_5', 4), ('21',
 
 class ResCompany(models.Model):
     _inherit = 'res.company'
+
+    main_activity_id = fields.Many2one('afip.activity', "Actividad principal")
+    secondary_activity_ids = fields.Many2many('afip.activity', string="Actividades secundarias")
     
     def _get_vat_domain(self, amount, tax_use):
         return [

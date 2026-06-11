@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record model="ir.ui.view" id="pos_ar_cai_form">
+        <field name="name">pos.ar.cai.form</field>
+        <field name="model">pos.ar</field>
+        <field name="inherit_id" ref="l10n_point_of_sale.pos_ar_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='document_book_ids']/tree/field[@name='book_type_id']" position="after">
+                <field name="requires_cai" column_invisible="1"/>
+                <field name="cai" invisible="not requires_cai" required="requires_cai"/>
+                <field name="cai_due_date" invisible="not requires_cai" required="requires_cai"/>
+                <field name="cai_max_number" invisible="not requires_cai" required="requires_cai"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

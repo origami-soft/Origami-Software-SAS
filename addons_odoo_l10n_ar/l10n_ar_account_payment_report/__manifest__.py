@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_account_payment_report',
 
-    'version': '1.0.3',
+    'version': '1.2.0',
 
     'description': 'Reporte de Pagos',
 
@@ -25,6 +25,8 @@
     ],
 
     'data': [
+        'views/account_report.xml',
+        'views/res_config_settings.xml',
         'report/report_account_payment.xml',
         'report/report_account_payment_data.xml',
     ],

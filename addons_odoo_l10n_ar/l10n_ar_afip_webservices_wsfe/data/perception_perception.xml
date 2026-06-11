@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+
+    <record id='l10n_ar_bo.perception_perception_iibb_caba_efectuada' model='perception.perception'>
+        <field name='require_associated_documents_in_refunds' eval="True"/>
+    </record>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

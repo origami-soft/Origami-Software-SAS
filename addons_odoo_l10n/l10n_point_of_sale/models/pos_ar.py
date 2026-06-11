@@ -58,9 +58,7 @@ class PosAr(models.Model):
         :type params: dict()
         :return: Talonario encontrado
         :rtype: document.book()
-        """
-        if not self:
-            return False
+        """        
         self.ensure_one()
         dbooks = self.get_available_documents(params)
         if not dbooks:

@@ -61,8 +61,15 @@ class AccountMove(models.Model):
             if rec.move_type in ['out_invoice','out_refund']:
                 voucher_id = rec.get_voucher_type_id()
                 if voucher_id:
-                    pos_ars = rec.env['pos.ar'].search([('document_book_ids.voucher_type_id', '=', voucher_id.id)])
-                    journal_ids = rec.env['account.journal'].search([('pos_ar_id', 'in', pos_ars.ids)])
+                    pos_ars = rec.env['pos.ar'].search([
+                        ('document_book_ids.voucher_type_id', '=', voucher_id.id),
+                        ('company_id', 'in', (rec.company_id.id, False))
+                    ])
+                    journal_types = rec._get_valid_journal_types()
+                    journal_ids = rec.env['account.journal'].search([
+                        ('type', 'in', journal_types),
+                        ('pos_ar_id', 'in', pos_ars.ids)
+                    ])
                     if journal_ids and rec.journal_id not in journal_ids:
                         rec.journal_id = journal_ids.sorted('sequence')[0]
                     elif not journal_ids:

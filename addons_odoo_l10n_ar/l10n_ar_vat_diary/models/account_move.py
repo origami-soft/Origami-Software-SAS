@@ -1,12 +1,23 @@
 # -*- encoding: utf-8 -*-
 
 from collections import defaultdict
-from odoo import models
+from odoo import models, fields
 from odoo.exceptions import ValidationError
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
+
+    supplier_concept = fields.Selection(
+        selection=[
+            ('1', "Por Compras de Bienes (Excepto Bienes de Uso)"),
+            ('2', "Por Locaciones"),
+            ('3', "Por Prestaciones de Servicios"),
+            ('4', "Por Inversiones de Bienes de Uso"),
+        ],
+        string="Concepto (proveedores)",
+    )
+    vat_diary_concept = fields.Boolean(related='company_id.vat_diary_concept')
 
     def get_vat_diary_invoice_sign(self):
         # TODO: Mover responsabilidad a wizard.vat.diary
@@ -89,19 +100,17 @@ class AccountMove(models.Model):
         iva_line = self.line_ids.filtered(lambda l: l.tax_line_id.is_vat and not l.tax_line_id.is_exempt)
         # Para los impuestos del tipo IVA se genera un diccionario de diccionarios
         # con el formato {'name': iva 21%, 'base': 100, 'amount': 21}
-        iva = defaultdict(dict)
-        for item in iva_line:
-            base = sum(self.invoice_line_ids.filtered(lambda l: item.tax_line_id in l.tax_ids).mapped('price_subtotal'))
-            amount = abs(item.amount_currency)
-            if iva[item.tax_line_id.id]:
-                iva[item.tax_line_id.id]['base'] += base * sign * rate
-                iva[item.tax_line_id.id]['amount'] += amount * sign * rate
-            else: 
-                iva[item.tax_line_id.id] = {
-                    'name': item.tax_line_id.name,
-                    'base': base * sign * rate,
-                    'amount': amount * sign * rate
-                }
+        iva = {}
+        for tax in iva_line.mapped('tax_line_id'):
+            tax_lines = iva_line.filtered(lambda l: l.tax_line_id == tax)
+            lines_with_tax = self.invoice_line_ids.filtered(lambda l: tax in l.tax_ids)
+            base = abs(sum(lines_with_tax.mapped('price_subtotal')))
+            amount = abs(sum(tax_lines.mapped('balance')))
+            iva[tax.id] = {
+                'name': tax.name,
+                'base': base * sign * rate,
+                'amount': amount * sign
+            }
         return iva
 
     def get_not_iva_perception_amounts(self):
@@ -177,6 +186,24 @@ class AccountMove(models.Model):
             }
         return perceptions
 
+    def _check_vat_diary_voucher_name(self):
+        invalid = self.filtered(lambda l: not l.voucher_name)
+        if invalid:
+            raise ValidationError("Las siguientes facturas no poseen una numeración adecuada:\n" + '\n'.join(invalid.mapped('full_voucher_name')))
+        return True
+
+    def get_csv_activity(self):
+        if self.is_sale_document():
+            activity = self.pos_ar_id.activity_id or self.company_id.main_activity_id
+            if not activity:
+                raise ValidationError("No se ha encontrado una actividad en el punto de venta ni en la compañía")
+            return activity.code
+
+    def get_concept(self):
+        if self.is_sale_document():
+            return self.afip_concept_id.name
+        return dict(self._fields['supplier_concept'].selection).get(self.supplier_concept, '')
+
     def get_vat_diary_dict(self):
         """Devuelve los datos de una factura en un diccionario para el reporte de subdiario de IVA
 
@@ -197,6 +224,7 @@ class AccountMove(models.Model):
             'voucher_type': self.voucher_type_id.prefix or (self.voucher_type_id.name or '')[:5],
             'voucher': voucher_name or '',
             'jurisdiction': self.jurisdiction_id.name or self.partner_id.state_id.name or '',
+            'concept': self.get_concept(),
             'to_tax': self.get_to_taxable_amount(),
             'not_iva_perception': self.get_not_iva_perception_amounts(),
             'iva': self.get_iva_amounts(),
@@ -205,6 +233,80 @@ class AccountMove(models.Model):
             'perceptions': self.get_perception_amounts(),
             'total': self.get_vat_diary_total(),
         }
+
+    def get_partner_type_by_fpos(self):
+        ar_fpos = self.fiscal_position_id.ar_fiscal_position_id
+        code = self.env['codes.models.relation'].get_code('ar.fiscal.position', ar_fpos.id, 'Afip')
+        # Para casos de IVA RI, corresponde 1
+        if code == '1':
+            return '1'
+        # Para casos de monotributo, corresponde 2
+        elif code in ('6', '13', '16'):
+            return '2'
+        # Para los demás casos, corresponde 3
+        return '3'
+
+    def get_csv_concept(self):
+        if self.is_sale_document():
+            return self.env['codes.models.relation'].get_code('afip.concept', self.afip_concept_id.id, 'Afip')
+        return self.supplier_concept
+
+    def get_csv_sales_vat_diary_list(self):
+        vals = []
+        sign = self.get_vat_diary_invoice_sign()
+        rate = self._get_invoice_currency_rate()
+        activity = self.get_csv_activity()
+        concept = self.get_csv_concept()
+        partner_type = self.get_partner_type_by_fpos()
+        if partner_type in ('1', '2'):
+            vat_taxes = self.invoice_line_ids.mapped('tax_ids').filtered(lambda l: l.is_vat)
+            for vat in vat_taxes:
+                vat_code = self.env['codes.models.relation'].get_code('account.tax', vat.id, 'Afip')
+                vat_base = sum(self.invoice_line_ids.filtered(lambda l: vat in l.tax_ids).mapped('price_subtotal')) * sign * rate
+                vat_line = self.line_ids.filtered(lambda l: l.tax_line_id == vat)
+                vat_amount = abs(vat_line.amount_currency) * sign * rate
+                vals.append([
+                    activity,
+                    concept,
+                    partner_type,
+                    vat_code,
+                    '{:.2f}'.format(vat_base).replace('.', ','),
+                    '{:.2f}'.format(vat_amount).replace('.', ','),
+                    '{:.2f}'.format(vat_amount).replace('.', ','),
+                    ''
+                ])
+        else:
+            vals.append([
+                activity,
+                concept,
+                partner_type,
+                '',
+                '',
+                '',
+                '',
+                '{:.2f}'.format(self.get_not_taxable_amount() + self.get_exempt_amount()).replace('.', ','),
+            ])
+        return vals
+
+    def get_csv_purchases_vat_diary_list(self):
+        vals = []
+        sign = self.get_vat_diary_invoice_sign()
+        rate = self._get_invoice_currency_rate()
+        concept = self.get_csv_concept()
+        vat_taxes = self.invoice_line_ids.mapped('tax_ids').filtered(lambda l: l.is_vat)
+        for vat in vat_taxes:
+            vat_code = self.env['codes.models.relation'].get_code('account.tax', vat.id, 'Afip')
+            vat_base = sum(self.invoice_line_ids.filtered(lambda l: vat in l.tax_ids).mapped('price_subtotal')) * sign * rate
+            vat_line = self.line_ids.filtered(lambda l: l.tax_line_id == vat)
+            vat_amount = abs(vat_line.amount_currency) * sign * rate
+            vals.append([
+                concept,
+                vat_code,
+                '{:.2f}'.format(vat_base).replace('.', ','),
+                '{:.2f}'.format(vat_amount).replace('.', ','),
+                '{:.2f}'.format(vat_amount).replace('.', ','),
+            ])
+        return vals
 
     def validate_voucher_name(self):
         errors = []

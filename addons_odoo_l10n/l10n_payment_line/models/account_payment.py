@@ -7,12 +7,10 @@ from ..exceptions import exceptions
 class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
-    journal_id = fields.Many2one('account.journal', string="Diario")
     show_payment_lines = fields.Boolean(compute='get_show_payment_lines')
     payment_usage = fields.Selection(related='journal_id.payment_usage')
     move_ids = fields.One2many('account.move', 'payment_id')
     available_journal_ids = fields.Many2many('account.journal', compute='get_available_journals')
-    company_id = fields.Many2one('res.company', string="Compañía", default=lambda self: self.env.company)
 
     @api.depends_context('default_is_internal_transfer')
     @api.depends('partner_id', 'journal_id', 'destination_journal_id')
@@ -25,7 +23,7 @@ class AccountPayment(models.Model):
         return res
 
     def _get_available_journal_domain(self):
-        domain = [('type', 'in', ('bank', 'cash')), ('company_id', '=', self.env.company.id)]
+        domain = [('type', 'in', ('bank', 'cash')), ('company_id', '=', self.company_id.id)]
         if not self.is_internal_transfer:
             domain.append(('selectable_in_payments', '=', True))
         return domain

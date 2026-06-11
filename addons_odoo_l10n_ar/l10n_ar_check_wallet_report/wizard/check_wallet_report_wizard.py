@@ -6,6 +6,7 @@ from odoo.exceptions import ValidationError
 
 class CheckWalletReportWizard(models.TransientModel):
     _name = 'check.wallet.report.wizard'
+    _description = 'Wizard de reporte de cartera de cheques'
 
     date = fields.Date("Fecha", default=fields.Date.context_today)
 

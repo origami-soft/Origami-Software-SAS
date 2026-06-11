@@ -28,10 +28,10 @@ def post_payment_not_to_order_check():
     raise ValidationError('No se puede validar un pago con cheques que son "no a la orden".')
 
 def cancel_receipt_non_wallet_check():
-    raise ValidationError("Los cheques de terceros deberian estar en cartera para poder cancelar el pago.")
+    raise ValidationError("Los cheques de terceros deberian estar en cartera o en borrador para poder cancelar el pago.")
 
 def cancel_payment_non_handed_check():
-    raise ValidationError("Los cheques deben estar entregados para cancelar el pago.")
+    raise ValidationError("Los cheques deben estar entregados o en cartera para cancelar el pago.")
 
 def invalid_check_cancel_state():
     raise ValidationError("No se puede cancelar el cheque en el estado actual.")
@@ -47,5 +47,12 @@ def wrong_checks_inbound_payment():
 
 def invalid_sent_rate():
     raise ValidationError("La cotización de la línea debe ser positiva.")
+
+def duplicate_third_check_warning(check_number, amount, bank_name, partner_name):
+    raise ValidationError(
+        f"El cheque número [{check_number}] con importe [{amount}], "
+        f"emitido por el banco [{bank_name}] del cliente [{partner_name}] "
+        f"ya fue registrado en el sistema previamente. Revise los datos ingresados"
+    )
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

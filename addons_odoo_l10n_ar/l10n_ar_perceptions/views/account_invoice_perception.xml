@@ -15,7 +15,9 @@
                 <field name="partner_id"/>
                 <field name="currency_id" string="Moneda" groups="base.group_multi_currency"/>
                 <field name="base"/>
-                <field name="amount"/>
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="company_currency_amount" string="Importe"/>
+                <field name="amount" string="Importe en divisa"/>
             </tree>
         </field>
     </record>

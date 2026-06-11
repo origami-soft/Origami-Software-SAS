@@ -101,7 +101,7 @@ class AccountAbstractCheck(models.AbstractModel):
             self.payment_date = self.issue_date
 
     def _check_state_for_cancel_payment(self):
-        return self.state == 'handed'
+        return self.state in ('handed','wallet')
 
     def get_cancel_states(self):
         raise NotImplementedError

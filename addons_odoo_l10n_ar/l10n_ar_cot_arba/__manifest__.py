@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_cot_arba',
 
-    'version': '1.2.3',
+    'version': '1.2.5',
 
     'summary': 'Añade Código de Operación de Traslado (COT) en remitos',
 
@@ -16,11 +16,11 @@
 
     'category': 'stock',
 
-    'license': 'AGPL-3',
+    'license': 'OPL-1',
 
     'depends': [
         'l10n_ar_selfprint_merchandise_value',
-        'l10n_ar_stock'
+        'l10n_ar_stock_bo'
     ],
 
     'data': [

@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 from odoo import models, fields
 from odoo.exceptions import ValidationError
@@ -6,16 +6,16 @@ from datetime import datetime
 from itertools import groupby
 from dateutil import relativedelta
 from io import BytesIO
-import openpyxl, base64
+import openpyxl, base64, csv
 
 
 class AfipImportDocumentsWizard(models.TransientModel):
-
     _name = 'afip.import.documents.wizard'
+    _description = 'Wizard para importar documentos de ARCA'
 
     file = fields.Binary(
         string='Archivo',
-        help='Excel bajado de los comprobantes emitidos/recibidos de afip',
+        help='Excel de comprobantes emitidos/recibidos de ARCA',
         required=True
     )
     filename = fields.Char(
@@ -46,7 +46,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
             return self.validate_received_documents()
 
     def validate_sent_documents(self):
-        vals = self.get_xls_values()
+        vals = self.get_file_values()
         non_found_documents = self.document_line_ids
         documents = self.document_line_ids = self.document_line_ids.create(vals)
         if documents:
@@ -77,7 +77,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
         return self.get_create_invoice_view()
 
     def validate_received_documents(self):
-        vals = self.get_xls_values()
+        vals = self.get_file_values()
         non_found_documents = self.document_line_ids
         documents = self.document_line_ids = self.document_line_ids.create(vals)
         if documents:
@@ -121,7 +121,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
         non_found_partners = [partner for partner in vat_numbers if partner not in list(set(partners.mapped('vat')))]
 
         if non_found_partners:
-            raise ValidationError("No se encontraron partners para los numeros de documentos:\n {}".format(
+            raise ValidationError("No se encontraron partners para los siguientes números de documento:\n{}".format(
                 '\n'.join(non_found_partners))
             )
 
@@ -167,7 +167,7 @@ class AfipImportDocumentsWizard(models.TransientModel):
                 document_book = journal.pos_ar_id.document_book_ids.filtered(
                     lambda x: x.voucher_type_id == invoice_voucher_type
                 )
-                vals.update({
+                sent_vals = {
                     'voucher_name': "{:0>{prefix_qty}}-{:0>8}".format(
                         document.point_of_sale,
                         document.voucher_name,
@@ -175,10 +175,12 @@ class AfipImportDocumentsWizard(models.TransientModel):
                     ),
                     'journal_id': journal.id,
                     'move_type': 'out_refund' if invoice_voucher_type.category == 'refund' else 'out_invoice',
-                    'cae': document.cae,
-                    'cae_due_date': document.date + relativedelta.relativedelta(days=10),
                     'document_book_id': document_book and document_book[0].id
-                })
+                }
+                if document.cae:
+                    sent_vals['cae'] = document.cae
+                    sent_vals['cae_due_date'] = document.date + relativedelta.relativedelta(days=10)
+                vals.update(sent_vals)
             else:
                 vals.update({
                     'voucher_name': "{}-{}".format(document.point_of_sale, document.voucher_name),
@@ -199,32 +201,92 @@ class AfipImportDocumentsWizard(models.TransientModel):
                 'context': {'default_type': 'in_invoice'}
             }
 
+    def get_file_values(self):
+        return self.get_csv_values() if self.filename.endswith('.csv') else self.get_xls_values()
+
+    def get_csv_values(self):
+        try:
+            book = csv.reader(base64.b64decode(self.file).decode("utf-8").splitlines(), delimiter=";")
+            vals = []
+            currency_value_index = 9 if self.type == 'sent' else 11
+            next(book, None)  # Ignoro el header
+            for x in book:
+                vals.append({
+                    'date': datetime.strptime(x[0], '%Y-%m-%d'),
+                    'voucher_type': x[1],
+                    'point_of_sale': str(int(x[2])),
+                    'voucher_name': str(int(x[3])),
+                    'cae': x[5],
+                    'document_type': x[6],
+                    'document_number': str(int(x[7])),
+                    'name': x[8],
+                    'currency_value': x[currency_value_index].replace(',', '.'),
+                    'currency': x[currency_value_index + 1],
+                    'vat_0_base': x[currency_value_index + 2].replace(',', '.'),
+                    'vat_2_5_amount': x[currency_value_index + 3].replace(',', '.'),
+                    'vat_2_5_base': x[currency_value_index + 4].replace(',', '.'),
+                    'vat_5_amount': x[currency_value_index + 5].replace(',', '.'),
+                    'vat_5_base': x[currency_value_index + 6].replace(',', '.'),
+                    'vat_10_5_amount': x[currency_value_index + 7].replace(',', '.'),
+                    'vat_10_5_base': x[currency_value_index + 8].replace(',', '.'),
+                    'vat_21_amount': x[currency_value_index + 9].replace(',', '.'),
+                    'vat_21_base': x[currency_value_index + 10].replace(',', '.'),
+                    'vat_27_amount': x[currency_value_index + 11].replace(',', '.'),
+                    'vat_27_base': x[currency_value_index + 12].replace(',', '.'),
+                    'amount_untaxed': x[currency_value_index + 13].replace(',', '.'),
+                    'amount_not_taxed': x[currency_value_index + 14].replace(',', '.'),
+                    'amount_exempt': x[currency_value_index + 15].replace(',', '.'),
+                    'amount_other_tributes': x[currency_value_index + 16].replace(',', '.'),
+                    'amount_vat': x[currency_value_index + 17].replace(',', '.'),
+                    'amount_total': x[currency_value_index + 18].replace(',', '.'),
+                })
+        except Exception:
+            raise ValidationError("Hubo un error al intentar leer el archivo.")
+        return vals
+
     def get_xls_values(self):
         try:
             book = openpyxl.load_workbook(BytesIO(base64.b64decode(self.file)))
             sheet = book.worksheets[0]
-            vals = []
-            for x in range(3, sheet.max_row + 1):
+        except Exception as e:
+            raise ValidationError("No se pudo abrir el archivo XLS: {}".format(e))
+        vals = []
+        currency_value_index = 10 if self.type == 'sent' else 12
+        for x in range(3, sheet.max_row + 1):
+            try:
                 vals.append({
                     'date': datetime.strptime(sheet.cell(x, 1).value, '%d/%m/%Y'),
                     'voucher_type': sheet.cell(x, 2).value,
                     'point_of_sale': str(int(sheet.cell(x, 3).value)),
                     'voucher_name': str(int(sheet.cell(x, 4).value)),
-                    'cae': str(int(sheet.cell(x, 6).value)),
+                    'cae': str(int(sheet.cell(x, 6).value)) if sheet.cell(x, 6).value else False,
                     'document_type': sheet.cell(x, 7).value,
                     'document_number': str(int(sheet.cell(x, 8).value)),
                     'name': sheet.cell(x, 9).value,
-                    'currency_value': sheet.cell(x, 10).value,
-                    'currency': sheet.cell(x, 11).value,
-                    'amount_untaxed': sheet.cell(x, 12).value,
-                    'amount_not_taxed': sheet.cell(x, 13).value,
-                    'amount_exempt': sheet.cell(x, 14).value,
-                    'amount_other_tributes': sheet.cell(x, 15).value,
-                    'amount_vat': sheet.cell(x, 16).value,
-                    'amount_total': sheet.cell(x, 17).value,
+                    'currency_value': sheet.cell(x, currency_value_index).value,
+                    'currency': sheet.cell(x, currency_value_index + 1).value,
+                    'vat_0_base': sheet.cell(x, currency_value_index + 2).value,
+                    'vat_2_5_amount': sheet.cell(x, currency_value_index + 3).value,
+                    'vat_2_5_base': sheet.cell(x, currency_value_index + 4).value,
+                    'vat_5_amount': sheet.cell(x, currency_value_index + 5).value,
+                    'vat_5_base': sheet.cell(x, currency_value_index + 6).value,
+                    'vat_10_5_amount': sheet.cell(x, currency_value_index + 7).value,
+                    'vat_10_5_base': sheet.cell(x, currency_value_index + 8).value,
+                    'vat_21_amount': sheet.cell(x, currency_value_index + 9).value,
+                    'vat_21_base': sheet.cell(x, currency_value_index + 10).value,
+                    'vat_27_amount': sheet.cell(x, currency_value_index + 11).value,
+                    'vat_27_base': sheet.cell(x, currency_value_index + 12).value,
+                    'amount_untaxed': sheet.cell(x, currency_value_index + 13).value,
+                    'amount_not_taxed': sheet.cell(x, currency_value_index + 14).value,
+                    'amount_exempt': sheet.cell(x, currency_value_index + 15).value,
+                    'amount_other_tributes': sheet.cell(x, currency_value_index + 16).value,
+                    'amount_vat': sheet.cell(x, currency_value_index + 17).value,
+                    'amount_total': sheet.cell(x, currency_value_index + 18).value,
                 })
-        except Exception:
-            raise ValidationError("Hubo un error al intentar leer el archivo.")
+            except (ValueError, IndexError) as e:
+                raise ValidationError(
+                    "Error en la fila {} del archivo XLS: {}".format(x, e)
+                )
         return vals
 
     def get_create_invoice_view(self):
@@ -252,4 +314,3 @@ class AfipImportDocumentsWizard(models.TransientModel):
         ])
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
-

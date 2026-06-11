@@ -4,7 +4,7 @@
 
     'name': 'Payment imputation',
 
-    'version': '1.4.1',
+    'version': '1.5.10',
 
     'category': 'Accounting',
 

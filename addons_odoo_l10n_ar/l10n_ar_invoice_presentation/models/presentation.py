@@ -44,11 +44,11 @@ class Presentation:
 
     def _check_invoice_voucher_name(self, invoice):
         if not invoice.voucher_name:
-            msg = f"La factura {invoice.name} no posee número de documento (voucher_name)"
+            msg = f"La factura {invoice.full_voucher_name} no posee número de documento (voucher_name)"
             raise ValidationError(msg)
         split_voucher_name = invoice.voucher_name.split('-')
         if split_voucher_name and (len(split_voucher_name) != 2 or any(not l.isdigit() for l in split_voucher_name)):
-            msg = f"La factura {invoice.name} no posee un número apto para su inclusión en el libro IVA digital"
+            msg = f"La factura {invoice.full_voucher_name} no posee un número apto para su inclusión en el libro IVA digital"
             raise ValidationError(msg)
 
     def get_puntoDeVenta(self, invoice):
@@ -92,8 +92,8 @@ class Presentation:
         """
         vat = invoice.partner_id.vat
         if invoice.partner_id.property_account_position_id in [
-            invoice.env.ref('l10n_ar.ar_fiscal_position_cliente_ext'),
-            invoice.env.ref('l10n_ar.ar_fiscal_position_prov_ext')
+            invoice.env.ref('l10n_ar_bo.ar_fiscal_position_cliente_ext'),
+            invoice.env.ref('l10n_ar_bo.ar_fiscal_position_prov_ext')
         ] and invoice.partner_id.country_id != invoice.env.ref('base.ar'):
             vat = invoice.partner_id.country_id.vat
         return vat

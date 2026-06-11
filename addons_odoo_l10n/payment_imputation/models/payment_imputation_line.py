@@ -62,6 +62,7 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
     move_line_id = fields.Many2one('account.move.line', 'Documento')
     move_line_date = fields.Date('Fecha', related='move_line_id.date')
     move_line_date_maturity = fields.Date('Fecha de vencimiento', related='move_line_id.date_maturity')
+    move_line_invoice_date = fields.Date('Fecha de factura', related='move_line_id.invoice_date')
     currency_id = fields.Many2one('res.currency', compute='_compute_currency_id')
     company_currency_id = fields.Many2one(related='move_line_id.company_currency_id')
     amount_residual = fields.Monetary('Restante moneda comprobante', compute='_compute_amounts')
@@ -107,6 +108,10 @@ class AbstractAccountPaymentImputationLine(models.AbstractModel):
         if self.concile:
             self.amount = self.amount_residual_in_payment_currency
             self.full_reconcile = False
+        elif 'wizard' in self._name:
+            self.amount = 0
+        else:
+            return
 
     @api.onchange('amount')
     def onchange_amount(self):

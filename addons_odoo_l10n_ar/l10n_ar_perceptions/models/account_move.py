@@ -42,15 +42,19 @@ class AccountMove(models.Model):
         taxes_invoices = self.invoice_line_ids.mapped('tax_ids').filtered(lambda x: x.amount_type == 'perception')
         perception_taxes = self.perception_ids.mapped('perception_id').get_taxes(self.company_id)
         # En caso de que haya percepciones a borrar, las desvinculo de las líneas
-        taxes_to_unlink = taxes_invoices - perception_taxes
+        taxes_to_unlink = taxes_invoices.filtered(lambda l: l._origin not in perception_taxes)
+        if taxes_to_unlink:
+            self.line_ids._origin.filtered(lambda l: l.tax_line_id in taxes_to_unlink._origin).update({
+                'balance': 0, 'amount_currency': 0
+            })
         self.invoice_line_ids.update({'tax_ids': [fields.Command.unlink(t.id) for t in taxes_to_unlink]})
         # En caso de que haya percepciones a agregar, las vinculo a las líneas que correspondan
-        taxes_to_link = perception_taxes - taxes_invoices
+        taxes_to_link = perception_taxes.filtered(lambda l: l not in taxes_invoices._origin)
         self.invoice_line_ids.filtered(lambda x: x.perception_applies()).update(
             {'tax_ids': [fields.Command.link(t.id) for t in taxes_to_link]})
-    
+
     def get_perception_ctx(self):
-        vals = {'base': self.get_perception_base()}
+        vals = {'base': self.get_perception_base(), 'invoice': self, 'direction_sign': self.direction_sign}
         for p in self.perception_ids:
             tax = p.perception_id.get_taxes(self.company_id)
             if not tax:
@@ -59,7 +63,23 @@ class AccountMove(models.Model):
                 raise ValidationError(f"Hay más de un impuesto que tiene configurada la percepción {p.name}\nPor favor revisar la configuración de los impuestos {', '.join(tax.mapped('name'))}")
             vals[tax] = p.amount
         return vals
+
+    def recalculate_perception_lines(self):
+        # Método auxiliar que saca y vuelve a poner los impuestos en las líneas para forzar un recálculo de sus apuntes
+        for r in self.filtered(lambda l: l.perception_ids and l.state != 'posted'):
+            tax_ids = r.perception_ids.mapped('perception_id').get_taxes(r.company_id).ids
+            for t in tax_ids:
+                r.invoice_line_ids.filtered(lambda x: not x.perception_applies())\
+                    .write({'tax_ids': [fields.Command.unlink(t)]})
+                r.invoice_line_ids.filtered(lambda x: x.perception_applies())\
+                    .write({'tax_ids': [fields.Command.unlink(t)] + [fields.Command.link(t)]})
     
+    def write(self, vals):
+        res = super().write(vals)
+        if 'perception_ids' in vals:
+            self.recalculate_perception_lines()
+        return res
+
     @api.depends(
         'perception_ids.perception_id',
         'perception_ids.amount',
@@ -69,6 +89,6 @@ class AccountMove(models.Model):
         importe de cada percepción, a fin de que las incluya en el resumen de manera correcta
         """
         for r in self:
-            super(AccountMove, r.with_context(perception_ctx=r.get_perception_ctx()))._compute_tax_totals()
+            super(AccountMove, r.with_context(totals_perception_ctx=r.get_perception_ctx()))._compute_tax_totals()
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -5,7 +5,7 @@
 
     'name': 'Boletas de depósito',
 
-    'version': '1.0.2',
+    'version': '1.0.4',
 
     'summary': 'Depósito de cheques de terceros',
 

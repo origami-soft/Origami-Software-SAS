@@ -10,6 +10,7 @@ class AccountMove(models.Model):
     currency_rate = fields.Float(
         string='Cotización a utilizar',
         digits=(12, 6),
+        copy=False
     )
     current_currency_rate = fields.Float(
         string='Cotización actual',

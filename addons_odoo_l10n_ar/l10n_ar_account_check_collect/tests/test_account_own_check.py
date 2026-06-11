@@ -12,7 +12,7 @@ class TestAccountOwnCheck(common.TransactionCase):
         own_check_proxy = self.env['account.own.check']
         date_today = fields.Date.context_today(own_check_proxy)
         journal_proxy = self.env['account.journal']
-        self.check_journal_account = self.env.ref('l10n_ar.1_valores_diferidos_a_cobrar')
+        self.check_journal_account = self.env.ref('l10n_ar_bo.1_valores_diferidos_a_cobrar')
         self.check_journal = journal_proxy.create({
             'name': 'Cheques diferidos',
             'code': 'CHCK',

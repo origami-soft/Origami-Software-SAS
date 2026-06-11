@@ -101,6 +101,7 @@ class AccountPayment(models.Model):
             self.reconciled_invoice_ids = None
         self._create_writeoff_line()
         res = super(AccountPayment, self).action_post()
+        self.set_payment_invoices()
         self.create_imputation()
         return res
     
@@ -166,31 +167,31 @@ class AccountPayment(models.Model):
         if not self.env.context.get('active_ids'):
             self._get_imputation_move_lines()
 
-    def reconcile_imputations(self, move_line):
+    def set_payment_invoices(self):
+        # Esta acción se quita del método reconcile_imputations, ya que ese método se lo quiere utilizar para realizar
+        # imputaciones parciales.
+        for payment in self:
+            payment.reconciled_invoice_ids = payment.payment_imputation_ids.mapped('move_line_id').mapped('move_id').filtered(
+                lambda x: x.is_invoice()
+            )
+
+    def reconcile_imputations(self, move_line, payment_imputations = None):
         """
         Imputa los importes del pago a las move lines en base a los importes seleccionado en las imputaciones
         :param move_line: account.move.line generada del pago
+        :param payment_imputations: Imputaciones de pago a realizar
         """
+        if not payment_imputations:
+            payment_imputations = self.get_payment_imputations()
+
         # Borramos las imputaciones que no se van a realizar
-        self.payment_imputation_ids.filtered(lambda x: not (x.amount or x.full_reconcile)).unlink()
-
-        # Asignamos las facturas al pago
-        self.reconciled_invoice_ids = self.payment_imputation_ids.mapped('move_line_id').mapped('move_id').filtered(
-            lambda x: x.is_invoice()
-        )
-
-        # Verificamos los montos de las imputaciones e importe a cuenta contra el del pago
-        imp_total = sum(i.amount for i in self.payment_imputation_ids)
-        if round(self.amount - self.advance_amount - imp_total, ROUND_PRECISION) != 0:
-            raise ValidationError(
-                "La cantidad a pagar debe ser igual a la suma de los totales a imputar y el importe a cuenta"
-            )
+        payment_imputations.filtered(lambda x: not (x.amount or x.full_reconcile)).unlink()
 
         lines_to_reconcile = move_line
 
         # Itero las imputaciones, ordenando por lo que quedará pendiente y el monto de la imputación, para evitar
         # problemas con la conciliación de apuntes base
-        for imputation in self.payment_imputation_ids.sorted(
+        for imputation in payment_imputations.sorted(
                 key=lambda l: (l.amount_residual_in_payment_currency - l.amount, -l.amount)
         ):
 
@@ -202,7 +203,10 @@ class AccountPayment(models.Model):
             full = round(imputation.amount_residual_in_payment_currency - imputation.amount, ROUND_PRECISION) == 0
             if full and self.currency_id != imputation.currency_id:
                 imputation_amount = imputation.company_currency_id._convert(
-                    imputation.amount_residual_company, self.currency_id, self.company_id, self._get_payment_date(),
+                    imputation.amount_residual_company,
+                    self.currency_id,
+                    self.company_id,
+                    self._get_payment_date(),
                     round=False
                 )
             else:
@@ -229,14 +233,8 @@ class AccountPayment(models.Model):
             credit_move = move_line if move_line.credit > 0 else imputation.move_line_id
 
             if not (full or imputation.full_reconcile):
-                # Para casos parciales aprovechamos los compute storeados
-                imputation.move_line_id.update({
-                    'amount_residual': amount if self.payment_type == 'inbound' else -amount,
-                    'amount_residual_currency': amount_currency if self.payment_type == 'inbound' else -amount_currency
-                })
-                
-                (debit_move | credit_move).reconcile()
-                imputation.move_line_id._compute_amount_residual()
+                self.env['account.move.line'].do_partial_reconcile_with_exchange_difference(
+                    debit_move, credit_move, imputation_amount)
 
             if full or imputation.full_reconcile:
                 lines_to_reconcile |= imputation.move_line_id
@@ -294,8 +292,27 @@ class AccountPayment(models.Model):
         como cuenta de destino, pero aplicandolo a líneas de imputación"""
         super(AccountPayment, self)._compute_destination_account_id()
         for payment in self:
-            if payment.payment_imputation_ids:
-                payment.destination_account_id = payment.payment_imputation_ids.mapped('move_line_id.account_id').filtered(
-                                                 lambda account: account.account_type in ('asset_receivable', 'liability_payable'))[0]
+            payment_imputation_ids = payment.get_payment_imputations()
+            if payment_imputation_ids:
+                payment.destination_account_id = payment_imputation_ids.mapped('move_line_id.account_id').filtered(
+                    lambda account: account.account_type in ('asset_receivable', 'liability_payable'))[0]
+
+    def get_payment_imputations(self, partner=None):
+        """
+        Returns the payment imputations for the given partner.
+        If not partner is provided, it returns all payment imputations.
+
+        :param partner: Partner record to filter payment imputations by.
+                        If None, it returns all payment imputations.
+        :type partner: res.partner or None
+        :return: Filtered payment imputation records
+        :rtype: recordset of account.payment.imputation
+        """
+        self.ensure_one()
+        if not partner:
+            return self.payment_imputation_ids
+        else:
+            return self.payment_imputation_ids.filtered(lambda l: l.move_line_id.move_id.partner_id == partner)
+
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

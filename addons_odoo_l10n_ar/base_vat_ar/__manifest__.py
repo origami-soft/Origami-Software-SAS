@@ -5,7 +5,7 @@
 
     'name': 'base_vat_ar',
 
-    'version': '1.0',
+    'version': '1.1',
 
     'summary': 'Document type and validation for partners for Argentina',
 

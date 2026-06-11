@@ -13,12 +13,12 @@ class TestBankReconcile(TransactionCase):
         super(TestBankReconcile, self).setUp()
         # Creo la conciliacion bancaria
         self.bank_reconcile = self.env['account.bank.reconcile'].create({
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'name': 'RECONCILE CAJA PESOS',
         })
         # Creo la conciliacion para moneda extranjera
         self.bank_reconcile_currency = self.env['account.bank.reconcile'].create({
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'name': 'CONCILIACION CON MONEDA EXTRANJERA',
         })
         # Creo el diario para usar en el asiento
@@ -37,35 +37,35 @@ class TestBankReconcile(TransactionCase):
         # Creo las lineas de los asientos con el with context para que no valide el balanceo del asientos
         self.move_line_1 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Caja 1',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'debit': 10,
             'date': '2017-08-24',
             'move_id': self.move.id
         })
         self.move_line_2 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Caja 2',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'debit': 20,
             'date': '2017-08-24',
             'move_id': self.move.id
         })
         self.move_line_3 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Caja 3',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'debit': 30,
             'date': '2017-08-24',
             'move_id': self.move.id
         })
         self.move_line_4 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Caja 4',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'debit': 40,
             'date': '2017-08-24',
             'move_id': self.move.id
         })
         self.move_line_5 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Banco 1',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'credit': 100,
             'date': '2017-08-24',
             'move_id': self.move.id
@@ -80,7 +80,7 @@ class TestBankReconcile(TransactionCase):
         # Creo las lineas para el asiento con la moneda correspondiente
         self.move_line_currency_1 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'debito 1',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'debit': 1000,
             'date': date.today(),
             'currency_id': self.env.ref('base.USD').id,
@@ -89,7 +89,7 @@ class TestBankReconcile(TransactionCase):
         })
         self.move_line_currency_2 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'debito 2',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'debit': 500,
             'date': date.today(),
             'currency_id': self.env.ref('base.USD').id,
@@ -98,7 +98,7 @@ class TestBankReconcile(TransactionCase):
         })
         self.move_line_currency_3 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'debito 3',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'debit': 1500,
             'date': date.today(),
             'currency_id': self.env.ref('base.USD').id,
@@ -107,7 +107,7 @@ class TestBankReconcile(TransactionCase):
         })
         self.move_line_currency_4 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'credito 1',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'credit': 2000,
             'date': date.today(),
             'currency_id': self.env.ref('base.USD').id,
@@ -116,7 +116,7 @@ class TestBankReconcile(TransactionCase):
         })
         self.move_line_currency_5 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'credito 2',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'credit': 1000,
             'date': date.today(),
             'currency_id': self.env.ref('base.USD').id,
@@ -131,14 +131,14 @@ class TestBankReconcile(TransactionCase):
         # Creo move line sin moneda
         new_move_line_currency_1 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'credito new',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'credit': 1000,
             'date': date.today(),
             'move_id': self.move_currency.id
         })
         self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'debito new',
-            'account_id': self.env.ref('l10n_ar.1_materiales_e_insumos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_materiales_e_insumos').id,
             'debit': 1000,
             'date': date.today(),
             'move_id': self.move_currency.id
@@ -224,7 +224,7 @@ class TestBankReconcile(TransactionCase):
                 line.write({'debit': 1000})
 
     def test_reconcile_different_accounts(self):
-        self.move_line_2.account_id = self.env.ref('l10n_ar.1_caja_en_dolares').id
+        self.move_line_2.account_id = self.env.ref('l10n_ar_bo.1_caja_en_dolares').id
         move_lines = self.move_line_1 | self.move_line_2
         wizard = self.env['bank.reconcile.wizard'].with_context(active_ids=move_lines.ids).create({
             'date_start': '2017-08-01',
@@ -261,14 +261,14 @@ class TestBankReconcile(TransactionCase):
         assert self.bank_reconcile.bank_reconcile_line_ids[0].last_balance == 0
         new_move_line_1 = self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Banco 1',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'credit': 1000,
             'date': '2017-08-24',
             'move_id': self.move.id
         })
         self.env['account.move.line'].with_context(check_move_validity=False).create({
             'name': 'Banco 1',
-            'account_id': self.env.ref('l10n_ar.1_caja_en_pesos').id,
+            'account_id': self.env.ref('l10n_ar_bo.1_caja_en_pesos').id,
             'debit': 1000,
             'date': '2017-08-24',
             'move_id': self.move.id
@@ -318,7 +318,7 @@ class TestBankReconcile(TransactionCase):
             wizard.create_conciliation()
 
     def test_no_conciliation_created(self):
-        self.move_line_1.account_id = self.env.ref('l10n_ar.1_caja_en_dolares').id
+        self.move_line_1.account_id = self.env.ref('l10n_ar_bo.1_caja_en_dolares').id
         wizard = self.env['bank.reconcile.wizard'].with_context(active_ids=self.move_line_1.id).create({
             'date_start': '2017-08-01',
             'date_stop': '2017-08-15',
@@ -440,10 +440,10 @@ class TestBankReconcile(TransactionCase):
         })
         wizard.create_conciliation()
         with self.assertRaises(ValidationError):
-            self.bank_reconcile.account_id = self.env.ref('l10n_ar.1_caja_en_dolares').id
+            self.bank_reconcile.account_id = self.env.ref('l10n_ar_bo.1_caja_en_dolares').id
 
         self.bank_reconcile.bank_reconcile_line_ids[0].unlink()
-        self.bank_reconcile.account_id = self.env.ref('l10n_ar.1_caja_en_dolares').id
+        self.bank_reconcile.account_id = self.env.ref('l10n_ar_bo.1_caja_en_dolares').id
 
     def test_onchange_balance(self):
         wizard = self.env['bank.reconcile.wizard'].with_context(active_ids=self.move_line_1.id).create({

@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_account_check_collect',
 
-    'version': '1.0',
+    'version': '1.0.1',
 
     'summary': 'Cobro de cheques propios',
 

@@ -4,7 +4,7 @@
 
     'name': 'l10n_ar_electronic_invoice_report',
 
-    'version': '1.2.1',
+    'version': '1.3',
 
     'description': 'Reporte para facturación electrónica',
 

@@ -5,9 +5,12 @@
     <template id="report_stock_picking" inherit_id="l10n_ar_selfprint_delivery_address.report_selfprint_body">
         <xpath expr="//table[@id='reference_table_delivery_report']/tr" position="inside">
             <td style="text-align: right;">
-                <t t-if="o.carrier_id.show_insurance_value"><b>Valor asegurado:</b> $ <span t-field="o.insurance_value"/></t>
+                <t t-if="o.carrier_id.show_insurance_value"><b>Valor asegurado: </b><t t-if="o.sale_id" t-esc="o.sale_id.currency_id.name"/> <span t-field="o.insurance_value"/></t>
             </td>
-        </xpath>        
+            <td style="text-align: right;">
+                <t t-if="o.insurance_value != o.insurance_value_in_currency and o.carrier_id.show_insurance_value"><b>Valor asegurado en moneda: </b><t t-esc="o.company_id.currency_id.name"/> <span t-field="o.insurance_value_in_currency"/></t>
+            </td>
+        </xpath>
     </template>
 
 </odoo>

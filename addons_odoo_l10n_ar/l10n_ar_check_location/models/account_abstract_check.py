@@ -18,14 +18,13 @@ class AccountAbstractCheck(models.AbstractModel):
         else:
             return super(AccountAbstractCheck, self)._check_name()
 
-    @api.model
-    def create(self, vals):
+    @api.model_create_multi
+    def create(self, vals_list):
         """Redefino el create generar correctamente el nombre segun la ubicacion"""
-        res = super(AccountAbstractCheck, self).create(vals)
-        if res.check_location_id:
-            check_location = self.env['account.check.location'].browse(vals.get('check_location_id'))
-            if check_location.prefix:
-                res.name = "({}) {}".format(check_location.prefix, res.name.lstrip("({}) ".format(res.check_location_id.prefix)))
+        res = super(AccountAbstractCheck, self).create(vals_list)
+        for record in res:
+            if record.check_location_id and record.check_location_id.prefix:
+                record.name = "({}) {}".format(record.check_location_id.prefix, record.name)
         return res
 
     def write(self, vals):

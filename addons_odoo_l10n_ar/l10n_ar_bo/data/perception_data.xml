@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Configuracion de Percepciones (perception.perception.template) -->
+
+        <record id="perception_perception_iva_sufrida" model="perception.perception">
+            <field name="name">Percepción IVA Sufrida</field>
+            <field name="type">vat</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_caba_efectuada" model="perception.perception">
+            <field name="name">Percepción IIBB CABA Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_c"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="perception_perception_iibb_caba_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB CABA Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_c"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_pba_efectuada" model="perception.perception">
+            <field name="name">Percepción IIBB PBA Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_b"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="perception_perception_iibb_pba_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB PBA Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_b"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_tucuman_efectuada" model="perception.perception">
+            <field name="name">Percepción IIBB Tucuman Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_t"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="perception_perception_iibb_tucuman_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Tucuman Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_t"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_ganancias_sufrida" model="perception.perception">
+            <field name="name">Percepción Ganancias Sufrida</field>
+            <field name="type">profit</field>
+            <field name="jurisdiction">nacional</field>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_misiones_efectuada" model="perception.perception">
+            <field name="name">Percepción IIBB Misiones Efectuada</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_n"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">sale</field>
+        </record>
+
+        <record id="perception_perception_iibb_chaco_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Chaco Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_h"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_mendoza_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Mendoza Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_m"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_misiones_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Misiones Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_n"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_neuquen_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Neuquén Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_q"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_chubut_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Chubut Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_u"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_la_pampa_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB La Pampa Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_l"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_san_luis_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB San Luis Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_d"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_santa_fe_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Santa Fe Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_s"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_cordoba_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Córdoba Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_x"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_entre_rios_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Entre Ríos Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_e"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_jujuy_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Jujuy Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_y"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_salta_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Salta Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_a"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_san_juan_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB San Juan Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_j"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_corrientes_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Corrientes Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_w"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_tierra_del_fuego_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Tierra del Fuego Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_v"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+
+        <record id="perception_perception_iibb_formosa_sufrida" model="perception.perception">
+            <field name="name">Percepción IIBB Formosa Sufrida</field>
+            <field name="type">gross_income</field>
+            <field name="jurisdiction">provincial</field>
+            <field name="state_id" ref="base.state_ar_p"/>
+            <field name="company_id" eval="False" />
+            <field name="type_tax_use">purchase</field>
+        </record>
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

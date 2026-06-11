@@ -10,7 +10,7 @@ class AccountTax(models.Model):
     def get_tax_description(self):
         # EJ: IVA 21.0%
         tax_group_internal = self.get_internal_tax_group(self.company_id)
-        if self.tax_group_id == self.env.ref('l10n_ar.tax_group_vat'):
+        if self.tax_group_id == self.env.ref('l10n_ar_bo.tax_group_vat'):
             res = _('VAT ') + str(self.amount) + '%'
         elif self.tax_group_id == tax_group_internal:
             res = _('INTERNAL TAX ') + self.description or ''

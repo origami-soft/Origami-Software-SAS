@@ -102,10 +102,11 @@ class AccountSoldCheck(models.Model):
         if self.interests < 0 or self.commission < 0:
             raise ValidationError("Los importes no pueden ser negativos")
 
-    @api.model
-    def create(self, values):
-        values['name'] = self.env['ir.sequence'].next_by_code('account.sold.check.sequence')
-        return super(AccountSoldCheck, self).create(values)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for values in vals_list:
+            values['name'] = self.env['ir.sequence'].next_by_code('account.sold.check.sequence')
+        return super().create(vals_list)
 
     @api.constrains('account_third_check_ids')
     def check_currency(self):

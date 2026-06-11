@@ -28,7 +28,8 @@ class AccountMove(models.Model):
     )
     voucher_name = fields.Char(
         'Numero documento',
-        copy=False
+        copy=False,
+        index=True
     )
 
     @api.depends('partner_shipping_id', 'partner_id')
@@ -127,7 +128,7 @@ class AccountMove(models.Model):
         """ Valida que la factura no esté duplicada. """
         if self.is_invoice() and self.voucher_name:
             domain = [
-                ('voucher_name', 'ilike', self.voucher_name.lstrip("0")),
+                ('voucher_name', '=', self.voucher_name),
                 ('voucher_type_id', '=', self.voucher_type_id.id),
                 ('move_type', '=', self.move_type),
                 ('state', 'not in', ['draft', 'cancel']),
@@ -136,19 +137,8 @@ class AccountMove(models.Model):
             ]
             if self.is_purchase_document():
                 domain.append(('partner_id', '=', self.partner_id.id))
-            
-            duplicate_invoices = self.search(domain)
 
-            # En caso de que la factura tenga un número de comprobante del estilo XXXX-XXXXXXXX, reviso entre las
-            # facturas encontradas y descarto aquellas que tengan un número de punto de venta distinto (ya que el ilike
-            # del search puede traer números que no corresponden)
-            # Ej.: si mi factura tiene número 0001-00000001 y hay una con número 0011-00000001, la búsqueda de voucher
-            # name va a ser ilike 1-00000001, por lo cual va a traer 0011-00000001 como "duplicada"
-            if '-' in self.voucher_name and self.voucher_name.split('-')[0].isdigit():
-                pos_number = int(self.voucher_name.split('-')[0])
-                duplicate_invoices = duplicate_invoices.filtered(
-                    lambda l: '-' in (l.voucher_name or '') and l.voucher_name.split('-')[0].isdigit() and int(l.voucher_name.split('-')[0]) == pos_number
-                )
+            duplicate_invoices = self.search(domain, limit=1)
 
             if duplicate_invoices:
                 raise ValidationError(

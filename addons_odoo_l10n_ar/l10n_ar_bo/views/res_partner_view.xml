@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+
+        <record model="ir.ui.view" id="partner_l10n_ar_form">
+            <field name="name">Partner l10n_ar form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+                <field name="vat" position="after">
+                    <field name="property_account_position_id" position="move"/>
+                    <field name="iibb_situation" readonly="parent_id != False"/>
+                    <field name="iibb_number" readonly="parent_id != False"/>
+                    <field name="start_date" readonly="parent_id != False"/>
+                </field>
+                <field name="vat" position="attributes">
+                    <attribute name="string">N° de documento</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="partner_document_type_form">
+            <field name="name">Partner document type form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+                <group name="fiscal_information" position="attributes">
+                    <attribute name="invisible">True</attribute>
+                </group>
+            </field>
+        </record>
+
+    </data>
+
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

@@ -19,7 +19,7 @@
     'license': 'OPL-1',
 
     'depends': [
-        'l10n_ar',
+        'l10n_ar_bo',
     ],
 
     'data': [

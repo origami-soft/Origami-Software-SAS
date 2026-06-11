@@ -19,7 +19,7 @@ class StockPicking(models.Model):
 
     def get_voucher_code(self):
         document_book = self.picking_type_id.get_document_book(self.company_id)
-        return document_book.voucher_type_id.code
+        return document_book.voucher_type_id.code if document_book else "R"
 
     def validate_selfprint_fields(self):
         # Se evita realizar las validaciones en caso de acceder desde studio
@@ -70,6 +70,6 @@ class StockPicking(models.Model):
             third += pair
         fourth = third+second
         
-        return 10 - (fourth % 10) if fourth % 10 is not 0 else 0
+        return 10 - (fourth % 10) if fourth % 10 != 0 else 0
     
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

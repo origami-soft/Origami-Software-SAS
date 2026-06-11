@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="res_config_settings_view_form">
+            <field name="name">res_config_settings_view_form</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <block id="account_vendor_bills" position="inside">
+                    <setting id="vat_diary_concept" help="Se deberá seleccionar una opción para el CSV de IVA.">
+                        <field name="vat_diary_concept"/>
+                    </setting>
+                </block>
+            </field>
+        </record>
+
+    </data>
+</odoo>
+
+<!-- vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4-->

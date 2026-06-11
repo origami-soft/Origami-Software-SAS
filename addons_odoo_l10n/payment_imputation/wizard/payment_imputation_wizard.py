@@ -75,6 +75,27 @@ class PaymentImputationWizard(models.TransientModel):
 
     select_all_debit = fields.Boolean('Seleccionar todos los débitos')
     select_all_credit = fields.Boolean('Seleccionar todos los créditos')
+    
+    # Campos para conciliación
+    subtotal_debit = fields.Float(
+        string='Sub-total débitos',
+        compute='_compute_subtotals'
+    )
+    subtotal_credit = fields.Float(
+        string='Sub-total créditos', 
+        compute='_compute_subtotals'
+    )
+    difference = fields.Float(
+        string='Diferencia',
+        compute='_compute_subtotals'
+    )
+
+    @api.depends('debit_imputation_line_ids.amount', 'credit_imputation_line_ids.amount')
+    def _compute_subtotals(self):
+        for record in self:
+            record.subtotal_debit = sum(record.debit_imputation_line_ids.mapped('amount'))
+            record.subtotal_credit = sum(record.credit_imputation_line_ids.mapped('amount'))
+            record.difference = record.subtotal_debit - record.subtotal_credit
 
     def get_journal_domain(self):
         return [('type', 'in', ('bank', 'cash')), ('company_id', '=', self.env.company.id)]
@@ -133,10 +154,23 @@ class PaymentImputationWizard(models.TransientModel):
         return domain
 
     def _get_move_lines(self, currency_id=None):
+        if not (self.partner_id and self.currency_id):
+            return {}
         account_type = 'asset_receivable' if self.payment_type == 'inbound' else 'liability_payable'
         search_domain = self._get_move_lines_domain(account_type, currency_id)
 
         lines = self.env['account.move.line'].search(search_domain)
+
+        # Filtrar líneas con residual cero usando is_zero para evitar problemas de redondeo,
+        # Esto previene que aparezcan anticipos o créditos totalmente imputados,
+        currency = self.env['res.currency'].browse(currency_id)
+        company_currency = self.company_id.currency_id
+
+        lines = lines.filtered(lambda line: 
+            not currency.is_zero(line.amount_residual_currency) if line.amount_currency 
+            else not company_currency.is_zero(line.amount_residual)
+        )
+        
         return {
             'debit_lines':  lines.filtered(lambda x: x.debit > 0 if account_type == 'asset_receivable' else x.credit > 0),
             'credit_lines': lines.filtered(lambda x: x.credit > 0 if account_type == 'asset_receivable' else x.debit > 0)
@@ -171,9 +205,9 @@ class PaymentImputationWizard(models.TransientModel):
         move_line |= self.credit_imputation_line_ids.filtered(lambda x: x.amount).mapped('move_line_id')
         move_line |= self.debit_imputation_line_ids.filtered(lambda x: x.amount).mapped('move_line_id')
         self.reconcile_credits()
-        self.debit_imputation_line_ids.check_imputation_amount()
         
         if self.operation_type == 'payment':
+            self.debit_imputation_line_ids.check_imputation_amount()
             payment = self.env['account.payment'].create(self._get_payment_vals())
 
             return {
@@ -219,69 +253,28 @@ class PaymentImputationWizard(models.TransientModel):
         self.debit_imputation_line_ids.filtered(lambda x: not x.amount).unlink()
         self.credit_imputation_line_ids.filtered(lambda x: not x.amount).unlink()
 
-        lines_to_concile = self.env['account.move.line']
+        for credit_imp in self.credit_imputation_line_ids:
+            for debit_imp in self.debit_imputation_line_ids.filtered(lambda x: x.move_line_id.account_id):
+                # En caso de que la imputación no tenga importe (porque ya se terminó de conciliar) la ignoro
+                if not (credit_imp.amount and debit_imp.amount):
+                    continue
 
-        for imputation in self.credit_imputation_line_ids:
-
-            company_currency = self.company_id.currency_id
-
-            for line in self.debit_imputation_line_ids.filtered(
-                lambda x: x.move_line_id.account_id):
-
-                line_amount = line.amount
-
-                # Si se imputo el restante, ajustamos el valor para ajustar las imprecisiones de usar 2 decimales
-                if round(imputation.amount - imputation.amount_residual_in_payment_currency, ROUND_PRECISION) == 0 and \
-                        round(line_amount - imputation.amount, ROUND_PRECISION) == 0:
-                    self.debit_imputation_line_ids -= line
-                    (line.move_line_id + imputation.move_line_id).reconcile()
-                    break
-
-                # En el caso que no sean iguales, uno de los dos debe
-                # ser mayor que el otro, agarramos el minimo
-                if float_compare(
-                    line_amount,
-                    imputation.amount,
-                    precision_digits=precision_digits
-                ) == -1:
-                    minimun_amount, rate = line_amount, self.get_move_line_rate(line.move_line_id)
+                # En caso de que haya que realizar una conciliación parcial, a diferencia de los casos de arriba, tomo
+                # el importe mínimo entre el débito y crédito actuales
+                if float_compare(debit_imp.amount, credit_imp.amount, precision_digits=precision_digits) == -1:
+                    min_amount, rate = debit_imp.amount, debit_imp.move_line_id.get_move_line_rate()
                 else:
-                    minimun_amount, rate = imputation.amount, self.get_move_line_rate(
-                        imputation.move_line_id)
+                    min_amount, rate = credit_imp.amount, credit_imp.move_line_id.get_move_line_rate()
 
-                line.amount -= minimun_amount
-                imputation.amount -= minimun_amount
-                imputation_amount = float_round(
-                    minimun_amount * rate, precision_digits=precision_digits)
-                amount_currency = minimun_amount if self.currency_id != company_currency\
-                    else imputation_amount
-                debit_move = imputation.move_line_id if imputation.move_line_id.debit > 0\
-                    else line.move_line_id
-                credit_move = imputation.move_line_id if imputation.move_line_id.credit > 0\
-                    else line.move_line_id
+                # Descuento lo que voy a conciliar de los importes actuales del débito y crédito
+                debit_imp.amount -= min_amount
+                credit_imp.amount -= min_amount
 
-                lines_to_concile |= line.move_line_id
-
-                # Si no se imputo el total de la factura, creamos una conciliacion parcial
-                self.env['account.partial.reconcile'].create({
-                    'debit_move_id': debit_move.id,
-                    'credit_move_id': credit_move.id,
-                    'amount': imputation_amount,
-                    'debit_amount_currency': amount_currency,
-                    'credit_amount_currency': amount_currency,
-                    'debit_currency_id': self.currency_id.id,
-                    'credit_currency_id': self.currency_id.id,
-                })
-
-                # Si lo imputado es menor que lo restante a imputar, pasamos a la otra imputación,
-                # si no, sacamos la factura.
-                if imputation.amount > 0:
-                    self.debit_imputation_line_ids -= line
-                else:
-                    break
-
-        lines_to_concile.filtered(lambda l: not l.reconciled).reconcile()
-        self.credit_imputation_line_ids.unlink()
+                # Genero la conciliación parcial entre el débito y el crédito por el mínimo obtenido anteriormente
+                debit_move = credit_imp.move_line_id if credit_imp.move_line_id.debit > 0 else debit_imp.move_line_id
+                credit_move = credit_imp.move_line_id if credit_imp.move_line_id.credit > 0 else debit_imp.move_line_id
+                self.env['account.move.line'].do_partial_reconcile_with_exchange_difference(
+                    debit_move, credit_move, min_amount)
 
     def _validate_payment_imputation(self):
         """ Valida los importes registrados a imputar """
@@ -360,18 +353,5 @@ class PaymentImputationWizard(models.TransientModel):
                 line.amount = line.amount_residual_in_payment_currency
             self._get_total_payment()
             self.select_all_credit = False
-
-    def get_move_line_rate(self, move_line):
-        """Método auxiliar para obtener la cotización utilizada en
-        un account.move.line en particular
-
-        :param move_line: Apunte contable
-        :type move_line: account.move.line()
-        :return: Monto convertido
-        :rtype: float
-        """
-        if not move_line.currency_id or move_line.currency_id == move_line.company_currency_id:
-            return 1
-        return move_line.balance/move_line.amount_currency
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
