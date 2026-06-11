@@ -1,2 +1,0 @@
-l10n_ar_api==2.9.2
-openpyxl

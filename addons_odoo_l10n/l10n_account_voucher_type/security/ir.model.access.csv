@@ -1,2 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-l10n_account_voucher_type_voucher_type_manager,l10n_account_voucher_type.voucher_type.manager,l10n_voucher_type.model_voucher_type,group_manage_voucher_types,1,1,1,1

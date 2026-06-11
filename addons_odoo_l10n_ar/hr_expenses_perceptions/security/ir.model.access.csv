@@ -1,3 +1,0 @@
-id,name,model_id/id,group_id/id,perm_read,perm_write,perm_create,perm_unlink
-hr_expense_perceptions_expense_sheet_perception_user,hr_expense_perceptions.expense.sheet.perception.user,model_expense_sheet_perception,base.group_user,1,0,0,0
-hr_expense_perceptions_expense_sheet_perception_approver,hr_expense_perceptions.expense.sheet.perception.approver,model_expense_sheet_perception,hr_expense.group_hr_expense_team_approver,1,1,1,1

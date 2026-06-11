@@ -1,0 +1,8 @@
+[submodule "addons_odoo_l10n"]
+	path = addons_odoo_l10n
+	url = git@bitbucket.org:blueorangegroup/odoo_l10n.git
+	branch = 17.0
+[submodule "addons_odoo_l10n_ar"]
+	path = addons_odoo_l10n_ar
+	url = git@bitbucket.org:blueorangegroup/odoo_l10n_ar.git
+	branch = 17.0
