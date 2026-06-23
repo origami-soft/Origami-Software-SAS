@@ -6,3 +6,6 @@
 	path = addons_odoo_l10n_ar
 	url = git@bitbucket.org:blueorangegroup/odoo_l10n_ar.git
 	branch = 17.0
+[submodule "migration_scripts"]
+	path = migration_scripts
+	url = git@bitbucket.org:blueorangegroup/migration_scripts.git
